@@ -20,7 +20,7 @@
         #player { width:100% !important; height:100% !important; position: absolute; top:0; left:0; }
 
         /* --- ভিডিও ফুল স্ক্রিন ফিক্স --- */
-        .jw-video {
+        .jw-video.jw-reset {
             width: 100% !important;
             height: 100% !important;
             object-fit: fill !important; /* ভিডিও টেনে পুরো স্ক্রিন পূর্ণ করবে */
@@ -87,7 +87,7 @@
                 <div class="brand-name">RS LIVE <span>TV</span></div>
             </div>
         </div>
-        <div class="loading-text">BUFFERING...</div>
+        <div class="loading-text" id="loading-status">BUFFERING...</div>
     </div>
     <div id="player"></div>
 </div>
@@ -97,16 +97,26 @@
     const streamSource = urlParams.get('url');
 
     if (streamSource) {
+        // ১. CORS Error: 232011 এবং সিকিউরিটি ব্লক ফিক্স করার প্রক্সি লজিক
+        let finalStreamUrl = "";
+        if (streamSource.includes("gpcdn.net") || streamSource.includes("corsproxy")) {
+            finalStreamUrl = streamSource;
+        } else {
+            finalStreamUrl = "https://corsproxy.io/?" + encodeURIComponent(streamSource);
+        }
+
         const player = jwplayer("player").setup({
-            playlist: [{ file: streamSource, type: "hls" }],
+            playlist: [{ file: finalStreamUrl, type: "hls" }],
             width: "100%",
             height: "100%",
             autostart: true,
-            stretching: "fill", // এখানে 'exactfit' এর বদলে 'fill' দেওয়া হয়েছে
+            stretching: "fill", 
             skin: { name: "glow" },
-            displaytitle: false
+            displaytitle: false,
+            loadTimeout: 15 // সার্ভার রিকোয়েস্টের টাইমআউট সেকেন্ড বাড়ল
         });
 
+        // প্লেয়ার রেডি হলে সাউন্ড আনমিউট এবং ১০০% ভলিউম নিশ্চিত করা
         player.on("ready", () => {
             player.setMute(false);
             player.setVolume(100);
@@ -114,22 +124,32 @@
 
         player.on("play", () => {
             document.getElementById("loader").classList.add("hide-now");
+            player.setMute(false);
+            player.setVolume(100);
         });
 
         player.on("buffer", () => {
+            document.getElementById("loading-status").innerText = "BUFFERING...";
             document.getElementById("loader").classList.remove("hide-now");
         });
 
+        player.on("fullscreen", () => {
+            player.setVolume(100);
+        });
+
+        // ২. লিঙ্ক এক্সপায়ার হলে প্লেয়ার ক্র্যাশ না করে নিয়ন লোডারে অটো রিকানেক্ট দেখানোর ট্রিক
         player.on("error", () => {
             const loader = document.getElementById("loader");
+            const loadingStatus = document.getElementById("loading-status");
+            
             loader.classList.remove("hide-now"); 
-            loader.innerHTML = `
-                <div class="error-content">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Stream Offline!</p>
-                    <div class="brand-name">RS LIVE <span>TV</span></div>
-                </div>
-            `;
+            loadingStatus.innerText = "STREAM OFFLINE / RECONNECTING...";
+            
+            // ৫ সেকেন্ড পর অটো রি-লোড ট্রাই করার মেকানিজম
+            setTimeout(() => {
+                player.load([{ file: finalStreamUrl, type: "hls" }]);
+                player.play();
+            }, 5000);
         });
 
     } else {
