@@ -1,32 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RS Player</title>
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
+
+<script>
+jwplayer.key="Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
+</script>
 
 <style>
 html,body{
-margin:0;
-width:100%;
-height:100%;
-background:#000;
-overflow:hidden;
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    background:#000;
+    overflow:hidden;
 }
-video{
-width:100%;
-height:100%;
-background:#000;
-object-fit:fill;
+#player{
+    width:100%;
+    height:100%;
+}
+#loader{
+    position:fixed;
+    inset:0;
+    background:#000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-family:sans-serif;
+    z-index:999;
 }
 </style>
 </head>
 
 <body>
 
-<video id="video" controls autoplay playsinline></video>
+<div id="loader">Loading Stream...</div>
+<div id="player"></div>
 
 <script>
 
@@ -34,25 +49,28 @@ const params = new URLSearchParams(window.location.search);
 
 const stream = decodeURIComponent(params.get("url") || "");
 
-const video = document.getElementById("video");
+if(stream){
 
-if(Hls.isSupported()){
-
-    const hls = new Hls();
-
-    hls.loadSource(stream);
-
-    hls.attachMedia(video);
-
-    hls.on(Hls.Events.MANIFEST_PARSED,function(){
-        video.play();
+    const player = jwplayer("player").setup({
+        file: stream,
+        type: "hls",
+        width: "100%",
+        height: "100%",
+        autostart: true,
+        stretching: "exactfit"
     });
 
-}else if(video.canPlayType('application/vnd.apple.mpegurl')){
+    player.on("play", function () {
+        document.getElementById("loader").style.display = "none";
+    });
 
-    video.src = stream;
+    player.on("error", function () {
+        document.getElementById("loader").innerHTML = "Stream Offline";
+    });
 
-    video.play();
+}else{
+
+    document.getElementById("loader").innerHTML = "No Stream URL";
 
 }
 
