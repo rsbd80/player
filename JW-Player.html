@@ -23,7 +23,7 @@
         .jw-video.jw-reset {
             width: 100% !important;
             height: 100% !important;
-            object-fit: fill !important; /* ভিডিও টেনে পুরো স্ক্রিন পূর্ণ করবে */
+            object-fit: fill !important; 
         }
         
         /* --- কন্ট্রোলার কাস্টমাইজেশন --- */
@@ -70,9 +70,6 @@
         .loading-text { color: rgba(255, 255, 255, 0.6); font-size: 10px; margin-top: 15px; letter-spacing: 2px; text-transform: uppercase; }
         
         .hide-now { opacity: 0 !important; visibility: hidden !important; }
-
-        .error-content { text-align: center; color: #fff; z-index: 100; }
-        .error-content i { font-size: 40px; color: #ff4d4d; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -87,7 +84,7 @@
                 <div class="brand-name">RS LIVE <span>TV</span></div>
             </div>
         </div>
-        <div class="loading-text" id="loading-status">BUFFERING...</div>
+        <div class="loading-text" id="loading-status">LOADING STREAM...</div>
     </div>
     <div id="player"></div>
 </div>
@@ -97,17 +94,71 @@
     const streamSource = urlParams.get('url');
 
     if (streamSource) {
-        // ১. CORS Error: 232011 এবং সিকিউরিটি ব্লক ফিক্স করার প্রক্সি লজিক
+        // ১. এখানে corsproxy.io এর বদলে আপনার ক্লাউডফ্লেয়ার ওয়ার্কারের ইউআরএলটি বসিয়ে দিন
+        // উদাহরণ: "https://your-worker.workers.dev/?url="
+        const cloudflareWorkerUrl = "https://corsproxy.io/?"; 
+        
         let finalStreamUrl = "";
-        if (streamSource.includes("gpcdn.net") || streamSource.includes("corsproxy")) {
-            finalStreamUrl = streamSource;
+        
+        // টোকেন বা সোর্স অনুযায়ী ডাইনামিক ফিল্টারিং
+        if (streamSource.includes("gpcdn.net")) {
+            finalStreamUrl = streamSource; // জিপি লিঙ্কের প্রক্সি লাগবে না
         } else {
-            finalStreamUrl = "https://corsproxy.io/?" + encodeURIComponent(streamSource);
+            finalStreamUrl = cloudflareWorkerUrl + encodeURIComponent(streamSource);
         }
 
         const player = jwplayer("player").setup({
             playlist: [{ file: finalStreamUrl, type: "hls" }],
             width: "100%",
+            height: "100%",
+            autostart: true,
+            stretching: "fill", 
+            skin: { name: "glow" },
+            displaytitle: false,
+            loadTimeout: 30 // নেট স্লো থাকলেও প্লেয়ার যেন ৩০ সেকেন্ড পর্যন্ত ট্রাই করে
+        });
+
+        player.on("ready", () => {
+            player.setMute(false);
+            player.setVolume(100);
+        });
+
+        player.on("play", () => {
+            document.getElementById("loader").classList.add("hide-now");
+            player.setMute(false);
+            player.setVolume(100);
+        });
+
+        player.on("buffer", () => {
+            document.getElementById("loading-status").innerText = "BUFFERING...";
+            document.getElementById("loader").classList.remove("hide-now");
+        });
+
+        player.on("fullscreen", () => {
+            player.setVolume(100);
+        });
+
+        // ২. এরর আসলে সাথে সাথে ক্র্যাশ না করে ব্যাকআপ প্রক্সি দিয়ে রিলোড করার মেকানিজম
+        player.on("error", () => {
+            const loadingStatus = document.getElementById("loading-status");
+            document.getElementById("loader").classList.remove("hide-now");
+            loadingStatus.innerText = "RETRACTING STREAM / RECONNECTING...";
+            
+            // ৫ সেকেন্ড পর অল্টারনেটিভ ব্যাকআপ প্রক্সি দিয়ে আবার চেষ্টা করবে
+            setTimeout(() => {
+                const backupProxy = "https://api.allorigins.win/raw?url=" + encodeURIComponent(streamSource);
+                player.load([{ file: backupProxy, type: "hls" }]);
+                player.play();
+            }, 5000);
+        });
+
+    } else {
+        document.getElementById("loader").innerHTML = '<div class="brand-name">No Stream URL Found</div>';
+    }
+</script>
+    
+</body>
+</html>            width: "100%",
             height: "100%",
             autostart: true,
             stretching: "fill", 
