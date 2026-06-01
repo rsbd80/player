@@ -1,10 +1,9 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>RS Player Pro - Banner Loader</title>
+    <title>RS Player Pro - Code Based UI</title>
 
     <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
     <script>
@@ -15,72 +14,72 @@
 
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family: 'Segoe UI', sans-serif; position: fixed; }
+        html, body { width:100%; height:100%; background:#0a0a12; overflow:hidden; font-family: 'Segoe UI', sans-serif; position: fixed; }
         
         #player-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
         #player { width:100% !important; height:100% !important; position: absolute; top:0; left:0; }
 
-        /* --- কন্ট্রোলার কাস্টমাইজেশন --- */
-        .jw-skin-glow .jw-display-icon-container { 
-            background: rgba(255, 255, 255, 0.1) !important; 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            backdrop-filter: none !important; 
-        }
-        .jw-skin-glow .jw-button-color { color: #ffffff !important; }
-        .jw-skin-glow .jw-controlbar { 
-            background: transparent !important; 
-            backdrop-filter: none !important; 
-        }
-
-        /* --- নতুন ব্যানার লোডার ডিজাইন --- */
+        /* --- কোড-ভিত্তিক লোগো লোডার --- */
         #loader {
             position: absolute; top:0; left:0; width:100%; height:100%;
-            background: #000; display:flex; justify-content:center; align-items:center;
-            z-index:99; transition: opacity 0.5s ease, visibility 0.5s ease;
-            flex-direction: column;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #0a0a12 100%);
+            display:flex; justify-content:center; align-items:center; flex-direction: column;
+            z-index:99; transition: opacity 0.5s ease;
         }
 
-        /* ব্যানার ইমেজ স্টাইল (ফুল স্ক্রিন মোবাইল ফ্রেন্ডলি) */
-        .banner-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* পুরো ব্যানারটি যেন কেটে না যায় এবং মোবাইলের স্ক্রিনে সুন্দরভাবে ফিট হয় */
-            background: #000;
+        /* লোগো কন্টেইনার */
+        .logo-box {
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column;
+            gap: 15px;
         }
-        
-        /* --- লোডিং স্পিনার CSS --- */
-        .loading-spinner {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-top-color: #00c3ff;
+
+        /* RS টেক্সট লোগো */
+        .rs-logo {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -5px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(0, 195, 255, 0.5);
+        }
+        .rs-logo span { color: #00c3ff; }
+
+        /* LIVE টিভি আইকন ও টেক্সট */
+        .live-tag {
+            background: #ff007f;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: 0 0 10px #ff007f;
+        }
+
+        /* লোডিং স্পিনার */
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #00c3ff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            z-index: 100; /* ব্যানার ইমেজের উপরে থাকবে */
+            margin-top: 30px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .hide-now { opacity: 0 !important; visibility: hidden !important; }
-
-        /* এরর মেসেজ স্টাইল */
-        .error-content { text-align: center; color: #fff; z-index: 100; font-weight: 600; letter-spacing: 1px; }
-        .error-content i { font-size: 40px; color: #ff4d4d; margin-bottom: 15px; }
-        .brand-name { font-size: 11px; font-weight: 800; color: #fff; text-transform: uppercase; margin-top: 8px; letter-spacing: 1.5px; }
-        .brand-name span { color: #00c3ff; }
     </style>
 </head>
 <body>
 
 <div id="player-wrapper">
-    <!-- এখানে লোডারের ভেতরে স্পিনার যোগ করা হয়েছে -->
     <div id="loader">
-        <img src="https://i.postimg.cc/FRNb0tRG/file-0000000014e871fa8c3841bf3fa5b6bf.png" alt="RS LIVE TV" class="banner-img">
-        <div class="loading-spinner"></div>
+        <div class="logo-box">
+            <div class="rs-logo">R<span>S</span></div>
+            <div class="live-tag">LIVE TV</div>
+        </div>
+        <div class="spinner"></div>
     </div>
     <div id="player"></div>
 </div>
@@ -100,37 +99,12 @@
             displaytitle: false
         });
 
-        player.on("ready", () => {
-            player.setMute(false);
-            player.setVolume(100);
-        });
-
-        player.on("play", () => {
-            document.getElementById("loader").classList.add("hide-now");
-        });
-
-        player.on("buffer", () => {
-            document.getElementById("loader").classList.remove("hide-now");
-        });
-
-        player.on("error", () => {
-            const loader = document.getElementById("loader");
-            loader.classList.remove("hide-now"); 
-            loader.innerHTML = `
-                <div class="error-content">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Stream Offline!</p>
-                    <div class="brand-name">RS LIVE <span>TV</span></div>
-                </div>
-            `;
-        });
-
+        player.on("play", () => { document.getElementById("loader").classList.add("hide-now"); });
+        player.on("buffer", () => { document.getElementById("loader").classList.remove("hide-now"); });
     } else {
-        document.getElementById("loader").innerHTML = '<div class="brand-name">No Stream URL Found</div>';
+        document.getElementById("loader").innerHTML = '<div style="color:#fff">No Stream URL Found</div>';
     }
 </script>
 
 </body>
 </html>
-
-```
