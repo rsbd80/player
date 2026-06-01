@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>RS Player Pro - Premium Loader</title>
+    <title>RS Player Pro - Futuristic Glass Loader</title>
 
     <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
     <script>
@@ -14,7 +14,7 @@
 
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family: 'Segoe UI', sans-serif; position: fixed; }
+        html, body { width:100%; height:100%; background:#05050c; overflow:hidden; font-family: 'Segoe UI', sans-serif; position: fixed; }
         
         #player-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
         #player { width:100% !important; height:100% !important; position: absolute; top:0; left:0; }
@@ -31,83 +31,97 @@
             backdrop-filter: none !important; 
         }
 
-        /* --- নতুন প্রিমিয়াম লোডার ডিজাইন --- */
+        /* --- সম্পূর্ণ নতুন গ্লাস ও অরবিট লোডার ডিজাইন --- */
         #loader {
             position: absolute; top:0; left:0; width:100%; height:100%;
-            background: radial-gradient(circle, #0a0a16 0%, #000000 100%); display:flex; justify-content:center; align-items:center;
-            z-index:99; flex-direction: column; transition: opacity 0.4s ease, visibility 0.4s ease;
+            background: #030308;
+            display:flex; justify-content:center; align-items:center;
+            z-index:99; flex-direction: column; transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        /* মোশন ব্যাকগ্রাউন্ড গ্লো */
+        #loader::before {
+            content: '';
+            position: absolute;
+            width: 150px; height: 150px;
+            background: linear-gradient(45deg, #00c3ff, #ff007f);
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: pulse-bg 3s ease-in-out infinite alternate;
         }
 
         .loader-container {
             position: relative; 
-            width: 110px; 
-            height: 110px; 
+            width: 120px; 
+            height: 120px; 
             display: flex; justify-content: center; align-items: center;
         }
 
-        .loader-brand { 
-            text-align: center; 
-            z-index: 10; 
-            animation: pulse-glow 2s ease-in-out infinite;
+        /* গ্লাস মরফিজম কোর কোর সার্কেল */
+        .glass-core {
+            position: relative;
+            width: 85px; height: 85px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: inset 0 0 15px rgba(255,255,255,0.05), 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 10;
         }
         
         .tv-icon { 
-            font-size: 26px; 
-            color: #00c3ff; 
-            filter: drop-shadow(0 0 8px #00c3ff);
+            font-size: 22px; 
+            color: #fff; 
+            animation: float-icon 2s ease-in-out infinite;
         }
         
         .brand-name { 
-            font-size: 10px; 
+            font-size: 9px; 
             font-weight: 800; 
             color: #fff; 
             text-transform: uppercase; 
-            margin-top: 6px; 
-            letter-spacing: 1.5px; 
+            margin-top: 5px; 
+            letter-spacing: 1px; 
         }
-        .brand-name span { color: #00c3ff; text-shadow: 0 0 10px rgba(0, 195, 255, 0.6); }
+        .brand-name span { color: #ff007f; text-shadow: 0 0 8px rgba(255, 0, 127, 0.6); }
 
-        /* মাল্টি-লেয়ার নিয়ন রিং অ্যানিমেশন */
-        .neon-ring {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; border: 3px solid transparent;
-        }
-        
-        /* প্রথম রিং (সায়ান ক্লকওয়াইজ) */
-        .neon-ring:nth-child(1) { 
-            border-top: 3px solid #00c3ff; 
-            filter: drop-shadow(0 0 8px #00c3ff);
-            animation: spin-clockwise 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; 
-        }
-        
-        /* দ্বিতীয় রিং (ম্যাজেন্টা কাউন্টার-ক্লকওয়াইজ) */
-        .neon-ring:nth-child(2) { 
-            border-bottom: 3px solid #ff007f; 
-            filter: drop-shadow(0 0 8px #ff007f);
-            animation: spin-counter 1.5s linear infinite; 
+        /* অরবিটিং ট্র্যাক এবং পার্টিকেল */
+        .orbit-track {
+            position: absolute;
+            width: 110px; height: 110px;
+            border: 1px dashed rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            animation: spin-orbit 2.5s linear infinite;
         }
 
-        /* তৃতীয় রিং (সফট গ্লো ব্যাকগ্রাউন্ড ট্র্যাকার) */
-        .neon-ring:nth-child(3) { 
-            border: 3px solid rgba(255, 255, 255, 0.05);
+        /* অরবিটিং গ্লোয়িং ডট (ইলেকট্রন ইফেক্ট) */
+        .orbit-track::after {
+            content: '';
+            position: absolute;
+            top: 5px; left: 5px;
+            width: 10px; height: 10px;
+            background: #00c3ff;
+            border-radius: 50%;
+            box-shadow: 0 0 12px #00c3ff, 0 0 20px #00c3ff;
         }
 
-        /* অ্যানিমেশন কীফ্রেম */
-        @keyframes spin-clockwise { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes spin-counter { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
-        @keyframes pulse-glow { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.05); opacity: 1; } }
-        @keyframes fade-text { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+        /* অ্যানিমেশন কীফ্রেমসমূহ */
+        @keyframes spin-orbit { 100% { transform: rotate(360deg); } }
+        @keyframes pulse-bg { 0% { transform: scale(0.8); opacity: 0.3; } 100% { transform: scale(1.2); opacity: 0.5; } }
+        @keyframes float-icon { 0%, 100% { transform: translateY(0); color: #00c3ff; } 50% { transform: translateY(-4px); color: #ff007f; } }
+        @keyframes text-glow { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        /* বাফারিং টেক্সট */
+        /* মডার্ন প্রগ্রেস ডট টেক্সট */
         .loading-text { 
-            color: #00c3ff; 
-            font-size: 9px; 
-            margin-top: 20px; 
-            letter-spacing: 3px; 
+            color: rgba(255, 255, 255, 0.7); 
+            font-size: 10px; 
+            margin-top: 25px; 
+            letter-spacing: 4px; 
             text-transform: uppercase; 
-            font-weight: 600;
-            animation: fade-text 1.5s ease-in-out infinite;
-            text-shadow: 0 0 5px rgba(0, 195, 255, 0.4);
+            font-weight: 500;
+            animation: text-glow 1.8s ease-in-out infinite;
         }
 
         /* --- ভিডিও সাইড কাটা ফিক্স --- */
@@ -119,7 +133,7 @@
 
         /* এরর মেসেজ */
         .error-content { text-align: center; color: #fff; z-index: 100; }
-        .error-content i { font-size: 40px; color: #ff4d4d; margin-bottom: 15px; filter: drop-shadow(0 0 10px #ff4d4d); }
+        .error-content i { font-size: 35px; color: #ff4d4d; margin-bottom: 15px; filter: drop-shadow(0 0 8px #ff4d4d); }
     </style>
 </head>
 <body>
@@ -127,15 +141,16 @@
 <div id="player-wrapper">
     <div id="loader">
         <div class="loader-container">
-            <div class="neon-ring"></div>
-            <div class="neon-ring"></div>
-            <div class="neon-ring"></div>
-            <div class="loader-brand">
+            <!-- অরবিট ট্র্যাক এবং ঘূর্ণনশীল ডট -->
+            <div class="orbit-track"></div>
+            
+            <!-- গ্লাস ফ্রন্ট কোর -->
+            <div class="glass-core">
                 <i class="fas fa-tv tv-icon"></i>
                 <div class="brand-name">RS LIVE <span>TV</span></div>
             </div>
         </div>
-        <div class="loading-text">LOADING STREAM</div>
+        <div class="loading-text">CONNECTING</div>
     </div>
     <div id="player"></div>
 </div>
@@ -173,8 +188,8 @@
             loader.classList.remove("hide-now"); 
             loader.innerHTML = `
                 <div class="error-content">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p style="margin-bottom:10px; font-weight:600; letter-spacing:1px;">STREAM OFFLINE</p>
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p style="margin-bottom:12px; font-weight:600; font-size:13px; letter-spacing:1px;">STREAM OFFLINE</p>
                     <div class="brand-name">RS LIVE <span>TV</span></div>
                 </div>
             `;
