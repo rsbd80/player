@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RS Player Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<title>RS Player Pro 2026</title>
 
 <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
 <script>
@@ -11,18 +12,14 @@ jwplayer.key="Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
 </script>
 
 <style>
-*{
+html,body{
 margin:0;
 padding:0;
-box-sizing:border-box;
-}
-
-html,body{
 width:100%;
 height:100%;
 background:#000;
 overflow:hidden;
-font-family:Arial,sans-serif;
+font-family:Arial;
 }
 
 #player{
@@ -53,39 +50,35 @@ border-radius:50%;
 animation:spin 1s linear infinite;
 }
 
-.logo{
-margin-top:20px;
-font-size:22px;
-font-weight:bold;
-color:#fff;
-}
-
-.logo span{
-color:#00c3ff;
-}
-
-.loading{
-margin-top:10px;
-color:#aaa;
-font-size:14px;
-}
-
 @keyframes spin{
-100%{
-transform:rotate(360deg);
+100%{transform:rotate(360deg);}
 }
+
+.text{
+color:#fff;
+margin-top:15px;
+font-size:14px;
+letter-spacing:2px;
 }
+
+.logo{
+color:#fff;
+font-size:20px;
+margin-top:10px;
+}
+
+.logo span{color:#00c3ff;}
 
 .watermark{
 position:fixed;
-top:15px;
-right:15px;
-z-index:999;
+top:10px;
+right:10px;
 color:#fff;
-font-size:14px;
+font-size:12px;
 background:rgba(0,0,0,.5);
 padding:6px 10px;
 border-radius:6px;
+z-index:999;
 }
 
 .error{
@@ -94,22 +87,23 @@ top:0;
 left:0;
 width:100%;
 height:100%;
+background:#000;
 display:flex;
 justify-content:center;
 align-items:center;
-background:#000;
 color:#fff;
-font-size:20px;
+font-size:18px;
 z-index:99999;
 }
 </style>
 </head>
+
 <body>
 
 <div id="loader">
 <div class="spinner"></div>
 <div class="logo">RS LIVE <span>TV</span></div>
-<div class="loading">Loading Stream...</div>
+<div class="text">Loading Stream...</div>
 </div>
 
 <div class="watermark">RS LIVE TV</div>
@@ -118,42 +112,98 @@ z-index:99999;
 
 <script>
 const params = new URLSearchParams(window.location.search);
-const stream = params.get("url");
+const stream = decodeURIComponent(params.get("url") || "");
+const name = params.get("name") || "LIVE TV";
 
 if(!stream){
-document.body.innerHTML='<div class="error">No Stream URL Found</div>';
-throw new Error("No Stream URL");
+document.body.innerHTML = "<div class='error'>No Stream URL</div>";
+throw new Error("No URL");
 }
 
+let retry = 0;
+const maxRetry = 5;
+
 const player = jwplayer("player").setup({
-file: decodeURIComponent(stream),
+file: stream,
 type: "hls",
 width: "100%",
 height: "100%",
 autostart: true,
 mute: true,
 stretching: "uniform",
-displaytitle: false,
-displaydescription: false
+displaytitle: false
 });
 
+// hide loader
 player.on("firstFrame", () => {
-document.getElementById("loader").style.display="none";
+document.getElementById("loader").style.display = "none";
 
 setTimeout(()=>{
 player.setMute(false);
 player.setVolume(100);
-},1000);
+},800);
 });
 
+// buffer show loader
+player.on("buffer", () => {
+document.getElementById("loader").style.display = "flex";
+});
+
+// retry system
+function retryStream(){
+if(retry >= maxRetry) return;
+
+retry++;
+
+setTimeout(()=>{
+player.load([{file:stream,type:"hls"}]);
+player.play(true);
+},3000);
+}
+
+// error handling
 player.on("error", () => {
-document.body.innerHTML=
-'<div class="error">Stream Offline</div>';
+retryStream();
+
+if(retry >= maxRetry){
+document.body.innerHTML = "<div class='error'>Stream Offline</div>";
+}
 });
 
-player.on("setupError", () => {
-document.body.innerHTML=
-'<div class="error">Player Error</div>';
+// TV Remote support
+document.addEventListener("keydown", function(e){
+
+switch(e.keyCode){
+
+case 13: // OK
+if(player.getState() === "playing"){
+player.pause();
+}else{
+player.play();
+}
+break;
+
+case 415: // Play
+player.play();
+break;
+
+case 19: // Pause
+player.pause();
+break;
+
+case 37: // left
+player.seek(player.getPosition()-10);
+break;
+
+case 39: // right
+player.seek(player.getPosition()+10);
+break;
+
+case 80: // P key (web)
+player.pause();
+break;
+}
+
 });
 </script>
 
