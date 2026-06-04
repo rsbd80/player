@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>RS Player Pro - Compact Loader</title>
+    <title>RS Player Pro - Premium</title>
 
     <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
     <script>
@@ -23,15 +23,11 @@
         .jw-skin-glow .jw-display-icon-container { 
             background: rgba(255, 255, 255, 0.1) !important; 
             border: 1px solid rgba(255, 255, 255, 0.2); 
-            backdrop-filter: none !important; 
         }
         .jw-skin-glow .jw-button-color { color: #ffffff !important; }
-        .jw-skin-glow .jw-controlbar { 
-            background: transparent !important; 
-            backdrop-filter: none !important; 
-        }
+        .jw-skin-glow .jw-controlbar { background: transparent !important; }
 
-        /* --- লোডার ডিজাইন (সাইজ ছোট করা হয়েছে) --- */
+        /* --- লোডার ডিজাইন --- */
         #loader {
             position: absolute; top:0; left:0; width:100%; height:100%;
             background: #000; display:flex; justify-content:center; align-items:center;
@@ -39,14 +35,12 @@
         }
 
         .loader-container {
-            position: relative; 
-            width: 100px; /* ১৫০ থেকে কমিয়ে ১০০ করা হয়েছে */
-            height: 100px; /* ১৫০ থেকে কমিয়ে ১০০ করা হয়েছে */
+            position: relative; width: 100px; height: 100px; 
             display: flex; justify-content: center; align-items: center;
         }
 
         .loader-brand { text-align: center; z-index: 10; }
-        .tv-icon { font-size: 24px; color: #00c3ff; text-shadow: 0 0 10px #00c3ff; } /* আইকন সাইজ কিছুটা কমানো হয়েছে */
+        .tv-icon { font-size: 24px; color: #00c3ff; text-shadow: 0 0 10px #00c3ff; } 
         .brand-name { font-size: 10px; font-weight: 700; color: #fff; text-transform: uppercase; margin-top: 5px; letter-spacing: 1px; }
         .brand-name span { color: #00c3ff; }
 
@@ -59,19 +53,16 @@
         .neon-ring:nth-child(2) { border-bottom: 2px solid #ff007f; border-left: 2px solid #ff007f; animation-direction: reverse; animation-duration: 2s; box-shadow: 0 0 10px #ff007f; }
 
         @keyframes rotate-vortex { 100% { transform: rotate(360deg); } }
-
         .loading-text { color: rgba(255, 255, 255, 0.6); font-size: 10px; margin-top: 15px; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* --- ভিডিও সাইড কাটা ফিক্স --- */
-        .jw-video.jw-reset { 
-            object-fit: fill !important; 
-        }
-        
+        /* --- ভিডিও রিসাইজ ফিক্স --- */
+        .jw-video.jw-reset { object-fit: fill !important; }
         .hide-now { opacity: 0 !important; visibility: hidden !important; }
 
-        /* এরর মেসেজ */
-        .error-content { text-align: center; color: #fff; z-index: 100; }
+        /* এরর মেসেজ স্টাইল */
+        .error-content { text-align: center; color: #fff; z-index: 100; padding: 20px; }
         .error-content i { font-size: 40px; color: #ff4d4d; margin-bottom: 15px; }
+        .error-msg { font-size: 14px; margin-bottom: 10px; color: #ccc; }
     </style>
 </head>
 <body>
@@ -100,18 +91,32 @@
             playlist: [{ file: streamSource, type: "hls" }],
             width: "100%",
             height: "100%",
-            autostart: true,
+            autostart: "viewable", 
+            mute: true,            
             stretching: "exactfit",
             skin: { name: "glow" },
-            displaytitle: false
+            displaytitle: false,
+            hlshtml: true
         });
 
+        // ১০ সেকেন্ডের একটি সেফটি টাইমার (কানেকশন ব্লক হলে এরর দেখাবে)
+        let connectionTimer = setTimeout(() => {
+            if (player.getState() !== "playing") {
+                showError("Stream Blocked or Offline! (Check HTTP/HTTPS or CORS)");
+            }
+        }, 10000);
+
         player.on("ready", () => {
-            player.setMute(false);
-            player.setVolume(100);
+            const unmutePlayer = () => {
+                player.setMute(false);
+                player.setVolume(100);
+            };
+            window.addEventListener('click', unmutePlayer, { once: true });
+            window.addEventListener('touchstart', unmutePlayer, { once: true });
         });
 
         player.on("play", () => {
+            clearTimeout(connectionTimer); // ভিডিও চালু হলে টাইমার বন্ধ
             document.getElementById("loader").classList.add("hide-now");
         });
 
@@ -119,17 +124,22 @@
             document.getElementById("loader").classList.remove("hide-now");
         });
 
-        player.on("error", () => {
+        player.on("error", (e) => {
+            clearTimeout(connectionTimer);
+            showError("Playback Error! The stream might be offline.");
+        });
+
+        function showError(message) {
             const loader = document.getElementById("loader");
             loader.classList.remove("hide-now"); 
             loader.innerHTML = `
                 <div class="error-content">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <p>Stream Offline!</p>
+                    <p class="error-msg">${message}</p>
                     <div class="brand-name">RS LIVE <span>TV</span></div>
                 </div>
             `;
-        });
+        }
 
     } else {
         document.getElementById("loader").innerHTML = '<div class="brand-name">No Stream URL Found</div>';
