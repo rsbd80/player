@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>RS Player Pro - Compact Loader</title>
+    <title>RS Player Pro - Smart TV Remote</title>
 
     <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
     <script>
@@ -14,73 +14,148 @@
 
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family: 'Segoe UI', sans-serif; position: fixed; }
+        html, body { width:100%; height:100%; background:#050505; overflow:hidden; font-family: 'Segoe UI', sans-serif; position: fixed; }
         
-        #player-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
+        /* সম্পূর্ণ প্লেয়ার র‍্যাপার স্ক্রিন জুড়ে থাকবে */
+        #player-wrapper { position: relative; width: 100%; height: 100%; background: #000; overflow: hidden; }
         #player { width:100% !important; height:100% !important; position: absolute; top:0; left:0; }
 
         /* --- কন্ট্রোলার কাস্টমাইজেশন --- */
-        .jw-skin-glow .jw-display-icon-container { 
-            background: rgba(255, 255, 255, 0.1) !important; 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            backdrop-filter: none !important; 
-        }
+        .jw-skin-glow .jw-display-icon-container { background: rgba(255, 255, 255, 0.1) !important; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: none !important; }
         .jw-skin-glow .jw-button-color { color: #ffffff !important; }
-        .jw-skin-glow .jw-controlbar { 
-            background: transparent !important; 
-            backdrop-filter: none !important; 
-        }
+        .jw-skin-glow .jw-controlbar { background: transparent !important; backdrop-filter: none !important; }
+        .jw-video.jw-reset { object-fit: fill !important; }
 
-        /* --- লোডার ডিজাইন (সাইজ ছোট করা হয়েছে) --- */
+        /* --- অটো-হাইড ডাবল কালার চ্যানেল ইন্ডিকেটর (OSD) --- */
+        #channel-osd {
+            position: absolute; top: 20px; left: 20px; z-index: 100;
+            background: rgba(0, 0, 0, 0.85); border-left: 5px solid #ff007f;
+            padding: 8px 18px; border-radius: 6px; font-weight: bold; font-size: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s;
+        }
+        #channel-osd .label { color: #ff007f; }
+        #channel-osd .number { color: #00c3ff; font-family: monospace; font-size: 20px; }
+        #channel-osd.show { opacity: 1; visibility: visible; }
+
+        /* --- লোডার ডিজাইন (আগেরটাই রাখা হয়েছে) --- */
         #loader {
             position: absolute; top:0; left:0; width:100%; height:100%;
             background: #000; display:flex; justify-content:center; align-items:center;
             z-index:99; flex-direction: column; transition: opacity 0.4s ease;
         }
-
-        .loader-container {
-            position: relative; 
-            width: 100px; /* ১৫০ থেকে কমিয়ে ১০০ করা হয়েছে */
-            height: 100px; /* ১৫০ থেকে কমিয়ে ১০০ করা হয়েছে */
-            display: flex; justify-content: center; align-items: center;
-        }
-
+        .loader-container { position: relative; width: 100px; height: 100px; display: flex; justify-content: center; align-items: center; }
         .loader-brand { text-align: center; z-index: 10; }
-        .tv-icon { font-size: 24px; color: #00c3ff; text-shadow: 0 0 10px #00c3ff; } /* আইকন সাইজ কিছুটা কমানো হয়েছে */
+        .tv-icon { font-size: 24px; color: #00c3ff; text-shadow: 0 0 10px #00c3ff; } 
         .brand-name { font-size: 10px; font-weight: 700; color: #fff; text-transform: uppercase; margin-top: 5px; letter-spacing: 1px; }
         .brand-name span { color: #00c3ff; }
-
-        .neon-ring {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; border: 2px solid transparent;
-            animation: rotate-vortex 1.5s linear infinite;
-        }
+        .neon-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid transparent; animation: rotate-vortex 1.5s linear infinite; }
         .neon-ring:nth-child(1) { border-top: 2px solid #00c3ff; border-right: 2px solid #00c3ff; box-shadow: 0 0 10px #00c3ff; }
         .neon-ring:nth-child(2) { border-bottom: 2px solid #ff007f; border-left: 2px solid #ff007f; animation-direction: reverse; animation-duration: 2s; box-shadow: 0 0 10px #ff007f; }
-
         @keyframes rotate-vortex { 100% { transform: rotate(360deg); } }
-
         .loading-text { color: rgba(255, 255, 255, 0.6); font-size: 10px; margin-top: 15px; letter-spacing: 2px; text-transform: uppercase; }
+        .hide-now { opacity: 0 !important; visibility: hidden !important; pointer-events: none; }
 
-        /* --- ভিডিও সাইড কাটা ফিক্স --- */
-        .jw-video.jw-reset { 
-            object-fit: fill !important; 
+        /* --- রিমোট টগল বাটন (প্লেয়ারের ভেতরে নিচে ছোট করে) --- */
+        #remote-toggle-bar {
+            position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75); border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 16px; text-align: center; color: #fff; font-size: 10px; font-weight: bold;
+            cursor: pointer; letter-spacing: 1.5px; border-radius: 20px; z-index: 105;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+            text-transform: uppercase; transition: background 0.2s;
         }
-        
-        .hide-now { opacity: 0 !important; visibility: hidden !important; }
+        #remote-toggle-bar:hover { background: rgba(0, 195, 255, 0.3); border-color: #00c3ff; }
+        #remote-toggle-bar i { margin-right: 6px; font-size: 11px; color: #00c3ff; }
 
-        /* এরর মেসেজ */
-        .error-content { text-align: center; color: #fff; z-index: 100; }
-        .error-content i { font-size: 40px; color: #ff4d4d; margin-bottom: 15px; }
+        /* --- রিমোট প্যানেল (প্লেয়ারের ভেতরেই ভেসে উঠবে - ওভারলে) --- */
+        #tv-remote {
+            position: absolute; bottom: -500px; left: 50%; transform: translateX(-50%);
+            width: 230px; background: rgba(20, 20, 22, 0.95); border: 2px solid #232327; border-radius: 24px;
+            padding: 15px; z-index: 110; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.12);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 10px;
+            backdrop-filter: blur(10px);
+        }
+        #tv-remote.open { bottom: 65px; } /* বাটন থেকে কিছুটা উপরে ভেসে উঠবে */
+
+        .remote-header { text-align: center; font-size: 8px; color: #555861; font-weight: 700; letter-spacing: 2px; }
+        
+        .remote-top-row { display: flex; justify-content: space-between; width: 100%; }
+        .power-btn { width: 40px; height: 32px; background: rgba(255, 51, 51, 0.1); color: #ff3333; border-radius: 8px; border: 1px solid rgba(255,51,51,0.2); font-size: 13px; cursor: pointer; }
+        .power-btn:active { background: #ff3333; color: #fff; }
+        .close-btn { width: 40px; height: 32px; background: #202024; color: #888; border-radius: 8px; border: none; font-size: 13px; cursor: pointer; }
+
+        /* ম্যাট ব্ল্যাক রাউন্ডেড স্কয়ার কিপ্যাড */
+        .numeric-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+        .num-btn {
+            height: 35px; background: #202024; color: #e2e2e5; border: 1px solid #2a2a30;
+            border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.1s;
+        }
+        .num-btn:active { background: #00c3ff; color: #000; border-color: #00c3ff; }
+
+        /* চ্যানেল ও ওকে বাটন ডিজাইন */
+        .ch-box { width: 100%; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+        .long-btn {
+            width: 100%; height: 35px; background: #202024; color: #aaa; border: 1px solid #2a2a30;
+            border-radius: 10px; font-size: 10px; font-weight: bold; cursor: pointer; display: flex;
+            flex-direction: column; justify-content: center; align-items: center; gap: 1px;
+        }
+        .long-btn i { font-size: 9px; }
+        .long-btn:active { background: #ff007f; color: #fff; border-color: #ff007f; }
+
+        .ok-btn {
+            width: 50px; height: 50px; background: #1a1a1d; color: #fff; border: 2px solid #2a2a30;
+            border-radius: 50%; font-size: 11px; font-weight: bold; cursor: pointer; letter-spacing: 0.5px;
+            margin: 2px 0;
+        }
+        .ok-btn:active { background: #fff; color: #000; }
     </style>
 </head>
 <body>
 
 <div id="player-wrapper">
+    <div id="channel-osd">
+        <span class="label">CH</span>
+        <span class="number" id="osd-number">01</span>
+    </div>
+
+    <div id="remote-toggle-bar" onclick="toggleRemote()">
+        <i class="fas fa-tv"></i> Open Smart TV Remote
+    </div>
+
+    <div id="tv-remote">
+        <div class="remote-header">RS SMART TV</div>
+        
+        <div class="remote-top-row">
+            <button class="power-btn" onclick="location.reload()"><i class="fas fa-power-off"></i></button>
+            <button class="close-btn" onclick="toggleRemote()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="numeric-keypad">
+            <button class="num-btn" onclick="pressNum(1)">1</button>
+            <button class="num-btn" onclick="pressNum(2)">2</button>
+            <button class="num-btn" onclick="pressNum(3)">3</button>
+            <button class="num-btn" onclick="pressNum(4)">4</button>
+            <button class="num-btn" onclick="pressNum(5)">5</button>
+            <button class="num-btn" onclick="pressNum(6)">6</button>
+            <button class="num-btn" onclick="pressNum(7)">7</button>
+            <button class="num-btn" onclick="pressNum(8)">8</button>
+            <button class="num-btn" onclick="pressNum(9)">9</button>
+            <div></div>
+            <button class="num-btn" onclick="pressNum(0)">0</button>
+            <div></div>
+        </div>
+
+        <div class="ch-box">
+            <button class="long-btn" onclick="pressChannel('up')"><i class="fas fa-chevron-up"></i>CH+</button>
+            <button class="ok-btn">OK</button>
+            <button class="long-btn" onclick="pressChannel('down')">CH-<i class="fas fa-chevron-down"></i></button>
+        </div>
+    </div>
+
     <div id="loader">
         <div class="loader-container">
-            <div class="neon-ring"></div>
-            <div class="neon-ring"></div>
+            <div class="neon-ring"></div><div class="neon-ring"></div>
             <div class="loader-brand">
                 <i class="fas fa-tv tv-icon"></i>
                 <div class="brand-name">RS LIVE <span>TV</span></div>
@@ -88,51 +163,106 @@
         </div>
         <div class="loading-text">BUFFERING...</div>
     </div>
+    
     <div id="player"></div>
 </div>
 
 <script>
+    // ডাইনামিক চ্যানেল প্লেলিস্ট ডেটাবেজ (ইচ্ছেমতো আনলিমিটেড চ্যানেল অ্যাড করুন)
+    const channels = {
+        1: { name: "Somoy TV", url: "https://অনলাইন_লিঙ্ক_১.m3u8" },
+        2: { name: "Jamuna TV", url: "https://অনলাইন_লিঙ্ক_২.m3u8" },
+        12: { name: "GTV Live", url: "https://অনলাইন_লিঙ্ক_১২.m3u8" },
+        105: { name: "Discovery", url: "https://অনলাইন_লিঙ্ক_১০৫.m3u8" }
+    };
+
+    let currentChannel = 1;
+    let inputNumber = "";
+    let inputTimeout = null;
+    let osdTimeout = null;
+
     const urlParams = new URLSearchParams(window.location.search);
-    const streamSource = urlParams.get('url');
+    let streamSource = urlParams.get('url') || channels[currentChannel].url;
 
-    if (streamSource) {
-        const player = jwplayer("player").setup({
-            playlist: [{ file: streamSource, type: "hls" }],
-            width: "100%",
-            height: "100%",
-            autostart: true,
-            stretching: "exactfit",
-            skin: { name: "glow" },
-            displaytitle: false
-        });
+    // JW Player সেটআপ
+    const player = jwplayer("player").setup({
+        playlist: [{ file: streamSource, type: "hls" }],
+        width: "100%", height: "100%", autostart: true,
+        stretching: "exactfit", skin: { name: "glow" }, displaytitle: false
+    });
 
-        player.on("ready", () => {
-            player.setMute(false);
-            player.setVolume(100);
-        });
+    player.on("play", () => document.getElementById("loader").classList.add("hide-now"));
+    player.on("buffer", () => document.getElementById("loader").classList.remove("hide-now"));
 
-        player.on("play", () => {
-            document.getElementById("loader").classList.add("hide-now");
-        });
+    // রিমোট অন/অফ ফাংশন
+    function toggleRemote() {
+        document.getElementById("tv-remote").classList.toggle("open");
+    }
 
-        player.on("buffer", () => {
+    // অটো-হাইড ওএসডি (OSD) ডিসপ্লে ফাংশন
+    function triggerChannelOSD(chNum) {
+        clearTimeout(osdTimeout);
+        const osd = document.getElementById("channel-osd");
+        const osdNum = document.getElementById("osd-number");
+        
+        osdNum.innerText = chNum < 10 ? "0" + chNum : chNum;
+        osd.classList.add("show");
+
+        // ৩ সেকেন্ড পর অটোমেটিক হাইড হবে
+        osdTimeout = setTimeout(() => {
+            osd.classList.remove("show");
+        }, 3000);
+    }
+
+    // চ্যানেল পরিবর্তনের মূল ফাংশন
+    function playChannel(chNum) {
+        if (channels[chNum]) {
+            currentChannel = chNum;
+            triggerChannelOSD(chNum); // ওএসডি পপ-আপ অন হবে
+            
             document.getElementById("loader").classList.remove("hide-now");
-        });
+            player.load([{ file: channels[chNum].url, type: "hls" }]);
+            player.play();
+        } else {
+            const osdNum = document.getElementById("osd-number");
+            osdNum.innerText = "Error";
+            document.getElementById("channel-osd").classList.add("show");
+            setTimeout(() => document.getElementById("channel-osd").classList.remove("show"), 1500);
+        }
+    }
 
-        player.on("error", () => {
-            const loader = document.getElementById("loader");
-            loader.classList.remove("hide-now"); 
-            loader.innerHTML = `
-                <div class="error-content">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Stream Offline!</p>
-                    <div class="brand-name">RS LIVE <span>TV</span></div>
-                </div>
-            `;
-        });
+    // নাম্বার ইনপুট হ্যান্ডলিং
+    function pressNum(num) {
+        clearTimeout(inputTimeout);
+        inputNumber += num;
 
-    } else {
-        document.getElementById("loader").innerHTML = '<div class="brand-name">No Stream URL Found</div>';
+        document.getElementById("osd-number").innerText = inputNumber;
+        document.getElementById("channel-osd").classList.add("show");
+
+        if (inputNumber.length >= 3) {
+            playChannel(parseInt(inputNumber));
+            inputNumber = "";
+        } else {
+            inputTimeout = setTimeout(() => {
+                if (inputNumber !== "") {
+                    playChannel(parseInt(inputNumber));
+                    inputNumber = "";
+                }
+            }, 1500);
+        }
+    }
+
+    // CH + / CH - ফাংশন
+    function pressChannel(direction) {
+        const allKeys = Object.keys(channels).map(Number).sort((a,b)=>a-b);
+        let index = allKeys.indexOf(currentChannel);
+
+        if (direction === 'up') {
+            index = (index + 1) % allKeys.length;
+        } else {
+            index = (index - 1 + allKeys.length) % allKeys.length;
+        }
+        playChannel(allKeys[index]);
     }
 </script>
 
