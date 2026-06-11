@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>RS Player Pro - Premium Remote</title>
+    <title>RS Player Pro - Live Streaming</title>
 
     <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
     <script>
@@ -17,19 +17,12 @@
         html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family: 'Segoe UI', sans-serif; position: fixed; }
         
         #player-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
-        #player { width:100% !important; height:100% !important; position: absolute; top:0; left:0; }
+        #player { width:100% !important; height:100% !important; position: absolute; top:0; left:0; z-index: 1; }
 
         /* --- কন্ট্রোলার কাস্টমাইজেশন --- */
-        .jw-skin-glow .jw-display-icon-container { 
-            background: rgba(255, 255, 255, 0.1) !important; 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            backdrop-filter: none !important; 
-        }
-        .jw-skin-glow .jw-button-color { color: #ffffff !important; }
-        .jw-skin-glow .jw-controlbar { 
-            background: transparent !important; 
-            backdrop-filter: none !important; 
-        }
+        .jw-skin-glow .jw-display-icon-container { display: none !important; } /* ডিফল্ট আইকন হাইড */
+        .jw-skin-glow .jw-controlbar { background: transparent !important; backdrop-filter: none !important; }
+        .jw-video.jw-reset { object-fit: fill !important; }
 
         /* --- লোডার ডিজাইন --- */
         #loader {
@@ -37,105 +30,101 @@
             background: #000; display:flex; justify-content:center; align-items:center;
             z-index:99; flex-direction: column; transition: opacity 0.4s ease;
         }
-
-        .loader-container {
-            position: relative; 
-            width: 100px; 
-            height: 100px; 
-            display: flex; justify-content: center; align-items: center;
-        }
-
+        .loader-container { position: relative; width: 100px; height: 100px; display: flex; justify-content: center; align-items: center; }
         .loader-brand { text-align: center; z-index: 10; }
         .tv-icon { font-size: 24px; color: #00c3ff; text-shadow: 0 0 10px #00c3ff; } 
         .brand-name { font-size: 10px; font-weight: 700; color: #fff; text-transform: uppercase; margin-top: 5px; letter-spacing: 1px; }
         .brand-name span { color: #00c3ff; }
-
-        .neon-ring {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; border: 2px solid transparent;
-            animation: rotate-vortex 1.5s linear infinite;
-        }
+        .neon-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid transparent; animation: rotate-vortex 1.5s linear infinite; }
         .neon-ring:nth-child(1) { border-top: 2px solid #00c3ff; border-right: 2px solid #00c3ff; box-shadow: 0 0 10px #00c3ff; }
         .neon-ring:nth-child(2) { border-bottom: 2px solid #ff007f; border-left: 2px solid #ff007f; animation-direction: reverse; animation-duration: 2s; box-shadow: 0 0 10px #ff007f; }
-
         @keyframes rotate-vortex { 100% { transform: rotate(360deg); } }
-
         .loading-text { color: rgba(255, 255, 255, 0.6); font-size: 10px; margin-top: 15px; letter-spacing: 2px; text-transform: uppercase; }
-
-        /* --- ভিডিও সাইড কাটা ফিক্স --- */
-        .jw-video.jw-reset { 
-            object-fit: fill !important; 
-        }
-        
         .hide-now { opacity: 0 !important; visibility: hidden !important; }
+
+        /* ================= হুবহু ছবির মতো টপ বার ডিজাইন ================= */
+        .player-top-bar {
+            position: absolute; top: 0; left: 0; width: 100%; height: 60px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0));
+            z-index: 10; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 15px; pointer-events: auto;
+        }
+        .top-left { display: flex; align-items: center; gap: 12px; color: #fff; }
+        .back-btn { font-size: 18px; cursor: pointer; color: #fff; }
+        .channel-logo { width: 32px; height: 32px; background: #fff; border-radius: 6px; padding: 2px; object-fit: contain; }
+        .channel-title { font-size: 16px; font-weight: bold; color: #fff; letter-spacing: 0.5px; }
+
+        .top-right { display: flex; align-items: center; gap: 15px; color: #fff; }
+        .server-container { display: flex; gap: 6px; }
+        .server-btn { padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: bold; border: none; cursor: pointer; background: rgba(255,255,255,0.1); color: #fff; }
+        .server-btn.active { background: #e91e63; color: #fff; } /* ছবির মতো চেরি/গোলাপি অ্যাক্টিভ বাটন */
+        
+        .nav-btn { font-size: 14px; cursor: pointer; color: #fff; background: none; border: none; padding: 5px; }
+        .action-icon { font-size: 16px; cursor: pointer; color: #fff; }
+
+        /* ================= ছবির মতো নিচের গ্রিড রিমোট আইকন ================= */
+        #remote-grid-toggle {
+            position: absolute; bottom: 20px; right: 25px;
+            width: 46px; height: 46px; background: #e91e63; /* হুবহু ছবির মতো গোলাপি কালার */
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            color: #fff; font-size: 16px; cursor: pointer; z-index: 10;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4); transition: transform 0.2s;
+        }
+        #remote-grid-toggle:active { transform: scale(0.9); }
+
+        /* ================= প্রিমিয়াম ম্যাট ব্ল্যাক রিমোট বডি ================= */
+        #tv-remote-panel {
+            position: absolute; bottom: 80px; right: 25px;
+            width: 210px; background: #131316; border: 2px solid #222226; border-radius: 24px;
+            padding: 16px; z-index: 20; display: none; flex-direction: column; gap: 10px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.85);
+        }
+        #tv-remote-panel.open { display: flex !important; }
+        .remote-brand { text-align: center; font-size: 9px; color: #4e515a; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+        .remote-row { display: flex; justify-content: space-between; gap: 10px; }
+        .pwr-btn { width: 48px; height: 35px; background: rgba(255, 40, 40, 0.08); color: #ff3b3b; border-radius: 10px; border: 1px solid rgba(255,39,39,0.15); font-size: 13px; cursor: pointer; }
+        .cls-btn { width: 48px; height: 35px; background: #1c1c21; color: #666; border-radius: 10px; border: 1px solid #25252b; font-size: 12px; cursor: pointer; }
+        .num-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .r-btn { height: 38px; background: #1c1c21; color: #e1e1e6; border: 1px solid #25252b; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
+        .r-btn:active { background: #00c3ff; color: #000; }
+        .ch-container { display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; }
+        .ch-btn { width: 100%; height: 35px; background: #1c1c21; color: #8a8d99; border: 1px solid #25252b; border-radius: 10px; font-size: 9px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .ok-btn { width: 48px; height: 48px; background: #141417; color: #fff; border: 2px solid #25252b; border-radius: 50%; font-size: 11px; font-weight: bold; cursor: pointer; }
 
         /* এরর মেসেজ */
         .error-content { text-align: center; color: #fff; z-index: 100; }
         .error-content i { font-size: 40px; color: #ff4d4d; margin-bottom: 15px; }
-
-        /* ================= রিমোট আইকন ও প্যানেল ডিজাইন (আপনার ছবির মতো) ================= */
-        
-        /* রিমোট ওপেন করার আইকন বাটন (আপনার ইমেজের ওপেন রিমোট বারের মতো স্টাইলিশ ব্ল্যাক বর্ডার) */
-        #remote-toggle-icon {
-            position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
-            width: 45px; height: 45px; background: rgba(15, 15, 15, 0.85); 
-            border: 1.5px solid rgba(255, 255, 255, 0.15); border-radius: 50%;
-            display: none; justify-content: center; align-items: center;
-            color: #ffffff; font-size: 18px; cursor: pointer; z-index: 150;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5); backdrop-filter: blur(8px);
-            transition: all 0.2s ease;
-        }
-        #remote-toggle-icon:hover { border-color: #00c3ff; color: #00c3ff; }
-
-        /* পিসি এবং স্মার্ট টিভির জন্য আইকন সবসময় নিচে শো থাকবে */
-        @media (min-width: 1024px) {
-            #remote-toggle-icon { display: flex !important; }
-        }
-        
-        /* মোবাইল যখন ফুল স্ক্রিন এবং রোটেট (Landscape) হবে তখন শো করার জন্য ক্লাস */
-        .mobile-fullscreen-landscape { display: flex !important; }
-
-        /* রিমোট কন্ট্রোল বডি (হুবহু ইমেজ "1000031334.jpg" এর মতো ম্যাট ব্ল্যাক প্রিমিয়াম ডিজাইন) */
-        #tv-remote-panel {
-            position: absolute; bottom: 70px; right: 25px;
-            width: 210px; background: #131316; border: 2px solid #222226; border-radius: 24px;
-            padding: 16px; z-index: 200; display: none; flex-direction: column; gap: 10px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.85); font-family: sans-serif;
-        }
-        #tv-remote-panel.open { display: flex !important; }
-
-        .remote-brand { text-align: center; font-size: 9px; color: #4e515a; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 2px; }
-        .remote-row { display: flex; justify-content: space-between; gap: 10px; }
-        
-        /* লাল পাওয়ার বাটন ও ক্লোজ বাটন */
-        .pwr-btn { width: 48px; height: 35px; background: rgba(255, 40, 40, 0.08); color: #ff3b3b; border-radius: 10px; border: 1px solid rgba(255,39,39,0.15); font-size: 13px; cursor: pointer; }
-        .pwr-btn:active { background: #ff3b3b; color: #fff; }
-        .cls-btn { width: 48px; height: 35px; background: #1c1c21; color: #666; border-radius: 10px; border: 1px solid #25252b; font-size: 12px; cursor: pointer; }
-
-        /* ম্যাট ব্ল্যাক রাউন্ডেড স্কয়ার কিপ্যাড */
-        .num-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .r-btn {
-            height: 38px; background: #1c1c21; color: #e1e1e6; border: 1px solid #25252b;
-            border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.1s;
-        }
-        .r-btn:active { background: #00c3ff; color: #000; border-color: #00c3ff; }
-
-        /* চ্যানেল এবং মাঝখানে গোল ওকে বাটন */
-        .ch-container { display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; margin-top: 4px; }
-        .ch-btn {
-            width: 100%; height: 35px; background: #1c1c21; color: #8a8d99; border: 1px solid #25252b;
-            border-radius: 10px; font-size: 9px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;
-        }
-        .ch-btn i { font-size: 10px; }
-        .ch-btn:active { background: #ff007f; color: #fff; border-color: #ff007f; }
-        
-        .ok-btn { width: 48px; height: 48px; background: #141417; color: #fff; border: 2px solid #25252b; border-radius: 50%; font-size: 11px; font-weight: bold; cursor: pointer; box-shadow: inset 0 0 8px rgba(0,0,0,0.5); }
-        .ok-btn:active { background: #fff; color: #000; }
     </style>
 </head>
 <body>
 
 <div id="player-wrapper">
+    <!-- টপ বার কন্ট্রোলার (হুবহু ছবির মতো ডিজাইন) -->
+    <div class="player-top-bar">
+        <div class="top-left">
+            <i class="fas fa-chevron-left back-btn" onclick="history.back()"></i>
+            <span style="font-size: 14px; font-weight: bold; color: #aaa;">4.</span>
+            <!-- এখানে আপনার লোগোর ইমেজ লিঙ্ক বসাতে পারেন -->
+            <img class="channel-logo" src="https://upload.wikimedia.org/wikipedia/commons/2/22/Bangladesh_Television_logo.svg" alt="Logo">
+            <div class="channel-title">BTV CTG</div>
+        </div>
+        
+        <div class="top-right">
+            <div class="server-container">
+                <button class="server-btn" onclick="switchServer(1)">Server 1</button>
+                <button class="server-btn active" onclick="switchServer(2)">Server 2</button>
+            </div>
+            <!-- নেক্সট এবং প্রিভিয়াস বাটন -->
+            <button class="nav-btn" onclick="prevChannel()"><i class="fas fa-caret-left"></i></button>
+            <button class="nav-btn" onclick="nextChannel()"><i class="fas fa-caret-right"></i></button>
+            <!-- রিলোড, ফুলস্ক্রিন ও সেটিংস আইকন -->
+            <i class="fas fa-sync-alt action-icon" onclick="location.reload()"></i>
+            <i class="fas fa-expand action-icon" onclick="toggleFullscreen()"></i>
+            <i class="fas fa-cog action-icon"></i>
+        </div>
+    </div>
+
+    <!-- লোডার স্ক্রিন -->
     <div id="loader">
         <div class="loader-container">
             <div class="neon-ring"></div>
@@ -148,10 +137,12 @@
         <div class="loading-text">BUFFERING...</div>
     </div>
 
-    <div id="remote-toggle-icon" onclick="toggleRemote()">
-        <i class="fas fa-tv"></i>
+    <!-- গোলাপি গ্রিড আইকন বাটন (রিমোট কন্ট্রোলার ওপেন করার জন্য) -->
+    <div id="remote-grid-toggle" onclick="toggleRemote()">
+        <i class="fas fa-th"></i>
     </div>
 
+    <!-- রিমোট কন্ট্রোল প্যানেল -->
     <div id="tv-remote-panel">
         <div class="remote-brand">RS SMART TV</div>
         <div class="remote-row">
@@ -181,27 +172,14 @@
     if (streamSource) {
         const player = jwplayer("player").setup({
             playlist: [{ file: streamSource, type: "hls" }],
-            width: "100%",
-            height: "100%",
-            autostart: true,
-            stretching: "exactfit",
-            skin: { name: "glow" },
-            displaytitle: false
+            width: "100%", height: "100%",
+            autostart: true, stretching: "exactfit",
+            skin: { name: "glow" }, displaytitle: false
         });
 
-        player.on("ready", () => {
-            player.setMute(false);
-            player.setVolume(100);
-        });
-
-        player.on("play", () => {
-            document.getElementById("loader").classList.add("hide-now");
-        });
-
-        player.on("buffer", () => {
-            document.getElementById("loader").classList.remove("hide-now");
-        });
-
+        player.on("ready", () => { player.setMute(false); player.setVolume(100); });
+        player.on("play", () => document.getElementById("loader").classList.add("hide-now"));
+        player.on("buffer", () => document.getElementById("loader").classList.remove("hide-now"));
         player.on("error", () => {
             const loader = document.getElementById("loader");
             loader.classList.remove("hide-now"); 
@@ -210,53 +188,35 @@
                     <i class="fas fa-exclamation-triangle"></i>
                     <p>Stream Offline!</p>
                     <div class="brand-name">RS LIVE <span>TV</span></div>
-                </div>
-            `;
+                </div>`;
         });
-
     } else {
         document.getElementById("loader").innerHTML = '<div class="brand-name">No Stream URL Found</div>';
     }
 
-    // ================= রিমোট কন্ট্রোল এবং মোবাইল স্ক্রিন ডিটেকশন লজিক =================
-    
+    // ================= অ্যাকশন ফাংশনসমূহ =================
     function toggleRemote() {
         document.getElementById("tv-remote-panel").classList.toggle("open");
     }
-
-    function pressNum(num) {
-        console.log("Pressed Number: " + num);
-        // এখানে আপনার প্রয়োজন অনুযায়ী চ্যানেলের অ্যাকশন বসাতে পারেন।
+    function switchServer(id) {
+        console.log("Switched to Server " + id);
     }
-
-    function changeChannel(dir) {
-        console.log("Channel direction: " + dir);
+    function nextChannel() {
+        console.log("Next Channel Triggered");
     }
-
-    // মোবাইল স্ক্রিন ফুল স্ক্রিন এবং রোটেট (Landscape) কি না তা পরীক্ষা করার লজিক
-    function checkMobileView() {
-        const icon = document.getElementById("remote-toggle-icon");
-        
-        if (window.innerWidth < 1024) { // মোবাইল অথবা ট্যাবলেটের ক্ষেত্রে
-            const isLandscape = window.innerWidth > window.innerHeight;
-            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || window.innerHeight == screen.height;
-
-            // যদি স্ক্রিন ফুলস্ক্রিন এবং রোটেট (Landscape) দুটিই একসাথে হয়
-            if (isLandscape && isFullscreen) {
-                icon.classList.add("mobile-fullscreen-landscape");
-            } else {
-                icon.classList.remove("mobile-fullscreen-landscape");
-                document.getElementById("tv-remote-panel").classList.remove("open");
-            }
+    function prevChannel() {
+        console.log("Previous Channel Triggered");
+    }
+    function toggleFullscreen() {
+        const el = document.getElementById("player-wrapper");
+        if (!document.fullscreenElement) {
+            el.requestFullscreen().catch(err => alert(err.message));
+        } else {
+            document.exitFullscreen();
         }
     }
-
-    // ইভেন্ট লিসেনারস (স্ক্রিন ফুলস্ক্রিন ও রোটেট ট্র্যাক করার জন্য)
-    window.addEventListener("resize", checkMobileView);
-    window.addEventListener("orientationchange", checkMobileView);
-    document.addEventListener("fullscreenchange", checkMobileView);
-    document.addEventListener("webkitfullscreenchange", checkMobileView);
-    document.addEventListener("DOMContentLoaded", checkMobileView);
+    function pressNum(num) { console.log("Pressed: " + num); }
+    function changeChannel(dir) { console.log("CH: " + dir); }
 </script>
 
 </body>
