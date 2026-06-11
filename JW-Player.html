@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>RS Player Pro - Compact Loader</title>
+    <title>RS Player Pro - Premium Remote</title>
 
     <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
     <script>
@@ -73,66 +73,69 @@
         .error-content { text-align: center; color: #fff; z-index: 100; }
         .error-content i { font-size: 40px; color: #ff4d4d; margin-bottom: 15px; }
 
-        /* ================= নতুন রিমোট আইকন ও প্যানেল ডিজাইন ================= */
+        /* ================= রিমোট আইকন ও প্যানেল ডিজাইন (আপনার ছবির মতো) ================= */
         
-        /* শুধু আইকন বাটন (প্লেয়ারের ভেতরে নিচে ছোট করে) */
+        /* রিমোট ওপেন করার আইকন বাটন (আপনার ইমেজের ওপেন রিমোট বারের মতো স্টাইলিশ ব্ল্যাক বর্ডার) */
         #remote-toggle-icon {
             position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
-            width: 42px; height: 42px; background: rgba(0, 0, 0, 0.75); 
-            border: 1px solid rgba(0, 195, 255, 0.4); border-radius: 50%;
+            width: 45px; height: 45px; background: rgba(15, 15, 15, 0.85); 
+            border: 1.5px solid rgba(255, 255, 255, 0.15); border-radius: 50%;
             display: none; justify-content: center; align-items: center;
-            color: #00c3ff; font-size: 18px; cursor: pointer; z-index: 150;
-            box-shadow: 0 0 10px rgba(0, 195, 255, 0.3); transition: all 0.3s ease;
+            color: #ffffff; font-size: 18px; cursor: pointer; z-index: 150;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
         }
-        #remote-toggle-icon:hover { background: #00c3ff; color: #000; box-shadow: 0 0 15px #00c3ff; }
+        #remote-toggle-icon:hover { border-color: #00c3ff; color: #00c3ff; }
 
-        /* পিসি এবং স্মার্ট টিভির জন্য আইকন সবসময় শো থাকবে */
+        /* পিসি এবং স্মার্ট টিভির জন্য আইকন সবসময় নিচে শো থাকবে */
         @media (min-width: 1024px) {
             #remote-toggle-icon { display: flex !important; }
         }
         
-        /* মোবাইল যখন রোটেড/ল্যান্ডস্কেপ (Landscape) হবে তখন শো করার জন্য ক্লাস */
-        @media (max-width: 1023px) and (orientation: landscape) {
-            .mobile-landscape-show { display: flex !important; }
-        }
+        /* মোবাইল যখন ফুল স্ক্রিন এবং রোটেট (Landscape) হবে তখন শো করার জন্য ক্লাস */
+        .mobile-fullscreen-landscape { display: flex !important; }
 
-        /* রিমোট কন্ট্রোল বডি প্যানেল (ইমেজ "1000031334_2.jpg" এর মতো ম্যাট ব্ল্যাক ডিজাইন) */
+        /* রিমোট কন্ট্রোল বডি (হুবহু ইমেজ "1000031334.jpg" এর মতো ম্যাট ব্ল্যাক প্রিমিয়াম ডিজাইন) */
         #tv-remote-panel {
-            position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
-            width: 220px; background: #141416; border: 2px solid #232327; border-radius: 24px;
-            padding: 15px; z-index: 200; display: none; flex-direction: column; gap: 10px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            position: absolute; bottom: 70px; right: 25px;
+            width: 210px; background: #131316; border: 2px solid #222226; border-radius: 24px;
+            padding: 16px; z-index: 200; display: none; flex-direction: column; gap: 10px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.85); font-family: sans-serif;
         }
         #tv-remote-panel.open { display: flex !important; }
 
-        .remote-brand { text-align: center; font-size: 9px; color: #555861; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-        .remote-row { display: flex; justify-content: space-between; gap: 8px; }
+        .remote-brand { text-align: center; font-size: 9px; color: #4e515a; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 2px; }
+        .remote-row { display: flex; justify-content: space-between; gap: 10px; }
         
-        .pwr-btn { width: 45px; height: 35px; background: rgba(255, 51, 51, 0.1); color: #ff3333; border-radius: 8px; border: 1px solid rgba(255,51,51,0.2); font-size: 14px; cursor: pointer; }
-        .pwr-btn:active { background: #ff3333; color: #fff; }
-        .cls-btn { width: 45px; height: 35px; background: #202024; color: #888; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; }
+        /* লাল পাওয়ার বাটন ও ক্লোজ বাটন */
+        .pwr-btn { width: 48px; height: 35px; background: rgba(255, 40, 40, 0.08); color: #ff3b3b; border-radius: 10px; border: 1px solid rgba(255,39,39,0.15); font-size: 13px; cursor: pointer; }
+        .pwr-btn:active { background: #ff3b3b; color: #fff; }
+        .cls-btn { width: 48px; height: 35px; background: #1c1c21; color: #666; border-radius: 10px; border: 1px solid #25252b; font-size: 12px; cursor: pointer; }
 
-        .num-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        /* ম্যাট ব্ল্যাক রাউন্ডেড স্কয়ার কিপ্যাড */
+        .num-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .r-btn {
-            height: 36px; background: #202024; color: #e2e2e5; border: 1px solid #2a2a30;
-            border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+            height: 38px; background: #1c1c21; color: #e1e1e6; border: 1px solid #25252b;
+            border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.1s;
         }
         .r-btn:active { background: #00c3ff; color: #000; border-color: #00c3ff; }
 
-        .ch-container { display: flex; flex-direction: column; gap: 5px; align-items: center; width: 100%; }
+        /* চ্যানেল এবং মাঝখানে গোল ওকে বাটন */
+        .ch-container { display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; margin-top: 4px; }
         .ch-btn {
-            width: 100%; height: 34px; background: #202024; color: #aaa; border: 1px solid #2a2a30;
-            border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            width: 100%; height: 35px; background: #1c1c21; color: #8a8d99; border: 1px solid #25252b;
+            border-radius: 10px; font-size: 9px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;
         }
-        .ch-btn:active { background: #ff007f; color: #fff; }
-        .ok-btn { width: 46px; height: 46px; background: #1a1a1d; color: #fff; border: 2px solid #2a2a30; border-radius: 50%; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .ch-btn i { font-size: 10px; }
+        .ch-btn:active { background: #ff007f; color: #fff; border-color: #ff007f; }
+        
+        .ok-btn { width: 48px; height: 48px; background: #141417; color: #fff; border: 2px solid #25252b; border-radius: 50%; font-size: 11px; font-weight: bold; cursor: pointer; box-shadow: inset 0 0 8px rgba(0,0,0,0.5); }
         .ok-btn:active { background: #fff; color: #000; }
     </style>
 </head>
 <body>
 
 <div id="player-wrapper">
-    <!-- আপনার অরিজিনাল লোডার -->
     <div id="loader">
         <div class="loader-container">
             <div class="neon-ring"></div>
@@ -145,12 +148,10 @@
         <div class="loading-text">BUFFERING...</div>
     </div>
 
-    <!-- রিমোট ওপেন করার জন্য শুধুমাত্র আইকন (কোনো লেখা নেই) -->
     <div id="remote-toggle-icon" onclick="toggleRemote()">
         <i class="fas fa-tv"></i>
     </div>
 
-    <!-- প্রফেশনাল রিমোট কন্ট্রোল প্যানেল বডি -->
     <div id="tv-remote-panel">
         <div class="remote-brand">RS SMART TV</div>
         <div class="remote-row">
@@ -164,9 +165,9 @@
             <div></div><button class="r-btn" onclick="pressNum(0)">0</button><div></div>
         </div>
         <div class="ch-container">
-            <button class="ch-btn" onclick="changeChannel('up')"><i class="fas fa-chevron-up"></i> CH+</button>
+            <button class="ch-btn" onclick="changeChannel('up')"><i class="fas fa-chevron-up"></i>CH+</button>
             <button class="ok-btn">OK</button>
-            <button class="ch-btn" onclick="changeChannel('down')">CH- <i class="fas fa-chevron-down"></i></button>
+            <button class="ch-btn" onclick="changeChannel('down')">CH-<i class="fas fa-chevron-down"></i></button>
         </div>
     </div>
 
@@ -217,39 +218,45 @@
         document.getElementById("loader").innerHTML = '<div class="brand-name">No Stream URL Found</div>';
     }
 
-    // ================= রিমোট কন্ট্রোল স্ক্রিপ্ট লজিক =================
+    // ================= রিমোট কন্ট্রোল এবং মোবাইল স্ক্রিন ডিটেকশন লজিক =================
     
     function toggleRemote() {
         document.getElementById("tv-remote-panel").classList.toggle("open");
     }
 
-    // নাম্বার বাটন এবং চ্যানেল পরিবর্তনের ডেমো ফাংশন
     function pressNum(num) {
         console.log("Pressed Number: " + num);
-        // এখানে আপনার চ্যানেল পরিবর্তনের নিজস্ব রুলস বা উইন্ডো লিঙ্ক বসাতে পারেন।
+        // এখানে আপনার প্রয়োজন অনুযায়ী চ্যানেলের অ্যাকশন বসাতে পারেন।
     }
 
     function changeChannel(dir) {
-        console.log("Channel changed to: " + dir);
+        console.log("Channel direction: " + dir);
     }
 
-    // মোবাইল স্ক্রিন ফুলস্ক্রিন বা রোটেট (Landscape) মোড ডিটেকশন লজিক
-    function checkOrientation() {
+    // মোবাইল স্ক্রিন ফুল স্ক্রিন এবং রোটেট (Landscape) কি না তা পরীক্ষা করার লজিক
+    function checkMobileView() {
         const icon = document.getElementById("remote-toggle-icon");
-        if (window.innerWidth < 1024) { // মোবাইল বা ট্যাব হলে
-            if (window.innerHeight < window.innerWidth) {
-                icon.classList.add("mobile-landscape-show"); // রোটেট করলে শো করবে
+        
+        if (window.innerWidth < 1024) { // মোবাইল অথবা ট্যাবলেটের ক্ষেত্রে
+            const isLandscape = window.innerWidth > window.innerHeight;
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || window.innerHeight == screen.height;
+
+            // যদি স্ক্রিন ফুলস্ক্রিন এবং রোটেট (Landscape) দুটিই একসাথে হয়
+            if (isLandscape && isFullscreen) {
+                icon.classList.add("mobile-fullscreen-landscape");
             } else {
-                icon.classList.remove("mobile-landscape-show"); // নরমাল সোজা থাকলে হাইড
+                icon.classList.remove("mobile-fullscreen-landscape");
                 document.getElementById("tv-remote-panel").classList.remove("open");
             }
         }
     }
 
-    // স্ক্রিন ঘুরানো বা রিসাইজ ট্র্যাকিং করা
-    window.addEventListener("resize", checkOrientation);
-    window.addEventListener("orientationchange", checkOrientation);
-    document.addEventListener("DOMContentLoaded", checkOrientation);
+    // ইভেন্ট লিসেনারস (স্ক্রিন ফুলস্ক্রিন ও রোটেট ট্র্যাক করার জন্য)
+    window.addEventListener("resize", checkMobileView);
+    window.addEventListener("orientationchange", checkMobileView);
+    document.addEventListener("fullscreenchange", checkMobileView);
+    document.addEventListener("webkitfullscreenchange", checkMobileView);
+    document.addEventListener("DOMContentLoaded", checkMobileView);
 </script>
 
 </body>
