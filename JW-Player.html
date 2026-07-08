@@ -24,7 +24,6 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* Main container */
         #app {
             position: fixed;
             top: 0;
@@ -35,24 +34,20 @@
             overflow: hidden;
         }
 
-        /* Player wrapper - rotates */
-        #player-wrapper {
+        #video-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.4s ease;
             transform-origin: center center;
-            will-change: transform;
         }
 
-        /* When rotated - full screen rotation */
-        #player-wrapper.rotated {
+        #video-container.rotated {
             transform: rotate(90deg) scale(1.78);
         }
 
-        /* Video fills wrapper */
         #player {
             width: 100% !important;
             height: 100% !important;
@@ -61,7 +56,6 @@
             display: block;
         }
 
-        /* Plyr custom styles */
         .plyr {
             width: 100% !important;
             height: 100% !important;
@@ -91,7 +85,6 @@
             background: rgba(0, 0, 0, 0.6) !important;
         }
 
-        /* Loading Overlay */
         #loading-overlay {
             position: fixed;
             inset: 0;
@@ -181,19 +174,18 @@
             font-weight: 500;
         }
 
-        /* Rotate button - bottom right */
         #rotate-btn {
             position: fixed;
             bottom: 80px;
             right: 20px;
             z-index: 50;
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             color: #fff;
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            font-size: 22px;
+            font-size: 24px;
             cursor: pointer;
             backdrop-filter: blur(10px);
             transition: all 0.3s;
@@ -203,29 +195,30 @@
         }
 
         #rotate-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
         }
 
         #rotate-btn.active {
             background: rgba(0, 240, 255, 0.3);
             border-color: #00f0ff;
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
         }
 
-        /* Fullscreen fix */
-        :-webkit-full-screen #app,
-        :-moz-full-screen #app,
-        :fullscreen #app {
-            width: 100vw !important;
-            height: 100vh !important;
+        #rotate-btn .icon {
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+
+        #rotate-btn.active .icon {
+            transform: rotate(90deg);
         }
 
         @media (max-width: 400px) {
             .loader-brand { font-size: 18px; }
             .loader-sub { font-size: 7px; letter-spacing: 2px; }
             .loader-spinner { width: 22px; height: 22px; margin-top: 10px; }
-            #rotate-btn { width: 42px; height: 42px; font-size: 18px; bottom: 70px; right: 15px; }
+            #rotate-btn { width: 44px; height: 44px; font-size: 20px; bottom: 70px; right: 15px; }
         }
     </style>
 </head>
@@ -239,12 +232,14 @@
     <div id="error-msg"></div>
 
     <div id="app">
-        <div id="player-wrapper">
+        <div id="video-container">
             <video id="player" playsinline muted autoplay></video>
         </div>
     </div>
 
-    <button id="rotate-btn" title="Rotate Screen">⟳</button>
+    <button id="rotate-btn">
+        <span class="icon">↻</span>
+    </button>
 
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
@@ -254,7 +249,7 @@
             'use strict';
 
             const video = document.getElementById('player');
-            const wrapper = document.getElementById('player-wrapper');
+            const container = document.getElementById('video-container');
             const overlay = document.getElementById('loading-overlay');
             const errorMsg = document.getElementById('error-msg');
             const rotateBtn = document.getElementById('rotate-btn');
@@ -267,7 +262,6 @@
             let isHidden = false;
             let loadingTimeout = null;
             let isRotated = false;
-            let retryCount = 0;
 
             function hideLoading() {
                 if (isHidden) return;
@@ -288,36 +282,38 @@
                 }, 8000);
             }
 
-            // Simple rotation toggle
+            // DIRECT ROTATION - using JavaScript to set styles
             function toggleRotation() {
                 isRotated = !isRotated;
-                wrapper.classList.toggle('rotated', isRotated);
-                rotateBtn.classList.toggle('active', isRotated);
                 
-                // Log for debugging
-                console.log('Rotation toggled:', isRotated);
+                if (isRotated) {
+                    container.style.transform = 'rotate(90deg) scale(1.78)';
+                    container.style.webkitTransform = 'rotate(90deg) scale(1.78)';
+                    container.style.msTransform = 'rotate(90deg) scale(1.78)';
+                    container.classList.add('rotated');
+                    rotateBtn.classList.add('active');
+                } else {
+                    container.style.transform = 'none';
+                    container.style.webkitTransform = 'none';
+                    container.style.msTransform = 'none';
+                    container.classList.remove('rotated');
+                    rotateBtn.classList.remove('active');
+                }
+                
+                console.log('Rotation:', isRotated ? 'ON' : 'OFF');
+                console.log('Container transform:', container.style.transform);
             }
 
             function resetRotation() {
                 isRotated = false;
-                wrapper.classList.remove('rotated');
+                container.style.transform = 'none';
+                container.style.webkitTransform = 'none';
+                container.style.msTransform = 'none';
+                container.classList.remove('rotated');
                 rotateBtn.classList.remove('active');
             }
 
-            function tryAlternativeSource() {
-                if (retryCount >= 2) {
-                    showError('ভিডিও ব্লক করা হয়েছে। শুধু অডিও পাওয়া যাচ্ছে।');
-                    return;
-                }
-                retryCount++;
-                if (hls) {
-                    hls.destroy();
-                    hls = null;
-                }
-                setTimeout(() => setupHls(true), 1000);
-            }
-
-            function setupHls(forceReload = false) {
+            function setupHls() {
                 if (!videoSrc) {
                     hideLoading();
                     return;
@@ -325,11 +321,6 @@
 
                 if (Hls.isSupported()) {
                     try {
-                        if (hls) {
-                            hls.destroy();
-                            hls = null;
-                        }
-
                         hls = new Hls({
                             enableWorker: true,
                             lowLatencyMode: true,
@@ -339,9 +330,6 @@
                             liveSyncDurationCount: 3,
                             liveMaxLatencyDurationCount: 10,
                             enableWebVTT: false,
-                            xhrSetup: function(xhr, url) {
-                                xhr.withCredentials = false;
-                            }
                         });
 
                         hls.loadSource(videoSrc);
@@ -359,12 +347,7 @@
                                 console.warn('HLS fatal error:', data);
                                 switch (data.type) {
                                     case Hls.ErrorTypes.NETWORK_ERROR:
-                                        if (data.response && data.response.code === 403) {
-                                            showError('ভিডিও ব্লক করা হয়েছে');
-                                            tryAlternativeSource();
-                                        } else {
-                                            hls.startLoad();
-                                        }
+                                        hls.startLoad();
                                         break;
                                     case Hls.ErrorTypes.MEDIA_ERROR:
                                         hls.recoverMediaError();
@@ -418,21 +401,19 @@
                     setTimeout(hideLoading, 100);
                 });
 
-                // Fullscreen - rotate when entering
                 plyr.on('fullscreenchange', function() {
-                    console.log('Fullscreen change, active:', plyr.fullscreen.active);
+                    console.log('Fullscreen change:', plyr.fullscreen.active);
                     if (plyr.fullscreen.active) {
                         setTimeout(() => {
                             if (!isRotated) {
                                 toggleRotation();
                             }
-                        }, 500);
+                        }, 300);
                     } else {
                         resetRotation();
                     }
                 });
 
-                // Handle escape key
                 document.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape' && isRotated) {
                         resetRotation();
@@ -466,33 +447,11 @@
                 }
             }
 
-            function handleVideoIssues() {
-                video.addEventListener('loadedmetadata', function() {
-                    if (video.videoWidth === 0 || video.videoHeight === 0) {
-                        console.warn('Video has no dimensions - audio-only stream');
-                        setTimeout(hideLoading, 1000);
-                    }
-                });
-
-                video.addEventListener('stalled', function() {
-                    if (hls) {
-                        hls.startLoad();
-                    }
-                });
-
-                setTimeout(() => {
-                    if (!isHidden && video.readyState < 2) {
-                        tryAlternativeSource();
-                    }
-                }, 10000);
-            }
-
             // Start
             document.addEventListener('DOMContentLoaded', function() {
                 loadingTimeout = setTimeout(hideLoading, 5000);
 
                 setupHls();
-                handleVideoIssues();
                 initPlyr();
 
                 video.addEventListener('canplay', hideLoading);
@@ -505,11 +464,14 @@
                     toggleRotation();
                 });
 
-                // Double tap on video to rotate
+                // Double click on video to rotate
                 video.addEventListener('dblclick', function(e) {
                     e.preventDefault();
                     toggleRotation();
                 });
+
+                // Force video to fill screen
+                video.style.objectFit = 'cover';
 
                 // Expose for debugging
                 window.__RS = { 
@@ -519,10 +481,14 @@
                     toggleRotation, 
                     resetRotation,
                     isRotated: () => isRotated,
-                    wrapper: wrapper
+                    container: container
                 };
 
-                console.log('RS Live TV loaded. Use window.__RS for debugging.');
+                console.log('RS Live TV loaded. Try:');
+                console.log('1. Click rotate button (↻)');
+                console.log('2. Double click video');
+                console.log('3. Enter fullscreen');
+                console.log('Debug: window.__RS.toggleRotation()');
             });
 
         })();
