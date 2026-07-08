@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>RS Live TV</title>
     
-    <!-- PWA Manifest -->
     <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUlMgTGl2ZSBUViIsInNob3J0X25hbWUiOiJSU0xpdmUiLCJzdGFydF91cmwiOiIuIiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vaS5wb3N0aW1nLmNjL21EMVZDdDJDL1JTLUxpdmUucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9XSwib3JpZW50YXRpb24iOiJhbnkifQ==" />
 
-    <!-- Plyr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
 
     <style>
@@ -18,16 +16,13 @@
             box-sizing: border-box;
         }
         
-        html,
-        body {
+        html, body {
             width: 100%;
             height: 100%;
-            background: #0a0a0a;
+            background: #000;
             overflow: hidden;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
-        /* Video Player - Allow Rotation in Fullscreen */
         #player {
             width: 100% !important;
             height: 100% !important;
@@ -44,11 +39,7 @@
             background: #000;
         }
 
-        .plyr__controls {
-            z-index: 20;
-        }
-
-        /* Fullscreen - Allow Rotation */
+        /* Allow rotation in fullscreen */
         :-webkit-full-screen #player,
         :-moz-full-screen #player,
         :fullscreen #player,
@@ -60,154 +51,49 @@
             object-fit: contain !important;
         }
 
-        :-webkit-full-screen .plyr--video,
-        :-moz-full-screen .plyr--video,
-        :fullscreen .plyr--video {
-            width: 100vw !important;
-            height: 100vh !important;
-        }
-
-        /* Loading Overlay - Pure Animation Only */
+        /* Loading Overlay - Clean */
         #loading-overlay {
             position: fixed;
             inset: 0;
             width: 100vw;
             height: 100vh;
-            background: radial-gradient(circle at center, #0a0a1a 0%, #000000 100%);
+            background: #0a0a0a;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: opacity 0.4s ease;
         }
         
         #loading-overlay.hidden {
             opacity: 0;
-            visibility: hidden;
             pointer-events: none;
         }
 
-        /* Loading Animation */
+        /* Simple Spinner */
         .loader-spinner {
-            position: relative;
-            width: 60px;
-            height: 60px;
-        }
-
-        .loader-spinner::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 44px;
+            height: 44px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid #ffffff;
             border-radius: 50%;
-            border: 3px solid rgba(255, 255, 255, 0.05);
-            border-top: 3px solid #00d4ff;
-            border-right: 3px solid #7b2ffc;
-            animation: spin 0.8s cubic-bezier(0.6, 0, 0.4, 1) infinite;
-        }
-
-        .loader-spinner::after {
-            content: '';
-            position: absolute;
-            inset: 8px;
-            border-radius: 50%;
-            border: 3px solid rgba(255, 255, 255, 0.03);
-            border-bottom: 3px solid #ff6b9d;
-            border-left: 3px solid #ffd93d;
-            animation: spin 1.2s cubic-bezier(0.6, 0, 0.4, 1) infinite reverse;
-        }
-
-        .loader-dot {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #00d4ff, #7b2ffc);
-            animation: pulse 1s ease-in-out infinite;
+            animation: spin 0.7s linear infinite;
         }
 
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 0.5;
-            }
-            50% {
-                transform: translate(-50%, -50%) scale(1.3);
-                opacity: 1;
-            }
-        }
-
-        /* Progress Bar */
-        .loader-progress {
-            margin-top: 40px;
-            width: 150px;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 2px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .loader-progress-bar {
-            position: absolute;
-            left: -100%;
-            width: 30%;
-            height: 100%;
-            background: linear-gradient(90deg, #00d4ff, #7b2ffc, #ff6b9d);
-            border-radius: 2px;
-            animation: progressBar 1.5s ease-in-out infinite;
-        }
-
-        @keyframes progressBar {
-            0% { left: -100%; width: 30%; }
-            50% { left: 0%; width: 60%; }
-            100% { left: 100%; width: 30%; }
-        }
-
-        @media (max-width: 400px) {
-            .loader-spinner {
-                width: 40px;
-                height: 40px;
-            }
-            .loader-spinner::after {
-                inset: 6px;
-            }
-            .loader-dot {
-                width: 8px;
-                height: 8px;
-            }
-            .loader-progress {
-                width: 100px;
-                margin-top: 30px;
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <!-- Loading Overlay -->
     <div id="loading-overlay">
-        <div class="loader-spinner">
-            <div class="loader-dot"></div>
-        </div>
-        <div class="loader-progress">
-            <div class="loader-progress-bar"></div>
-        </div>
+        <div class="loader-spinner"></div>
     </div>
 
-    <!-- Video Element -->
     <video id="player" playsinline muted autoplay></video>
 
-    <!-- Plyr + HLS -->
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js">
     </script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js">
@@ -225,23 +111,11 @@
 
             let plyr = null;
             let hls = null;
-            let isHidden = false;
-            let loadingTimeout = null;
 
-            // Hide Loading
             function hideLoading() {
-                if (isHidden) return;
-                isHidden = true;
-                
-                if (loadingTimeout) {
-                    clearTimeout(loadingTimeout);
-                    loadingTimeout = null;
-                }
-                
                 overlay.classList.add('hidden');
             }
 
-            // Initialize Plyr with Auto-play
             function initPlyr() {
                 if (plyr) return;
 
@@ -249,38 +123,23 @@
                     controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
                     autoplay: true,
                     muted: true,
-                    keyboard: { focused: true, global: true },
-                    tooltips: { controls: false, seek: true },
-                    duration: null,
-                    displayDuration: true,
-                    invertTime: false,
-                    toggleInvert: false,
-                    disableContextMenu: true,
-                    loadSprite: true,
-                    iconPrefix: 'plyr',
-                    blankVideo: 'https://cdn.plyr.io/static/blank.mp4',
-                    seekTime: 10,
                 });
 
                 plyr.on('ready', function() {
-                    video.play().catch(function(e) {
-                        console.warn('Autoplay prevented:', e);
-                    });
+                    video.play().catch(function() {});
                     setTimeout(hideLoading, 200);
                 });
 
-                // Fullscreen - Allow rotation naturally
+                // Allow rotation in fullscreen - remove any lock
                 plyr.on('fullscreenchange', function() {
-                    // Let the device handle rotation naturally
+                    // Let device handle rotation naturally
                 });
 
-                // Hide loading on play
                 video.addEventListener('playing', function() {
                     hideLoading();
                 });
             }
 
-            // Setup HLS
             function setupHls() {
                 if (!videoSrc) {
                     hideLoading();
@@ -291,12 +150,6 @@
                     hls = new Hls({
                         enableWorker: true,
                         lowLatencyMode: true,
-                        backbufferLength: 30,
-                        maxBufferLength: 30,
-                        maxMaxBufferLength: 600,
-                        liveSyncDurationCount: 3,
-                        liveMaxLatencyDurationCount: 10,
-                        enableWebVTT: false,
                     });
 
                     hls.loadSource(videoSrc);
@@ -304,9 +157,7 @@
 
                     hls.on(Hls.Events.MANIFEST_PARSED, function() {
                         hideLoading();
-                        video.play().catch(function(e) {
-                            console.warn('Autoplay prevented:', e);
-                        });
+                        video.play().catch(function() {});
                     });
 
                     hls.on(Hls.Events.FRAG_LOADED, function() {
@@ -315,18 +166,7 @@
 
                     hls.on(Hls.Events.ERROR, function(event, data) {
                         if (data.fatal) {
-                            console.warn('HLS fatal error:', data);
-                            switch (data.type) {
-                                case Hls.ErrorTypes.NETWORK_ERROR:
-                                    hls.startLoad();
-                                    break;
-                                case Hls.ErrorTypes.MEDIA_ERROR:
-                                    hls.recoverMediaError();
-                                    break;
-                                default:
-                                    hideLoading();
-                                    break;
-                            }
+                            hideLoading();
                         }
                     });
 
@@ -334,33 +174,19 @@
                     video.src = videoSrc;
                     video.addEventListener('loadedmetadata', function() {
                         hideLoading();
-                        video.play().catch(function(e) {
-                            console.warn('Autoplay prevented:', e);
-                        });
+                        video.play().catch(function() {});
                     });
                 } else {
                     hideLoading();
                 }
             }
 
-            // Start
             document.addEventListener('DOMContentLoaded', function() {
-                loadingTimeout = setTimeout(hideLoading, 4000);
-
                 setupHls();
                 initPlyr();
 
-                // Additional events
-                video.addEventListener('canplay', function() {
-                    hideLoading();
-                    video.play().catch(function() {});
-                });
-                video.addEventListener('loadeddata', function() {
-                    hideLoading();
-                });
-
-                // Expose for debugging
-                window.__RS = { video, plyr, hls, hideLoading };
+                // Hide loading after 3 seconds max
+                setTimeout(hideLoading, 3000);
             });
 
         })();
