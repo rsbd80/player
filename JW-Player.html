@@ -35,6 +35,7 @@
             object-fit: cover;
             transform: none !important;
             rotate: 0deg !important;
+            transition: rotate 0.3s ease, transform 0.3s ease;
         }
 
         .plyr--video {
@@ -97,7 +98,6 @@
             opacity: 0.5;
         }
 
-        /* Better spinner with pulse effect */
         .loader-spinner {
             margin-top: 14px;
             width: 28px;
@@ -199,6 +199,7 @@
             let hls = null;
             let isHidden = false;
             let loadingTimeout = null;
+            let isRotated = false;
 
             // Hide Loading with proper cleanup
             function hideLoading() {
@@ -213,6 +214,18 @@
                 overlay.classList.add('hidden');
             }
 
+            // Toggle rotation
+            function toggleRotation() {
+                isRotated = !isRotated;
+                if (isRotated) {
+                    video.style.transform = 'rotate(90deg)';
+                    video.style.rotate = '90deg';
+                } else {
+                    video.style.transform = 'none';
+                    video.style.rotate = '0deg';
+                }
+            }
+
             // Force no rotation
             function lockRotation() {
                 // Direct CSS manipulation for maximum control
@@ -225,6 +238,9 @@
                 
                 // Ensure object-fit remains
                 video.style.objectFit = 'cover';
+                
+                // Reset rotation state
+                isRotated = false;
             }
 
             // Initialize Plyr
@@ -256,15 +272,17 @@
 
                 // Fullscreen events
                 plyr.on('fullscreenchange', function() {
-                    setTimeout(lockRotation, 50);
+                    // Toggle rotation when entering/exiting fullscreen
+                    toggleRotation();
                 });
 
                 // Native fullscreen events
                 document.addEventListener('fullscreenchange', function() {
-                    setTimeout(lockRotation, 50);
+                    // Toggle rotation when entering/exiting fullscreen
+                    toggleRotation();
                 });
                 document.addEventListener('webkitfullscreenchange', function() {
-                    setTimeout(lockRotation, 50);
+                    toggleRotation();
                 });
 
                 // Orientation / resize
@@ -405,7 +423,7 @@
                 });
 
                 // Expose for debugging
-                window.__RS = { video, plyr, hls, lockRotation, hideLoading };
+                window.__RS = { video, plyr, hls, lockRotation, hideLoading, toggleRotation };
             });
 
         })();
