@@ -19,25 +19,43 @@
         html, body {
             width: 100%;
             height: 100%;
-            background: #0a0a0a;
+            background: #000;
             overflow: hidden;
             font-family: system-ui, -apple-system, sans-serif;
         }
 
+        /* Fullscreen container */
         #player-wrapper {
             width: 100vw;
             height: 100vh;
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
             overflow: hidden;
             background: #000;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center center;
+            z-index: 1;
         }
 
-        /* Full wrapper rotates - includes video + controls */
+        /* Rotated state - whole screen rotates */
         #player-wrapper.rotated {
             transform: rotate(90deg) scale(1.78);
         }
 
+        /* Video fills entire wrapper */
+        #player {
+            width: 100% !important;
+            height: 100% !important;
+            background: #000;
+            display: block;
+            object-fit: cover !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Plyr overrides */
         .plyr--video {
             width: 100vw !important;
             height: 100vh !important;
@@ -47,18 +65,15 @@
         }
 
         .plyr__controls {
-            z-index: 20;
+            z-index: 30;
             position: absolute !important;
             bottom: 0 !important;
             width: 100% !important;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7)) !important;
         }
 
-        #player {
-            width: 100% !important;
-            height: 100% !important;
-            background: #000;
-            display: block;
-            object-fit: contain;
+        .plyr__control {
+            color: #fff !important;
         }
 
         /* Loading Overlay */
@@ -135,21 +150,29 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Error message for blocked videos */
         #error-msg {
             position: fixed;
-            bottom: 80px;
+            bottom: 100px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 0, 0, 0.8);
+            background: rgba(255, 0, 0, 0.85);
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 8px;
             font-size: 14px;
             z-index: 100;
             display: none;
             text-align: center;
             max-width: 90%;
+            font-weight: 500;
+        }
+
+        /* Fullscreen fixes */
+        :-webkit-full-screen #player-wrapper,
+        :-moz-full-screen #player-wrapper,
+        :fullscreen #player-wrapper {
+            width: 100vw !important;
+            height: 100vh !important;
         }
 
         @media (max-width: 400px) {
@@ -212,11 +235,13 @@
                 }, 8000);
             }
 
-            // Toggle rotation - rotates entire wrapper
+            // Toggle rotation - rotates whole wrapper
             function toggleRotation() {
                 isRotated = !isRotated;
                 if (isRotated) {
                     wrapper.classList.add('rotated');
+                    // Ensure video fills screen when rotated
+                    video.style.objectFit = 'cover';
                 } else {
                     wrapper.classList.remove('rotated');
                 }
@@ -225,9 +250,22 @@
             function resetRotation() {
                 isRotated = false;
                 wrapper.classList.remove('rotated');
+                video.style.objectFit = 'cover';
             }
 
-            // Try alternative video source if blocked
+            // Enter fullscreen with rotation
+            function enterFullscreen() {
+                if (plyr && plyr.fullscreen) {
+                    plyr.fullscreen.enter();
+                    // Toggle rotation after fullscreen enters
+                    setTimeout(() => {
+                        if (plyr.fullscreen.active) {
+                            toggleRotation();
+                        }
+                    }, 300);
+                }
+            }
+
             function tryAlternativeSource() {
                 if (retryCount >= 2) {
                     showError('ভিডিও ব্লক করা হয়েছে। শুধু অডিও পাওয়া যাচ্ছে।');
@@ -235,12 +273,11 @@
                 }
                 retryCount++;
                 
-                // Try with different user agent or CORS settings
                 if (hls) {
                     hls.destroy();
+                    hls = null;
                 }
                 
-                // Reload with different config
                 setTimeout(() => {
                     setupHls(true);
                 }, 1000);
@@ -254,6 +291,11 @@
 
                 if (Hls.isSupported()) {
                     try {
+                        if (hls) {
+                            hls.destroy();
+                            hls = null;
+                        }
+
                         hls = new Hls({
                             enableWorker: true,
                             lowLatencyMode: true,
@@ -264,10 +306,10 @@
                             liveMaxLatencyDurationCount: 10,
                             enableWebVTT: false,
                             xhrSetup: function(xhr, url) {
-                                // Try to bypass some blocks
                                 xhr.withCredentials = false;
-                                // Add custom headers if needed
-                                xhr.setRequestHeader('Origin', window.location.origin);
+                                try {
+                                    xhr.setRequestHeader('Origin', window.location.origin);
+                                } catch(e) {}
                             }
                         });
 
@@ -286,7 +328,6 @@
                                 console.warn('HLS fatal error:', data);
                                 switch (data.type) {
                                     case Hls.ErrorTypes.NETWORK_ERROR:
-                                        // Try to recover
                                         if (data.response && data.response.code === 403) {
                                             showError('ভিডিও ব্লক করা হয়েছে (403)');
                                             tryAlternativeSource();
@@ -299,28 +340,16 @@
                                         break;
                                     default:
                                         hideLoading();
-                                        if (data.response && data.response.code === 403) {
-                                            showError('ভিডিও অ্যাক্সেস ব্লক করা হয়েছে');
-                                        }
                                         break;
                                 }
-                            } else {
-                                console.warn('HLS non-fatal error:', data);
                             }
                         });
 
-                        hls.on(Hls.Events.FRAG_LOADED, function() {
-                            hideLoading();
-                        });
-
-                        hls.on(Hls.Events.FRAG_PARSING_METADATA, function() {
-                            hideLoading();
-                        });
+                        hls.on(Hls.Events.FRAG_LOADED, hideLoading);
 
                     } catch (e) {
                         console.error('HLS setup error:', e);
                         hideLoading();
-                        showError('ভিডিও লোড করতে সমস্যা হয়েছে');
                     }
 
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -330,13 +359,6 @@
                         video.play().catch(function(e) {
                             console.warn('Autoplay prevented:', e);
                         });
-                    });
-                    video.addEventListener('error', function(e) {
-                        if (video.error) {
-                            if (video.error.code === 4) {
-                                showError('ভিডিও লোড হয়নি। ব্লক করা থাকতে পারে।');
-                            }
-                        }
                     });
                 } else {
                     hideLoading();
@@ -365,76 +387,92 @@
                     setTimeout(hideLoading, 100);
                 });
 
+                // Fullscreen - rotate when entering
                 plyr.on('fullscreenchange', function() {
                     if (plyr.fullscreen.active) {
-                        toggleRotation();
+                        // Entering fullscreen - rotate video
+                        setTimeout(() => {
+                            toggleRotation();
+                        }, 200);
                     } else {
+                        // Exiting fullscreen - reset
                         resetRotation();
                     }
                 });
 
+                // Handle escape key
                 document.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape' && isRotated) {
                         resetRotation();
+                        if (plyr && plyr.fullscreen && plyr.fullscreen.active) {
+                            plyr.fullscreen.exit();
+                        }
                     }
                 });
 
-                window.addEventListener('resize', function() {
-                    if (!plyr.fullscreen.active && isRotated) {
-                        resetRotation();
-                    }
-                });
-
+                // Handle orientation change
                 window.addEventListener('orientationchange', function() {
                     setTimeout(function() {
-                        if (plyr.fullscreen.active && !isRotated) {
-                            toggleRotation();
+                        if (plyr && plyr.fullscreen && plyr.fullscreen.active) {
+                            if (!isRotated) {
+                                toggleRotation();
+                            }
                         }
-                    }, 300);
+                    }, 400);
                 });
 
                 if (screen.orientation) {
                     screen.orientation.addEventListener('change', function() {
                         setTimeout(function() {
-                            if (plyr.fullscreen.active && !isRotated) {
-                                toggleRotation();
+                            if (plyr && plyr.fullscreen && plyr.fullscreen.active) {
+                                if (!isRotated) {
+                                    toggleRotation();
+                                }
                             }
-                        }, 300);
+                        }, 400);
+                    });
+                }
+
+                // Add custom fullscreen button behavior
+                const fsButton = document.querySelector('.plyr__control[data-plyr="fullscreen"]');
+                if (fsButton) {
+                    fsButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (plyr.fullscreen.active) {
+                            plyr.fullscreen.exit();
+                            resetRotation();
+                        } else {
+                            plyr.fullscreen.enter();
+                            setTimeout(() => {
+                                if (plyr.fullscreen.active) {
+                                    toggleRotation();
+                                }
+                            }, 300);
+                        }
                     });
                 }
             }
 
-            // Handle video issues - try to show video even if only audio
             function handleVideoIssues() {
                 video.addEventListener('loadedmetadata', function() {
                     if (video.videoWidth === 0 || video.videoHeight === 0) {
-                        console.warn('Video has no dimensions - trying to force render');
-                        // This might be an audio-only stream
-                        // Try to still show something
-                        setTimeout(() => {
-                            hideLoading();
-                        }, 1000);
+                        console.warn('Video has no dimensions - audio-only stream');
+                        setTimeout(hideLoading, 1000);
                     }
                 });
 
                 video.addEventListener('stalled', function() {
-                    console.warn('Video stalled, attempting recovery');
                     if (hls) {
                         hls.startLoad();
                     }
                 });
 
-                video.addEventListener('waiting', function() {
-                    console.warn('Video waiting for data');
-                });
-
-                // If video can't load, try alternative after timeout
                 setTimeout(() => {
                     if (!isHidden && video.readyState < 2) {
-                        console.warn('Video still not ready after timeout');
                         tryAlternativeSource();
                     }
-                }, 8000);
+                }, 10000);
             }
 
             // Start
@@ -449,25 +487,18 @@
                 video.addEventListener('loadeddata', hideLoading);
                 video.addEventListener('playing', hideLoading);
 
-                // Force video to show
-                setTimeout(function() {
-                    if (!isHidden) {
-                        video.style.display = 'block';
-                        video.style.opacity = '1';
-                        if (video.currentTime >= 0) {
-                            video.currentTime = video.currentTime;
-                        }
-                    }
-                }, 3000);
+                // Force video to fill screen
+                video.style.objectFit = 'cover';
 
+                // Expose for debugging
                 window.__RS = { 
                     video, 
                     plyr, 
                     hls, 
                     toggleRotation, 
                     resetRotation,
-                    isRotated: () => isRotated,
-                    tryAlternativeSource
+                    enterFullscreen,
+                    isRotated: () => isRotated
                 };
             });
 
