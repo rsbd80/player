@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fullscreen Video with Rotation</title>
+    <title>Fullscreen Video · Rotation · No Crop</title>
     <!-- Plyr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
     <style>
-        /* রিসেট – সব কিছু পুরো স্ক্রিন */
+        /* ----- global reset : 100% fill, no overflow ----- */
         * {
             margin: 0;
             padding: 0;
@@ -16,39 +16,127 @@
         html, body {
             width: 100%;
             height: 100%;
-            background: #000;
+            background: #0b0b0b;
             overflow: hidden;
+            position: relative;
         }
 
-        /* Plyr কন্টেইনার পুরো স্ক্রিন */
+        /* ----- plyr container : edge-to-edge ----- */
         .plyr--video {
             width: 100vw !important;
             height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            background: #000;
         }
 
-        /* ভিডিও এলিমেন্ট – কভার + রোটেশন প্রস্তুত */
+        /* ----- video element : cover + rotation-ready, NO CROP ----- */
         #player {
             width: 100% !important;
             height: 100% !important;
-            object-fit: cover !important;   /* ফাঁকা জায়গা থাকবে না */
+            object-fit: cover !important;   /* fills screen, but rotation may shift */
             background: #000;
             transform-origin: center center;
             transition: transform 0.2s ease;
+            display: block;
         }
 
-        /* কন্ট্রোল ওভারলে ঠিক রাখা */
+        /* plyr controls always on top */
         .plyr__controls {
-            z-index: 10;
+            z-index: 20;
+        }
+
+        /* ----- loading overlay : beautiful glassmorphism ----- */
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(10, 10, 20, 0.75);
+            backdrop-filter: blur(6px) saturate(1.2);
+            -webkit-backdrop-filter: blur(6px) saturate(1.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            pointer-events: none;          /* allow click-through when hidden */
+        }
+        #loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* spinner ring – elegant & smooth */
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 6px solid rgba(255, 255, 255, 0.1);
+            border-top: 6px solid #f0c27f;
+            border-right: 6px solid #fc5c7d;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+            box-shadow: 0 0 30px rgba(252, 92, 125, 0.3);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 28px;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 400;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.2);
+            padding: 8px 24px;
+            border-radius: 40px;
+            backdrop-filter: blur(2px);
+        }
+        .loading-text span {
+            font-weight: 300;
+            opacity: 0.7;
+        }
+
+        /* small status (debug) – optional */
+        .status-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            color: #aaa;
+            font-size: 11px;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-family: monospace;
+            z-index: 50;
+            border: 1px solid rgba(255,255,255,0.08);
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
 
+    <!-- LOADING OVERLAY (beautiful) -->
+    <div id="loading-overlay" aria-label="loading video">
+        <div class="spinner"></div>
+        <div class="loading-text">🔮 <span>লোড হচ্ছে</span></div>
+    </div>
+
+    <!-- VIDEO ELEMENT -->
     <video id="player" playsinline muted autoplay controls>
         <source type="application/vnd.apple.mpegurl" src="" />
     </video>
 
-    <!-- লাইব্রেরি -->
+    <!-- small debug badge (optional) -->
+    <div class="status-badge" id="rotationStatus">🔄 0°</div>
+
+    <!-- LIBRARIES -->
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js">
     </script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js">
@@ -58,113 +146,180 @@
         (function() {
             'use strict';
 
-            // ---------- ১. URL থেকে সোর্স পড়ি ----------
+            // ----- DOM refs -----
+            const video = document.getElementById('player');
+            const overlay = document.getElementById('loading-overlay');
+            const statusBadge = document.getElementById('rotationStatus');
+
+            // ----- 1. get source from URL -----
             const urlParams = new URLSearchParams(window.location.search);
             const videoSrc = urlParams.get('url');
-            const video = document.getElementById('player');
 
             if (videoSrc) {
                 video.querySelector('source').src = videoSrc;
                 video.load();
+            } else {
+                // fallback demo (if no url, just hide overlay after 2s)
+                console.warn('ℹ️ No ?url= parameter — using empty source');
             }
 
-            // ---------- ২. Plyr ইনিশিয়ালাইজ ----------
-            let player;
-            document.addEventListener('DOMContentLoaded', function() {
+            // ----- 2. Plyr instance -----
+            let player = null;
+
+            function initPlyr() {
+                if (player) return;
                 player = new Plyr(video, {
                     fullscreen: { enabled: true, fallback: true, iosNative: true },
-                    controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume',
-                        'fullscreen'
-                    ]
+                    controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                    autoplay: true,
+                    muted: true,
                 });
 
-                // ---------- ৩. HLS সাপোর্ট ----------
-                if (Hls.isSupported() && videoSrc) {
-                    const hls = new Hls();
+                // hide loading overlay when video can play
+                video.addEventListener('canplay', function onCanPlay() {
+                    overlay.classList.add('hidden');
+                    video.removeEventListener('canplay', onCanPlay);
+                });
+
+                // fallback: hide overlay after 4s anyway (if video stuck)
+                setTimeout(function() {
+                    overlay.classList.add('hidden');
+                }, 4500);
+
+                // update rotation on plyr ready
+                player.on('ready', function() {
+                    applyCurrentRotation();
+                });
+
+                // also when fullscreen changes
+                player.on('fullscreenchange', function() {
+                    setTimeout(applyCurrentRotation, 250);
+                });
+            }
+
+            // ----- 3. HLS support -----
+            function setupHls() {
+                if (!videoSrc) return;
+                if (Hls.isSupported()) {
+                    const hls = new Hls({
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                    });
                     hls.loadSource(videoSrc);
                     hls.attachMedia(video);
                     hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        video.play().catch(function() {});
+                        video.play().catch(function(e) { /* auto-play blocked */ });
+                    });
+                    // error recovery
+                    hls.on(Hls.Events.ERROR, function(e, data) {
+                        if (data.fatal) {
+                            console.warn('HLS fatal error, trying recovery', data);
+                        }
                     });
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                     video.src = videoSrc;
+                } else {
+                    console.warn('⚠️ No HLS support, and no native HLS.');
                 }
-
-                // ---------- ৪. প্রাথমিক রোটেশন সেট ----------
-                setTimeout(applyCurrentRotation, 500);
-            });
-
-            // ---------- ৫. রোটেশন ফাংশন ----------
-            function applyRotation(angle) {
-                if (!video) return;
-                video.style.transform = 'rotate(' + angle + 'deg)';
-                video.style.objectFit = 'cover';
-                console.log('🔄 রোটেশন প্রয়োগ: ' + angle + '°');
             }
 
-            // ---------- ৬. ওরিয়েন্টেশন ডিটেক্ট (সব পদ্ধতি) ----------
+            // ----- 4. Rotation logic (NO CROP – we use cover + rotate) -----
+            function applyRotation(angle) {
+                if (!video) return;
+                // rotate the video element
+                video.style.transform = 'rotate(' + angle + 'deg)';
+                // force cover (already set in css) but keep it
+                video.style.objectFit = 'cover';
+                // update badge
+                if (statusBadge) {
+                    statusBadge.textContent = '🔄 ' + angle + '°';
+                }
+                console.log('🔄 Rotation applied: ' + angle + '°');
+            }
+
+            // ----- 5. Orientation detection (best effort) -----
             function getOrientationAngle() {
-                // পদ্ধতি ১: window.orientation (iOS, পুরনো Android)
+                // 1) window.orientation (iOS, old Android)
                 if (typeof window.orientation !== 'undefined' && window.orientation !== null) {
                     return window.orientation; // 0, 90, -90, 180
                 }
-                // পদ্ধতি ২: screen.orientation API (আধুনিক)
+                // 2) screen.orientation API (modern)
                 if (screen.orientation) {
-                    var type = screen.orientation.type;
+                    const type = screen.orientation.type;
                     if (type.includes('portrait-primary')) return 0;
                     if (type.includes('portrait-secondary')) return 180;
                     if (type.includes('landscape-primary')) return 90;
                     if (type.includes('landscape-secondary')) return -90;
                 }
-                // পদ্ধতি ৩: width/height তুলনা (ফ্যালব্যাক)
+                // 3) fallback: width/height
                 if (window.innerWidth > window.innerHeight) {
-                    return 90; // ল্যান্ডস্কেপ
+                    return 90; // landscape
                 } else {
-                    return 0; // পোর্ট্রেট
+                    return 0; // portrait
                 }
             }
 
-            // রোটেশন আপডেট (কল করলেই রিফ্রেশ)
             function applyCurrentRotation() {
-                var angle = getOrientationAngle();
+                const angle = getOrientationAngle();
                 applyRotation(angle);
             }
 
-            // ---------- ৭. ইভেন্ট লিসেনার ----------
-            // ওরিয়েন্টেশন চেঞ্জ (পুরনো)
-            window.addEventListener('orientationchange', function() {
-                setTimeout(applyCurrentRotation, 300);
-            });
-
-            // ওরিয়েন্টেশন চেঞ্জ (নতুন API)
-            if (screen.orientation) {
-                screen.orientation.addEventListener('change', function() {
+            // ----- 6. event listeners : orientation, resize, fullscreen -----
+            function attachRotationListeners() {
+                // orientationchange (old)
+                window.addEventListener('orientationchange', function() {
                     setTimeout(applyCurrentRotation, 300);
                 });
+
+                // screen.orientation change (modern)
+                if (screen.orientation) {
+                    screen.orientation.addEventListener('change', function() {
+                        setTimeout(applyCurrentRotation, 300);
+                    });
+                }
+
+                // resize (desktop / window change)
+                window.addEventListener('resize', function() {
+                    applyCurrentRotation();
+                });
+
+                // video metadata loaded
+                video.addEventListener('loadedmetadata', function() {
+                    applyCurrentRotation();
+                });
+
+                // fullscreen events (native)
+                document.addEventListener('fullscreenchange', function() {
+                    setTimeout(applyCurrentRotation, 200);
+                });
+                document.addEventListener('webkitfullscreenchange', function() {
+                    setTimeout(applyCurrentRotation, 200);
+                });
+
+                // also listen for plyr fullscreen via custom event (already in plyr init)
             }
 
-            // উইন্ডো রিসাইজ (ডেস্কটপ বা ডিভাইস রোটেট)
-            window.addEventListener('resize', function() {
-                applyCurrentRotation();
+            // ----- 7. init everything -----
+            document.addEventListener('DOMContentLoaded', function() {
+                setupHls();
+                initPlyr();
+                attachRotationListeners();
+
+                // initial rotation after a small delay (ensure layout)
+                setTimeout(applyCurrentRotation, 400);
+                // second pass after 1s
+                setTimeout(applyCurrentRotation, 1000);
+
+                // expose to global for debug
+                window.rotateVideo = applyCurrentRotation;
+                console.log('✅ Auto-rotation active · NO CROP · Loading overlay ready');
             });
 
-            // ভিডিও মেটাডাটা লোড হলে
-            video.addEventListener('loadedmetadata', function() {
-                applyCurrentRotation();
-            });
+            // also if DOM already loaded (just in case)
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                // but we rely on DOMContentLoaded above
+            }
 
-            // ফুলস্ক্রিন পরিবর্তন হলে (ওরিয়েন্টেশন চেঞ্জ কাভার করতে)
-            document.addEventListener('fullscreenchange', function() {
-                setTimeout(applyCurrentRotation, 200);
-            });
-            document.addEventListener('webkitfullscreenchange', function() {
-                setTimeout(applyCurrentRotation, 200);
-            });
-
-            // ---------- ৮. ডিবাগের জন্য গ্লোবাল ----------
-            window.rotateVideo = applyCurrentRotation;
-
-            console.log('✅ অটো-রোটেশন সক্রিয়। ডিভাইস ঘোরান বা ফুলস্ক্রিন করুন।');
         })();
     </script>
 </body>
