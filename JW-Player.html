@@ -27,15 +27,26 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
+        #player-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+        }
+
         #player {
             width: 100% !important;
             height: 100% !important;
             background: #000;
             display: block;
-            object-fit: cover;
-            transform: none !important;
-            rotate: 0deg !important;
-            transition: rotate 0.3s ease, transform 0.3s ease;
+            object-fit: contain;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Rotated state */
+        #player.rotated {
+            transform: rotate(90deg) scale(1.78) !important;
         }
 
         .plyr--video {
@@ -50,7 +61,7 @@
             z-index: 20;
         }
 
-        /* Loading Overlay - Improved */
+        /* Loading Overlay */
         #loading-overlay {
             position: fixed;
             inset: 0;
@@ -126,31 +137,6 @@
             }
         }
 
-        /* Force no rotation in fullscreen */
-        :-webkit-full-screen #player,
-        :-moz-full-screen #player,
-        :fullscreen #player,
-        #player:-webkit-full-screen,
-        #player:-moz-full-screen,
-        #player:fullscreen {
-            transform: none !important;
-            rotate: 0deg !important;
-        }
-
-        :-webkit-full-screen .plyr--video,
-        :-moz-full-screen .plyr--video,
-        :fullscreen .plyr--video {
-            transform: none !important;
-            rotate: 0deg !important;
-        }
-
-        video:fullscreen,
-        video:-webkit-full-screen,
-        video:-moz-full-screen {
-            transform: none !important;
-            rotate: 0deg !important;
-        }
-
         @media (max-width: 400px) {
             .loader-brand {
                 font-size: 18px;
@@ -175,8 +161,10 @@
         <div class="loader-spinner"></div>
     </div>
 
-    <!-- Video Element -->
-    <video id="player" playsinline muted autoplay></video>
+    <!-- Video Container -->
+    <div id="player-container">
+        <video id="player" playsinline muted autoplay></video>
+    </div>
 
     <!-- Plyr + HLS -->
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js">
@@ -189,6 +177,7 @@
             'use strict';
 
             const video = document.getElementById('player');
+            const container = document.getElementById('player-container');
             const overlay = document.getElementById('loading-overlay');
 
             // Get video URL from query parameter
@@ -201,7 +190,7 @@
             let loadingTimeout = null;
             let isRotated = false;
 
-            // Hide Loading with proper cleanup
+            // Hide Loading
             function hideLoading() {
                 if (isHidden) return;
                 isHidden = true;
@@ -214,33 +203,20 @@
                 overlay.classList.add('hidden');
             }
 
-            // Toggle rotation
+            // Toggle rotation - using class instead of inline style
             function toggleRotation() {
                 isRotated = !isRotated;
                 if (isRotated) {
-                    video.style.transform = 'rotate(90deg)';
-                    video.style.rotate = '90deg';
+                    video.classList.add('rotated');
                 } else {
-                    video.style.transform = 'none';
-                    video.style.rotate = '0deg';
+                    video.classList.remove('rotated');
                 }
             }
 
-            // Force no rotation
-            function lockRotation() {
-                // Direct CSS manipulation for maximum control
-                video.style.cssText += 'transform: none !important; rotate: 0deg !important;';
-                
-                // Also handle any inline styles
-                video.style.transform = 'none';
-                video.style.rotate = '0deg';
-                video.style.webkitTransform = 'none';
-                
-                // Ensure object-fit remains
-                video.style.objectFit = 'cover';
-                
-                // Reset rotation state
+            // Reset rotation
+            function resetRotation() {
                 isRotated = false;
+                video.classList.remove('rotated');
             }
 
             // Initialize Plyr
@@ -265,63 +241,53 @@
                 });
 
                 plyr.on('ready', function() {
-                    lockRotation();
-                    // Force hide loading if not already hidden
+                    resetRotation();
                     setTimeout(hideLoading, 100);
                 });
 
-                // Fullscreen events
+                // Handle fullscreen changes
                 plyr.on('fullscreenchange', function() {
-                    // Toggle rotation when entering/exiting fullscreen
-                    toggleRotation();
+                    // Only rotate when entering fullscreen
+                    if (plyr.fullscreen.active) {
+                        toggleRotation();
+                    } else {
+                        resetRotation();
+                    }
                 });
 
-                // Native fullscreen events
-                document.addEventListener('fullscreenchange', function() {
-                    // Toggle rotation when entering/exiting fullscreen
-                    toggleRotation();
-                });
-                document.addEventListener('webkitfullscreenchange', function() {
-                    toggleRotation();
+                // Handle escape key to exit fullscreen and reset rotation
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && isRotated) {
+                        resetRotation();
+                    }
                 });
 
-                // Orientation / resize
+                // Handle window resize
                 window.addEventListener('resize', function() {
-                    setTimeout(lockRotation, 50);
+                    if (!plyr.fullscreen.active && isRotated) {
+                        resetRotation();
+                    }
                 });
+
+                // Handle orientation change
                 window.addEventListener('orientationchange', function() {
-                    setTimeout(lockRotation, 100);
+                    setTimeout(function() {
+                        if (plyr.fullscreen.active && !isRotated) {
+                            toggleRotation();
+                        }
+                    }, 300);
                 });
 
                 // Screen orientation API
                 if (screen.orientation) {
                     screen.orientation.addEventListener('change', function() {
-                        setTimeout(lockRotation, 100);
+                        setTimeout(function() {
+                            if (plyr.fullscreen.active && !isRotated) {
+                                toggleRotation();
+                            }
+                        }, 300);
                     });
                 }
-
-                // MutationObserver for style changes
-                const observer = new MutationObserver(function(mutations) {
-                    mutations.forEach(function(mutation) {
-                        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                            const transform = video.style.transform;
-                            const rotate = video.style.rotate;
-                            if ((transform && transform !== 'none') || (rotate && rotate !== '0deg')) {
-                                lockRotation();
-                            }
-                        }
-                    });
-                });
-                observer.observe(video, { attributes: true, attributeFilter: ['style'] });
-
-                // Periodic check for rotation (backup)
-                setInterval(function() {
-                    const transform = video.style.transform;
-                    const rotate = video.style.rotate;
-                    if ((transform && transform !== 'none') || (rotate && rotate !== '0deg')) {
-                        lockRotation();
-                    }
-                }, 500);
             }
 
             // Setup HLS
@@ -368,13 +334,11 @@
                                     break;
                             }
                         } else {
-                            // Non-fatal error, just log
                             console.warn('HLS non-fatal error:', data);
                         }
                     });
 
                     hls.on(Hls.Events.FRAG_LOADED, function() {
-                        // Hide loading as soon as we get any fragment
                         hideLoading();
                     });
 
@@ -392,14 +356,42 @@
                 }
             }
 
+            // Handle video loading issues - show video even if only audio plays
+            function handleVideoIssues() {
+                // If video has audio but no video track, try to force render
+                video.addEventListener('loadedmetadata', function() {
+                    // Check if video has dimensions
+                    if (video.videoWidth === 0 || video.videoHeight === 0) {
+                        console.warn('Video has no dimensions, trying to force render');
+                        // Try to force video rendering
+                        video.style.display = 'block';
+                        video.style.opacity = '1';
+                    }
+                });
+
+                // If video stuck, try reloading
+                video.addEventListener('stalled', function() {
+                    console.warn('Video stalled, attempting recovery');
+                    if (hls) {
+                        hls.startLoad();
+                    }
+                });
+
+                // Handle waiting for video data
+                video.addEventListener('waiting', function() {
+                    console.warn('Video waiting for data');
+                    // Show loading indicator if needed
+                });
+            }
+
             // Start
             document.addEventListener('DOMContentLoaded', function() {
-                // Set loading timeout - hide after 4 seconds max
-                loadingTimeout = setTimeout(hideLoading, 4000);
+                // Set loading timeout
+                loadingTimeout = setTimeout(hideLoading, 5000);
 
                 setupHls();
+                handleVideoIssues();
                 initPlyr();
-                lockRotation();
 
                 // Additional events to hide loading
                 video.addEventListener('canplay', function() {
@@ -412,18 +404,28 @@
                     hideLoading();
                 });
 
-                // Prevent any click/touch from causing rotation
-                video.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    lockRotation();
-                });
-
-                video.addEventListener('touchstart', function(e) {
-                    lockRotation();
-                });
+                // Force video to show even if only audio
+                setTimeout(function() {
+                    // If video is still black after 3 seconds, force re-render
+                    if (!isHidden) {
+                        video.style.display = 'block';
+                        video.style.opacity = '1';
+                        // Try to seek slightly to trigger render
+                        if (video.currentTime >= 0) {
+                            video.currentTime = video.currentTime;
+                        }
+                    }
+                }, 3000);
 
                 // Expose for debugging
-                window.__RS = { video, plyr, hls, lockRotation, hideLoading, toggleRotation };
+                window.__RS = { 
+                    video, 
+                    plyr, 
+                    hls, 
+                    toggleRotation, 
+                    resetRotation,
+                    isRotated: () => isRotated
+                };
             });
 
         })();
