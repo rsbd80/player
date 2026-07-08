@@ -24,56 +24,63 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* Fullscreen container */
-        #player-wrapper {
-            width: 100vw;
-            height: 100vh;
+        /* Main container - this rotates */
+        #player-container {
             position: fixed;
             top: 0;
             left: 0;
-            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
             background: #000;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            transition: transform 0.4s ease;
             transform-origin: center center;
             z-index: 1;
         }
 
-        /* Rotated state - whole screen rotates */
-        #player-wrapper.rotated {
+        /* Rotated state */
+        #player-container.rotated {
             transform: rotate(90deg) scale(1.78);
         }
 
-        /* Video fills entire wrapper */
+        /* Video fills container */
         #player {
             width: 100% !important;
             height: 100% !important;
-            background: #000;
             display: block;
             object-fit: cover !important;
-            position: absolute;
-            top: 0;
-            left: 0;
+            background: #000;
         }
 
-        /* Plyr overrides */
+        /* Plyr wrapper inside container */
+        .plyr {
+            width: 100% !important;
+            height: 100% !important;
+            position: relative !important;
+        }
+
         .plyr--video {
-            width: 100vw !important;
-            height: 100vh !important;
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            background: #000;
+            width: 100% !important;
+            height: 100% !important;
+            background: #000 !important;
         }
 
         .plyr__controls {
-            z-index: 30;
             position: absolute !important;
             bottom: 0 !important;
-            width: 100% !important;
-            background: linear-gradient(transparent, rgba(0,0,0,0.7)) !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 10 !important;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8)) !important;
+            padding: 20px 10px 15px !important;
         }
 
-        .plyr__control {
+        .plyr__controls button {
             color: #fff !important;
+        }
+
+        .plyr__control--overlaid {
+            background: rgba(0, 0, 0, 0.6) !important;
         }
 
         /* Loading Overlay */
@@ -88,12 +95,11 @@
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: opacity 0.3s ease;
         }
         
         #loading-overlay.hidden {
             opacity: 0;
-            visibility: hidden;
             pointer-events: none;
         }
 
@@ -152,11 +158,11 @@
 
         #error-msg {
             position: fixed;
-            bottom: 100px;
+            bottom: 120px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255, 0, 0, 0.85);
-            color: white;
+            color: #fff;
             padding: 12px 24px;
             border-radius: 8px;
             font-size: 14px;
@@ -167,18 +173,38 @@
             font-weight: 500;
         }
 
-        /* Fullscreen fixes */
-        :-webkit-full-screen #player-wrapper,
-        :-moz-full-screen #player-wrapper,
-        :fullscreen #player-wrapper {
-            width: 100vw !important;
-            height: 100vh !important;
+        /* Rotate button */
+        #rotate-btn {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: background 0.3s;
+            display: none;
+        }
+
+        #rotate-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        #rotate-btn.active {
+            background: rgba(0, 240, 255, 0.3);
+            border-color: #00f0ff;
         }
 
         @media (max-width: 400px) {
             .loader-brand { font-size: 18px; }
             .loader-sub { font-size: 7px; letter-spacing: 2px; }
             .loader-spinner { width: 22px; height: 22px; margin-top: 10px; }
+            #rotate-btn { padding: 10px 14px; font-size: 16px; bottom: 60px; right: 15px; }
         }
     </style>
 </head>
@@ -191,9 +217,12 @@
 
     <div id="error-msg"></div>
 
-    <div id="player-wrapper">
+    <div id="player-container">
         <video id="player" playsinline muted autoplay></video>
     </div>
+
+    <!-- Manual rotate button -->
+    <button id="rotate-btn" title="Rotate Screen">↻</button>
 
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
@@ -203,9 +232,10 @@
             'use strict';
 
             const video = document.getElementById('player');
-            const wrapper = document.getElementById('player-wrapper');
+            const container = document.getElementById('player-container');
             const overlay = document.getElementById('loading-overlay');
             const errorMsg = document.getElementById('error-msg');
+            const rotateBtn = document.getElementById('rotate-btn');
 
             const urlParams = new URLSearchParams(window.location.search);
             const videoSrc = urlParams.get('url') || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
@@ -225,6 +255,7 @@
                     loadingTimeout = null;
                 }
                 overlay.classList.add('hidden');
+                rotateBtn.style.display = 'block';
             }
 
             function showError(msg) {
@@ -235,35 +266,22 @@
                 }, 8000);
             }
 
-            // Toggle rotation - rotates whole wrapper
+            // Core rotation function
             function toggleRotation() {
                 isRotated = !isRotated;
-                if (isRotated) {
-                    wrapper.classList.add('rotated');
-                    // Ensure video fills screen when rotated
-                    video.style.objectFit = 'cover';
-                } else {
-                    wrapper.classList.remove('rotated');
-                }
+                container.classList.toggle('rotated', isRotated);
+                rotateBtn.classList.toggle('active', isRotated);
+                
+                // Force reflow for smooth transition
+                container.style.transform = 'none';
+                container.offsetHeight;
+                container.style.transform = '';
             }
 
             function resetRotation() {
                 isRotated = false;
-                wrapper.classList.remove('rotated');
-                video.style.objectFit = 'cover';
-            }
-
-            // Enter fullscreen with rotation
-            function enterFullscreen() {
-                if (plyr && plyr.fullscreen) {
-                    plyr.fullscreen.enter();
-                    // Toggle rotation after fullscreen enters
-                    setTimeout(() => {
-                        if (plyr.fullscreen.active) {
-                            toggleRotation();
-                        }
-                    }, 300);
-                }
+                container.classList.remove('rotated');
+                rotateBtn.classList.remove('active');
             }
 
             function tryAlternativeSource() {
@@ -272,15 +290,11 @@
                     return;
                 }
                 retryCount++;
-                
                 if (hls) {
                     hls.destroy();
                     hls = null;
                 }
-                
-                setTimeout(() => {
-                    setupHls(true);
-                }, 1000);
+                setTimeout(() => setupHls(true), 1000);
             }
 
             function setupHls(forceReload = false) {
@@ -329,7 +343,7 @@
                                 switch (data.type) {
                                     case Hls.ErrorTypes.NETWORK_ERROR:
                                         if (data.response && data.response.code === 403) {
-                                            showError('ভিডিও ব্লক করা হয়েছে (403)');
+                                            showError('ভিডিও ব্লক করা হয়েছে');
                                             tryAlternativeSource();
                                         } else {
                                             hls.startLoad();
@@ -387,15 +401,15 @@
                     setTimeout(hideLoading, 100);
                 });
 
-                // Fullscreen - rotate when entering
+                // Handle fullscreen - rotate when entering fullscreen
                 plyr.on('fullscreenchange', function() {
                     if (plyr.fullscreen.active) {
-                        // Entering fullscreen - rotate video
                         setTimeout(() => {
-                            toggleRotation();
-                        }, 200);
+                            if (!isRotated) {
+                                toggleRotation();
+                            }
+                        }, 300);
                     } else {
-                        // Exiting fullscreen - reset
                         resetRotation();
                     }
                 });
@@ -433,7 +447,7 @@
                     });
                 }
 
-                // Add custom fullscreen button behavior
+                // Override fullscreen button
                 const fsButton = document.querySelector('.plyr__control[data-plyr="fullscreen"]');
                 if (fsButton) {
                     fsButton.addEventListener('click', function(e) {
@@ -445,7 +459,7 @@
                         } else {
                             plyr.fullscreen.enter();
                             setTimeout(() => {
-                                if (plyr.fullscreen.active) {
+                                if (plyr.fullscreen.active && !isRotated) {
                                     toggleRotation();
                                 }
                             }, 300);
@@ -460,6 +474,7 @@
                         console.warn('Video has no dimensions - audio-only stream');
                         setTimeout(hideLoading, 1000);
                     }
+                    video.style.objectFit = 'cover';
                 });
 
                 video.addEventListener('stalled', function() {
@@ -487,7 +502,12 @@
                 video.addEventListener('loadeddata', hideLoading);
                 video.addEventListener('playing', hideLoading);
 
-                // Force video to fill screen
+                // Manual rotate button
+                rotateBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleRotation();
+                });
+
                 video.style.objectFit = 'cover';
 
                 // Expose for debugging
@@ -497,7 +517,6 @@
                     hls, 
                     toggleRotation, 
                     resetRotation,
-                    enterFullscreen,
                     isRotated: () => isRotated
                 };
             });
