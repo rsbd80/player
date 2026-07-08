@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>RS Live TV</title>
     
-    <!-- PWA Manifest -->
     <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUlMgTGl2ZSBUViIsInNob3J0X25hbWUiOiJSU0xpdmUiLCJzdGFydF91cmwiOiIuIiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vaS5wb3N0aW1nLmNjL21EMVZDdDJDL1JTLUxpdmUucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9XSwib3JpZW50YXRpb24iOiJhbnkifQ==" />
 
-    <!-- Plyr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
 
     <style>
@@ -18,8 +16,7 @@
             box-sizing: border-box;
         }
         
-        html,
-        body {
+        html, body {
             width: 100%;
             height: 100%;
             background: #0a0a0a;
@@ -27,26 +24,18 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        #player-container {
+        #player-wrapper {
             width: 100vw;
             height: 100vh;
             position: relative;
             overflow: hidden;
             background: #000;
-        }
-
-        #player {
-            width: 100% !important;
-            height: 100% !important;
-            background: #000;
-            display: block;
-            object-fit: contain;
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Rotated state */
-        #player.rotated {
-            transform: rotate(90deg) scale(1.78) !important;
+        /* Full wrapper rotates - includes video + controls */
+        #player-wrapper.rotated {
+            transform: rotate(90deg) scale(1.78);
         }
 
         .plyr--video {
@@ -59,6 +48,17 @@
 
         .plyr__controls {
             z-index: 20;
+            position: absolute !important;
+            bottom: 0 !important;
+            width: 100% !important;
+        }
+
+        #player {
+            width: 100% !important;
+            height: 100% !important;
+            background: #000;
+            display: block;
+            object-fit: contain;
         }
 
         /* Loading Overlay */
@@ -132,55 +132,58 @@
         }
 
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error message for blocked videos */
+        #error-msg {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 100;
+            display: none;
+            text-align: center;
+            max-width: 90%;
         }
 
         @media (max-width: 400px) {
-            .loader-brand {
-                font-size: 18px;
-            }
-            .loader-sub {
-                font-size: 7px;
-                letter-spacing: 2px;
-            }
-            .loader-spinner {
-                width: 22px;
-                height: 22px;
-                margin-top: 10px;
-            }
+            .loader-brand { font-size: 18px; }
+            .loader-sub { font-size: 7px; letter-spacing: 2px; }
+            .loader-spinner { width: 22px; height: 22px; margin-top: 10px; }
         }
     </style>
 </head>
 <body>
-    <!-- Loading Overlay -->
     <div id="loading-overlay">
         <div class="loader-brand">RS <span>LIVE TV</span></div>
         <div class="loader-sub">loading stream</div>
         <div class="loader-spinner"></div>
     </div>
 
-    <!-- Video Container -->
-    <div id="player-container">
+    <div id="error-msg"></div>
+
+    <div id="player-wrapper">
         <video id="player" playsinline muted autoplay></video>
     </div>
 
-    <!-- Plyr + HLS -->
-    <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
 
     <script>
         (function() {
             'use strict';
 
             const video = document.getElementById('player');
-            const container = document.getElementById('player-container');
+            const wrapper = document.getElementById('player-wrapper');
             const overlay = document.getElementById('loading-overlay');
+            const errorMsg = document.getElementById('error-msg');
 
-            // Get video URL from query parameter
             const urlParams = new URLSearchParams(window.location.search);
             const videoSrc = urlParams.get('url') || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
 
@@ -189,37 +192,158 @@
             let isHidden = false;
             let loadingTimeout = null;
             let isRotated = false;
+            let retryCount = 0;
 
-            // Hide Loading
             function hideLoading() {
                 if (isHidden) return;
                 isHidden = true;
-                
                 if (loadingTimeout) {
                     clearTimeout(loadingTimeout);
                     loadingTimeout = null;
                 }
-                
                 overlay.classList.add('hidden');
             }
 
-            // Toggle rotation - using class instead of inline style
+            function showError(msg) {
+                errorMsg.textContent = msg;
+                errorMsg.style.display = 'block';
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                }, 8000);
+            }
+
+            // Toggle rotation - rotates entire wrapper
             function toggleRotation() {
                 isRotated = !isRotated;
                 if (isRotated) {
-                    video.classList.add('rotated');
+                    wrapper.classList.add('rotated');
                 } else {
-                    video.classList.remove('rotated');
+                    wrapper.classList.remove('rotated');
                 }
             }
 
-            // Reset rotation
             function resetRotation() {
                 isRotated = false;
-                video.classList.remove('rotated');
+                wrapper.classList.remove('rotated');
             }
 
-            // Initialize Plyr
+            // Try alternative video source if blocked
+            function tryAlternativeSource() {
+                if (retryCount >= 2) {
+                    showError('ভিডিও ব্লক করা হয়েছে। শুধু অডিও পাওয়া যাচ্ছে।');
+                    return;
+                }
+                retryCount++;
+                
+                // Try with different user agent or CORS settings
+                if (hls) {
+                    hls.destroy();
+                }
+                
+                // Reload with different config
+                setTimeout(() => {
+                    setupHls(true);
+                }, 1000);
+            }
+
+            function setupHls(forceReload = false) {
+                if (!videoSrc) {
+                    hideLoading();
+                    return;
+                }
+
+                if (Hls.isSupported()) {
+                    try {
+                        hls = new Hls({
+                            enableWorker: true,
+                            lowLatencyMode: true,
+                            backbufferLength: 30,
+                            maxBufferLength: 30,
+                            maxMaxBufferLength: 600,
+                            liveSyncDurationCount: 3,
+                            liveMaxLatencyDurationCount: 10,
+                            enableWebVTT: false,
+                            xhrSetup: function(xhr, url) {
+                                // Try to bypass some blocks
+                                xhr.withCredentials = false;
+                                // Add custom headers if needed
+                                xhr.setRequestHeader('Origin', window.location.origin);
+                            }
+                        });
+
+                        hls.loadSource(videoSrc);
+                        hls.attachMedia(video);
+
+                        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                            hideLoading();
+                            video.play().catch(function(e) {
+                                console.warn('Autoplay prevented:', e);
+                            });
+                        });
+
+                        hls.on(Hls.Events.ERROR, function(event, data) {
+                            if (data.fatal) {
+                                console.warn('HLS fatal error:', data);
+                                switch (data.type) {
+                                    case Hls.ErrorTypes.NETWORK_ERROR:
+                                        // Try to recover
+                                        if (data.response && data.response.code === 403) {
+                                            showError('ভিডিও ব্লক করা হয়েছে (403)');
+                                            tryAlternativeSource();
+                                        } else {
+                                            hls.startLoad();
+                                        }
+                                        break;
+                                    case Hls.ErrorTypes.MEDIA_ERROR:
+                                        hls.recoverMediaError();
+                                        break;
+                                    default:
+                                        hideLoading();
+                                        if (data.response && data.response.code === 403) {
+                                            showError('ভিডিও অ্যাক্সেস ব্লক করা হয়েছে');
+                                        }
+                                        break;
+                                }
+                            } else {
+                                console.warn('HLS non-fatal error:', data);
+                            }
+                        });
+
+                        hls.on(Hls.Events.FRAG_LOADED, function() {
+                            hideLoading();
+                        });
+
+                        hls.on(Hls.Events.FRAG_PARSING_METADATA, function() {
+                            hideLoading();
+                        });
+
+                    } catch (e) {
+                        console.error('HLS setup error:', e);
+                        hideLoading();
+                        showError('ভিডিও লোড করতে সমস্যা হয়েছে');
+                    }
+
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = videoSrc;
+                    video.addEventListener('loadedmetadata', function() {
+                        hideLoading();
+                        video.play().catch(function(e) {
+                            console.warn('Autoplay prevented:', e);
+                        });
+                    });
+                    video.addEventListener('error', function(e) {
+                        if (video.error) {
+                            if (video.error.code === 4) {
+                                showError('ভিডিও লোড হয়নি। ব্লক করা থাকতে পারে।');
+                            }
+                        }
+                    });
+                } else {
+                    hideLoading();
+                    showError('এই ব্রাউজার HLS সাপোর্ট করে না');
+                }
+            }
+
             function initPlyr() {
                 if (plyr) return;
 
@@ -229,10 +353,6 @@
                     muted: true,
                     keyboard: { focused: true, global: true },
                     tooltips: { controls: false, seek: true },
-                    duration: null,
-                    displayDuration: true,
-                    invertTime: false,
-                    toggleInvert: false,
                     disableContextMenu: true,
                     loadSprite: true,
                     iconPrefix: 'plyr',
@@ -245,9 +365,7 @@
                     setTimeout(hideLoading, 100);
                 });
 
-                // Handle fullscreen changes
                 plyr.on('fullscreenchange', function() {
-                    // Only rotate when entering fullscreen
                     if (plyr.fullscreen.active) {
                         toggleRotation();
                     } else {
@@ -255,21 +373,18 @@
                     }
                 });
 
-                // Handle escape key to exit fullscreen and reset rotation
                 document.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape' && isRotated) {
                         resetRotation();
                     }
                 });
 
-                // Handle window resize
                 window.addEventListener('resize', function() {
                     if (!plyr.fullscreen.active && isRotated) {
                         resetRotation();
                     }
                 });
 
-                // Handle orientation change
                 window.addEventListener('orientationchange', function() {
                     setTimeout(function() {
                         if (plyr.fullscreen.active && !isRotated) {
@@ -278,7 +393,6 @@
                     }, 300);
                 });
 
-                // Screen orientation API
                 if (screen.orientation) {
                     screen.orientation.addEventListener('change', function() {
                         setTimeout(function() {
@@ -290,86 +404,19 @@
                 }
             }
 
-            // Setup HLS
-            function setupHls() {
-                if (!videoSrc) {
-                    hideLoading();
-                    return;
-                }
-
-                if (Hls.isSupported()) {
-                    hls = new Hls({
-                        enableWorker: true,
-                        lowLatencyMode: true,
-                        backbufferLength: 30,
-                        maxBufferLength: 30,
-                        maxMaxBufferLength: 600,
-                        liveSyncDurationCount: 3,
-                        liveMaxLatencyDurationCount: 10,
-                        enableWebVTT: false,
-                    });
-
-                    hls.loadSource(videoSrc);
-                    hls.attachMedia(video);
-
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        hideLoading();
-                        video.play().catch(function(e) {
-                            console.warn('Autoplay prevented:', e);
-                        });
-                    });
-
-                    hls.on(Hls.Events.ERROR, function(event, data) {
-                        if (data.fatal) {
-                            console.warn('HLS fatal error, attempting recovery:', data);
-                            switch (data.type) {
-                                case Hls.ErrorTypes.NETWORK_ERROR:
-                                    hls.startLoad();
-                                    break;
-                                case Hls.ErrorTypes.MEDIA_ERROR:
-                                    hls.recoverMediaError();
-                                    break;
-                                default:
-                                    hideLoading();
-                                    break;
-                            }
-                        } else {
-                            console.warn('HLS non-fatal error:', data);
-                        }
-                    });
-
-                    hls.on(Hls.Events.FRAG_LOADED, function() {
-                        hideLoading();
-                    });
-
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    // Native HLS (Safari)
-                    video.src = videoSrc;
-                    video.addEventListener('loadedmetadata', function() {
-                        hideLoading();
-                        video.play().catch(function(e) {
-                            console.warn('Autoplay prevented:', e);
-                        });
-                    });
-                } else {
-                    hideLoading();
-                }
-            }
-
-            // Handle video loading issues - show video even if only audio plays
+            // Handle video issues - try to show video even if only audio
             function handleVideoIssues() {
-                // If video has audio but no video track, try to force render
                 video.addEventListener('loadedmetadata', function() {
-                    // Check if video has dimensions
                     if (video.videoWidth === 0 || video.videoHeight === 0) {
-                        console.warn('Video has no dimensions, trying to force render');
-                        // Try to force video rendering
-                        video.style.display = 'block';
-                        video.style.opacity = '1';
+                        console.warn('Video has no dimensions - trying to force render');
+                        // This might be an audio-only stream
+                        // Try to still show something
+                        setTimeout(() => {
+                            hideLoading();
+                        }, 1000);
                     }
                 });
 
-                // If video stuck, try reloading
                 video.addEventListener('stalled', function() {
                     console.warn('Video stalled, attempting recovery');
                     if (hls) {
@@ -377,54 +424,50 @@
                     }
                 });
 
-                // Handle waiting for video data
                 video.addEventListener('waiting', function() {
                     console.warn('Video waiting for data');
-                    // Show loading indicator if needed
                 });
+
+                // If video can't load, try alternative after timeout
+                setTimeout(() => {
+                    if (!isHidden && video.readyState < 2) {
+                        console.warn('Video still not ready after timeout');
+                        tryAlternativeSource();
+                    }
+                }, 8000);
             }
 
             // Start
             document.addEventListener('DOMContentLoaded', function() {
-                // Set loading timeout
                 loadingTimeout = setTimeout(hideLoading, 5000);
 
                 setupHls();
                 handleVideoIssues();
                 initPlyr();
 
-                // Additional events to hide loading
-                video.addEventListener('canplay', function() {
-                    hideLoading();
-                });
-                video.addEventListener('loadeddata', function() {
-                    hideLoading();
-                });
-                video.addEventListener('playing', function() {
-                    hideLoading();
-                });
+                video.addEventListener('canplay', hideLoading);
+                video.addEventListener('loadeddata', hideLoading);
+                video.addEventListener('playing', hideLoading);
 
-                // Force video to show even if only audio
+                // Force video to show
                 setTimeout(function() {
-                    // If video is still black after 3 seconds, force re-render
                     if (!isHidden) {
                         video.style.display = 'block';
                         video.style.opacity = '1';
-                        // Try to seek slightly to trigger render
                         if (video.currentTime >= 0) {
                             video.currentTime = video.currentTime;
                         }
                     }
                 }, 3000);
 
-                // Expose for debugging
                 window.__RS = { 
                     video, 
                     plyr, 
                     hls, 
                     toggleRotation, 
                     resetRotation,
-                    isRotated: () => isRotated
+                    isRotated: () => isRotated,
+                    tryAlternativeSource
                 };
             });
 
