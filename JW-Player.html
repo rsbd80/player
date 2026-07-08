@@ -24,8 +24,8 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* Main container - this rotates */
-        #player-container {
+        /* Main container */
+        #app {
             position: fixed;
             top: 0;
             left: 0;
@@ -33,30 +33,38 @@
             height: 100vh;
             background: #000;
             overflow: hidden;
-            transition: transform 0.4s ease;
-            transform-origin: center center;
-            z-index: 1;
         }
 
-        /* Rotated state */
-        #player-container.rotated {
+        /* Player wrapper - rotates */
+        #player-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center center;
+            will-change: transform;
+        }
+
+        /* When rotated - full screen rotation */
+        #player-wrapper.rotated {
             transform: rotate(90deg) scale(1.78);
         }
 
-        /* Video fills container */
+        /* Video fills wrapper */
         #player {
             width: 100% !important;
             height: 100% !important;
-            display: block;
             object-fit: cover !important;
             background: #000;
+            display: block;
         }
 
-        /* Plyr wrapper inside container */
+        /* Plyr custom styles */
         .plyr {
             width: 100% !important;
             height: 100% !important;
-            position: relative !important;
         }
 
         .plyr--video {
@@ -70,8 +78,8 @@
             bottom: 0 !important;
             left: 0 !important;
             right: 0 !important;
-            z-index: 10 !important;
-            background: linear-gradient(transparent, rgba(0,0,0,0.8)) !important;
+            z-index: 20 !important;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8) 80%) !important;
             padding: 20px 10px 15px !important;
         }
 
@@ -95,7 +103,7 @@
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
         }
         
         #loading-overlay.hidden {
@@ -161,7 +169,7 @@
             bottom: 120px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 0, 0, 0.85);
+            background: rgba(255, 0, 0, 0.9);
             color: #fff;
             padding: 12px 24px;
             border-radius: 8px;
@@ -173,38 +181,51 @@
             font-weight: 500;
         }
 
-        /* Rotate button */
+        /* Rotate button - bottom right */
         #rotate-btn {
             position: fixed;
-            bottom: 70px;
+            bottom: 80px;
             right: 20px;
             z-index: 50;
             background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: #fff;
-            padding: 12px 16px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            font-size: 20px;
+            font-size: 22px;
             cursor: pointer;
             backdrop-filter: blur(10px);
-            transition: background 0.3s;
+            transition: all 0.3s;
             display: none;
+            align-items: center;
+            justify-content: center;
         }
 
         #rotate-btn:hover {
             background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
         }
 
         #rotate-btn.active {
             background: rgba(0, 240, 255, 0.3);
             border-color: #00f0ff;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+
+        /* Fullscreen fix */
+        :-webkit-full-screen #app,
+        :-moz-full-screen #app,
+        :fullscreen #app {
+            width: 100vw !important;
+            height: 100vh !important;
         }
 
         @media (max-width: 400px) {
             .loader-brand { font-size: 18px; }
             .loader-sub { font-size: 7px; letter-spacing: 2px; }
             .loader-spinner { width: 22px; height: 22px; margin-top: 10px; }
-            #rotate-btn { padding: 10px 14px; font-size: 16px; bottom: 60px; right: 15px; }
+            #rotate-btn { width: 42px; height: 42px; font-size: 18px; bottom: 70px; right: 15px; }
         }
     </style>
 </head>
@@ -217,12 +238,13 @@
 
     <div id="error-msg"></div>
 
-    <div id="player-container">
-        <video id="player" playsinline muted autoplay></video>
+    <div id="app">
+        <div id="player-wrapper">
+            <video id="player" playsinline muted autoplay></video>
+        </div>
     </div>
 
-    <!-- Manual rotate button -->
-    <button id="rotate-btn" title="Rotate Screen">↻</button>
+    <button id="rotate-btn" title="Rotate Screen">⟳</button>
 
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
@@ -232,7 +254,7 @@
             'use strict';
 
             const video = document.getElementById('player');
-            const container = document.getElementById('player-container');
+            const wrapper = document.getElementById('player-wrapper');
             const overlay = document.getElementById('loading-overlay');
             const errorMsg = document.getElementById('error-msg');
             const rotateBtn = document.getElementById('rotate-btn');
@@ -255,7 +277,7 @@
                     loadingTimeout = null;
                 }
                 overlay.classList.add('hidden');
-                rotateBtn.style.display = 'block';
+                rotateBtn.style.display = 'flex';
             }
 
             function showError(msg) {
@@ -266,21 +288,19 @@
                 }, 8000);
             }
 
-            // Core rotation function
+            // Simple rotation toggle
             function toggleRotation() {
                 isRotated = !isRotated;
-                container.classList.toggle('rotated', isRotated);
+                wrapper.classList.toggle('rotated', isRotated);
                 rotateBtn.classList.toggle('active', isRotated);
                 
-                // Force reflow for smooth transition
-                container.style.transform = 'none';
-                container.offsetHeight;
-                container.style.transform = '';
+                // Log for debugging
+                console.log('Rotation toggled:', isRotated);
             }
 
             function resetRotation() {
                 isRotated = false;
-                container.classList.remove('rotated');
+                wrapper.classList.remove('rotated');
                 rotateBtn.classList.remove('active');
             }
 
@@ -321,9 +341,6 @@
                             enableWebVTT: false,
                             xhrSetup: function(xhr, url) {
                                 xhr.withCredentials = false;
-                                try {
-                                    xhr.setRequestHeader('Origin', window.location.origin);
-                                } catch(e) {}
                             }
                         });
 
@@ -401,14 +418,15 @@
                     setTimeout(hideLoading, 100);
                 });
 
-                // Handle fullscreen - rotate when entering fullscreen
+                // Fullscreen - rotate when entering
                 plyr.on('fullscreenchange', function() {
+                    console.log('Fullscreen change, active:', plyr.fullscreen.active);
                     if (plyr.fullscreen.active) {
                         setTimeout(() => {
                             if (!isRotated) {
                                 toggleRotation();
                             }
-                        }, 300);
+                        }, 500);
                     } else {
                         resetRotation();
                     }
@@ -446,26 +464,6 @@
                         }, 400);
                     });
                 }
-
-                // Override fullscreen button
-                const fsButton = document.querySelector('.plyr__control[data-plyr="fullscreen"]');
-                if (fsButton) {
-                    fsButton.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (plyr.fullscreen.active) {
-                            plyr.fullscreen.exit();
-                            resetRotation();
-                        } else {
-                            plyr.fullscreen.enter();
-                            setTimeout(() => {
-                                if (plyr.fullscreen.active && !isRotated) {
-                                    toggleRotation();
-                                }
-                            }, 300);
-                        }
-                    });
-                }
             }
 
             function handleVideoIssues() {
@@ -474,7 +472,6 @@
                         console.warn('Video has no dimensions - audio-only stream');
                         setTimeout(hideLoading, 1000);
                     }
-                    video.style.objectFit = 'cover';
                 });
 
                 video.addEventListener('stalled', function() {
@@ -508,7 +505,11 @@
                     toggleRotation();
                 });
 
-                video.style.objectFit = 'cover';
+                // Double tap on video to rotate
+                video.addEventListener('dblclick', function(e) {
+                    e.preventDefault();
+                    toggleRotation();
+                });
 
                 // Expose for debugging
                 window.__RS = { 
@@ -517,8 +518,11 @@
                     hls, 
                     toggleRotation, 
                     resetRotation,
-                    isRotated: () => isRotated
+                    isRotated: () => isRotated,
+                    wrapper: wrapper
                 };
+
+                console.log('RS Live TV loaded. Use window.__RS for debugging.');
             });
 
         })();
