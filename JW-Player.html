@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fullscreen Video · Rotation · No Crop</title>
+    <title>Fullscreen Video · Rotation Fixed</title>
     <!-- Plyr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
     <style>
-        /* ----- global reset : 100% fill, no overflow ----- */
+        /* ----- reset : full screen ----- */
         * {
             margin: 0;
             padding: 0;
@@ -16,12 +16,11 @@
         html, body {
             width: 100%;
             height: 100%;
-            background: #0b0b0b;
+            background: #000;
             overflow: hidden;
-            position: relative;
         }
 
-        /* ----- plyr container : edge-to-edge ----- */
+        /* Plyr container : full screen */
         .plyr--video {
             width: 100vw !important;
             height: 100vh !important;
@@ -30,113 +29,58 @@
             background: #000;
         }
 
-        /* ----- video element : cover + rotation-ready, NO CROP ----- */
+        /* video : cover + rotation */
         #player {
             width: 100% !important;
             height: 100% !important;
-            object-fit: cover !important;   /* fills screen, but rotation may shift */
+            object-fit: cover !important;
             background: #000;
             transform-origin: center center;
-            transition: transform 0.2s ease;
+            transition: transform 0.25s ease;
             display: block;
         }
 
-        /* plyr controls always on top */
         .plyr__controls {
             z-index: 20;
         }
 
-        /* ----- loading overlay : beautiful glassmorphism ----- */
+        /* ----- simple loading fade (no spinner) ----- */
         #loading-overlay {
             position: fixed;
             inset: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(10, 10, 20, 0.75);
-            backdrop-filter: blur(6px) saturate(1.2);
-            -webkit-backdrop-filter: blur(6px) saturate(1.2);
+            background: #0a0a0a;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 999;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-            pointer-events: none;          /* allow click-through when hidden */
+            transition: opacity 0.6s ease;
+            pointer-events: none;
         }
         #loading-overlay.hidden {
             opacity: 0;
-            visibility: hidden;
         }
-
-        /* spinner ring – elegant & smooth */
-        .spinner {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            border: 6px solid rgba(255, 255, 255, 0.1);
-            border-top: 6px solid #f0c27f;
-            border-right: 6px solid #fc5c7d;
-            animation: spin 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-            box-shadow: 0 0 30px rgba(252, 92, 125, 0.3);
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            margin-top: 28px;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            font-weight: 400;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            color: rgba(255, 255, 255, 0.8);
-            text-shadow: 0 2px 12px rgba(0,0,0,0.6);
-            background: rgba(0,0,0,0.2);
-            padding: 8px 24px;
-            border-radius: 40px;
-            backdrop-filter: blur(2px);
-        }
-        .loading-text span {
-            font-weight: 300;
-            opacity: 0.7;
-        }
-
-        /* small status (debug) – optional */
-        .status-badge {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
-            color: #aaa;
-            font-size: 11px;
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-family: monospace;
-            z-index: 50;
-            border: 1px solid rgba(255,255,255,0.08);
-            pointer-events: none;
+        #loading-overlay .text {
+            color: rgba(255,255,255,0.3);
+            font-family: system-ui, sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
-    <!-- LOADING OVERLAY (beautiful) -->
-    <div id="loading-overlay" aria-label="loading video">
-        <div class="spinner"></div>
-        <div class="loading-text">🔮 <span>লোড হচ্ছে</span></div>
+    <!-- simple loading (just text, fades out) -->
+    <div id="loading-overlay">
+        <span class="text">● loading</span>
     </div>
 
-    <!-- VIDEO ELEMENT -->
     <video id="player" playsinline muted autoplay controls>
         <source type="application/vnd.apple.mpegurl" src="" />
     </video>
 
-    <!-- small debug badge (optional) -->
-    <div class="status-badge" id="rotationStatus">🔄 0°</div>
-
-    <!-- LIBRARIES -->
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js">
     </script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js">
@@ -146,24 +90,19 @@
         (function() {
             'use strict';
 
-            // ----- DOM refs -----
             const video = document.getElementById('player');
             const overlay = document.getElementById('loading-overlay');
-            const statusBadge = document.getElementById('rotationStatus');
 
-            // ----- 1. get source from URL -----
+            // ----- get video from URL -----
             const urlParams = new URLSearchParams(window.location.search);
             const videoSrc = urlParams.get('url');
 
             if (videoSrc) {
                 video.querySelector('source').src = videoSrc;
                 video.load();
-            } else {
-                // fallback demo (if no url, just hide overlay after 2s)
-                console.warn('ℹ️ No ?url= parameter — using empty source');
             }
 
-            // ----- 2. Plyr instance -----
+            // ----- Plyr -----
             let player = null;
 
             function initPlyr() {
@@ -175,75 +114,61 @@
                     muted: true,
                 });
 
-                // hide loading overlay when video can play
+                // hide loading when video can play
                 video.addEventListener('canplay', function onCanPlay() {
                     overlay.classList.add('hidden');
                     video.removeEventListener('canplay', onCanPlay);
                 });
 
-                // fallback: hide overlay after 4s anyway (if video stuck)
-                setTimeout(function() {
-                    overlay.classList.add('hidden');
-                }, 4500);
+                // fallback: hide after 2.5s
+                setTimeout(() => overlay.classList.add('hidden'), 2500);
 
-                // update rotation on plyr ready
-                player.on('ready', function() {
-                    applyCurrentRotation();
+                // apply rotation on ready
+                player.on('ready', () => applyCurrentRotation());
+
+                // FIX: fullscreen change inside Plyr
+                player.on('fullscreenchange', () => {
+                    setTimeout(applyCurrentRotation, 300);
                 });
 
-                // also when fullscreen changes
-                player.on('fullscreenchange', function() {
-                    setTimeout(applyCurrentRotation, 250);
+                // also listen to native fullscreen events
+                document.addEventListener('fullscreenchange', () => {
+                    setTimeout(applyCurrentRotation, 300);
+                });
+                document.addEventListener('webkitfullscreenchange', () => {
+                    setTimeout(applyCurrentRotation, 300);
                 });
             }
 
-            // ----- 3. HLS support -----
+            // ----- HLS -----
             function setupHls() {
                 if (!videoSrc) return;
                 if (Hls.isSupported()) {
-                    const hls = new Hls({
-                        enableWorker: true,
-                        lowLatencyMode: true,
-                    });
+                    const hls = new Hls({ enableWorker: true });
                     hls.loadSource(videoSrc);
                     hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        video.play().catch(function(e) { /* auto-play blocked */ });
-                    });
-                    // error recovery
-                    hls.on(Hls.Events.ERROR, function(e, data) {
-                        if (data.fatal) {
-                            console.warn('HLS fatal error, trying recovery', data);
-                        }
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        video.play().catch(() => {});
                     });
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                     video.src = videoSrc;
-                } else {
-                    console.warn('⚠️ No HLS support, and no native HLS.');
                 }
             }
 
-            // ----- 4. Rotation logic (NO CROP – we use cover + rotate) -----
+            // ----- ROTATION (FIXED for fullscreen) -----
             function applyRotation(angle) {
                 if (!video) return;
-                // rotate the video element
                 video.style.transform = 'rotate(' + angle + 'deg)';
-                // force cover (already set in css) but keep it
                 video.style.objectFit = 'cover';
-                // update badge
-                if (statusBadge) {
-                    statusBadge.textContent = '🔄 ' + angle + '°';
-                }
-                console.log('🔄 Rotation applied: ' + angle + '°');
+                console.log('🔄 Rotation: ' + angle + '°');
             }
 
-            // ----- 5. Orientation detection (best effort) -----
             function getOrientationAngle() {
                 // 1) window.orientation (iOS, old Android)
                 if (typeof window.orientation !== 'undefined' && window.orientation !== null) {
-                    return window.orientation; // 0, 90, -90, 180
+                    return window.orientation;
                 }
-                // 2) screen.orientation API (modern)
+                // 2) screen.orientation API
                 if (screen.orientation) {
                     const type = screen.orientation.type;
                     if (type.includes('portrait-primary')) return 0;
@@ -251,12 +176,8 @@
                     if (type.includes('landscape-primary')) return 90;
                     if (type.includes('landscape-secondary')) return -90;
                 }
-                // 3) fallback: width/height
-                if (window.innerWidth > window.innerHeight) {
-                    return 90; // landscape
-                } else {
-                    return 0; // portrait
-                }
+                // 3) fallback
+                return window.innerWidth > window.innerHeight ? 90 : 0;
             }
 
             function applyCurrentRotation() {
@@ -264,61 +185,36 @@
                 applyRotation(angle);
             }
 
-            // ----- 6. event listeners : orientation, resize, fullscreen -----
-            function attachRotationListeners() {
-                // orientationchange (old)
-                window.addEventListener('orientationchange', function() {
-                    setTimeout(applyCurrentRotation, 300);
+            // ----- events -----
+            function attachEvents() {
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(applyCurrentRotation, 350);
                 });
 
-                // screen.orientation change (modern)
                 if (screen.orientation) {
-                    screen.orientation.addEventListener('change', function() {
-                        setTimeout(applyCurrentRotation, 300);
+                    screen.orientation.addEventListener('change', () => {
+                        setTimeout(applyCurrentRotation, 350);
                     });
                 }
 
-                // resize (desktop / window change)
-                window.addEventListener('resize', function() {
-                    applyCurrentRotation();
-                });
-
-                // video metadata loaded
-                video.addEventListener('loadedmetadata', function() {
-                    applyCurrentRotation();
-                });
-
-                // fullscreen events (native)
-                document.addEventListener('fullscreenchange', function() {
-                    setTimeout(applyCurrentRotation, 200);
-                });
-                document.addEventListener('webkitfullscreenchange', function() {
-                    setTimeout(applyCurrentRotation, 200);
-                });
-
-                // also listen for plyr fullscreen via custom event (already in plyr init)
+                window.addEventListener('resize', applyCurrentRotation);
+                video.addEventListener('loadedmetadata', applyCurrentRotation);
             }
 
-            // ----- 7. init everything -----
-            document.addEventListener('DOMContentLoaded', function() {
+            // ----- init -----
+            document.addEventListener('DOMContentLoaded', () => {
                 setupHls();
                 initPlyr();
-                attachRotationListeners();
+                attachEvents();
 
-                // initial rotation after a small delay (ensure layout)
-                setTimeout(applyCurrentRotation, 400);
-                // second pass after 1s
-                setTimeout(applyCurrentRotation, 1000);
+                // initial rotation
+                setTimeout(applyCurrentRotation, 300);
+                setTimeout(applyCurrentRotation, 800);
 
-                // expose to global for debug
+                // expose for debug
                 window.rotateVideo = applyCurrentRotation;
-                console.log('✅ Auto-rotation active · NO CROP · Loading overlay ready');
+                console.log('✅ Rotation fixed for fullscreen · Loading simplified');
             });
-
-            // also if DOM already loaded (just in case)
-            if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                // but we rely on DOMContentLoaded above
-            }
 
         })();
     </script>
