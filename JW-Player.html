@@ -3,24 +3,21 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fullscreen Video · Rotation Fixed</title>
-    <!-- Plyr CSS -->
+    <title>RS Live · Fullscreen</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
     <style>
-        /* ----- reset : full screen ----- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
-            width: 100%;
-            height: 100%;
-            background: #000;
-            overflow: hidden;
+            width: 100%; height: 100%;
+            background: #000; overflow: hidden;
         }
-
-        /* Plyr container : full screen */
+        #player {
+            width: 100% !important;
+            height: 100% !important;
+            background: #000;
+            display: block;
+            object-fit: cover;
+        }
         .plyr--video {
             width: 100vw !important;
             height: 100vh !important;
@@ -28,195 +25,141 @@
             max-height: 100vh !important;
             background: #000;
         }
-
-        /* video : cover + rotation */
-        #player {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-            background: #000;
-            transform-origin: center center;
-            transition: transform 0.25s ease;
-            display: block;
-        }
-
-        .plyr__controls {
-            z-index: 20;
-        }
-
-        /* ----- simple loading fade (no spinner) ----- */
-        #loading-overlay {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: 100vh;
+        .plyr__controls { z-index: 20; }
+        #loading {
+            position: fixed; inset: 0; z-index: 999;
             background: #0a0a0a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 999;
-            transition: opacity 0.6s ease;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.5s ease;
+            color: rgba(255,255,255,0.3);
+            font-family: system-ui; font-size: 0.9rem; letter-spacing: 3px;
+            text-transform: uppercase;
             pointer-events: none;
         }
-        #loading-overlay.hidden {
-            opacity: 0;
-        }
-        #loading-overlay .text {
-            color: rgba(255,255,255,0.3);
-            font-family: system-ui, sans-serif;
-            font-size: 0.9rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
+        #loading.hidden { opacity: 0; }
     </style>
 </head>
 <body>
 
-    <!-- simple loading (just text, fades out) -->
-    <div id="loading-overlay">
-        <span class="text">● loading</span>
-    </div>
+    <div id="loading">● loading</div>
+    <video id="player" playsinline muted autoplay></video>
 
-    <video id="player" playsinline muted autoplay controls>
-        <source type="application/vnd.apple.mpegurl" src="" />
-    </video>
-
-    <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
 
     <script>
-        (function() {
-            'use strict';
+    (function() {
+        'use strict';
 
-            const video = document.getElementById('player');
-            const overlay = document.getElementById('loading-overlay');
+        const video = document.getElementById('player');
+        const loading = document.getElementById('loading');
+        const src = new URLSearchParams(window.location.search).get('url');
 
-            // ----- get video from URL -----
-            const urlParams = new URLSearchParams(window.location.search);
-            const videoSrc = urlParams.get('url');
+        let plyr = null;
+        let hls = null;
 
-            if (videoSrc) {
-                video.querySelector('source').src = videoSrc;
-                video.load();
+        // ----- ROTATION -----
+        function getAngle() {
+            // modern API
+            if (screen.orientation) {
+                const type = screen.orientation.type;
+                if (type === 'portrait-primary') return 0;
+                if (type === 'portrait-secondary') return 180;
+                if (type === 'landscape-primary') return 90;
+                if (type === 'landscape-secondary') return -90;
+            }
+            // fallback: window size
+            return window.innerWidth > window.innerHeight ? 90 : 0;
+        }
+
+        function applyRotation() {
+            const angle = getAngle();
+            video.style.transform = `rotate(${angle}deg)`;
+            video.style.objectFit = 'cover';
+        }
+
+        // ----- HLS + PLYR -----
+        function initPlayer() {
+            // destroy previous
+            if (plyr) { plyr.destroy(); plyr = null; }
+            if (hls) { hls.destroy(); hls = null; }
+
+            if (!src) {
+                loading.classList.add('hidden');
+                return;
             }
 
-            // ----- Plyr -----
-            let player = null;
-
-            function initPlyr() {
-                if (player) return;
-                player = new Plyr(video, {
-                    fullscreen: { enabled: true, fallback: true, iosNative: true },
-                    controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-                    autoplay: true,
-                    muted: true,
-                });
-
-                // hide loading when video can play
-                video.addEventListener('canplay', function onCanPlay() {
-                    overlay.classList.add('hidden');
-                    video.removeEventListener('canplay', onCanPlay);
-                });
-
-                // fallback: hide after 2.5s
-                setTimeout(() => overlay.classList.add('hidden'), 2500);
-
-                // apply rotation on ready
-                player.on('ready', () => applyCurrentRotation());
-
-                // FIX: fullscreen change inside Plyr
-                player.on('fullscreenchange', () => {
-                    setTimeout(applyCurrentRotation, 300);
-                });
-
-                // also listen to native fullscreen events
-                document.addEventListener('fullscreenchange', () => {
-                    setTimeout(applyCurrentRotation, 300);
-                });
-                document.addEventListener('webkitfullscreenchange', () => {
-                    setTimeout(applyCurrentRotation, 300);
-                });
-            }
-
-            // ----- HLS -----
-            function setupHls() {
-                if (!videoSrc) return;
-                if (Hls.isSupported()) {
-                    const hls = new Hls({ enableWorker: true });
-                    hls.loadSource(videoSrc);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                        video.play().catch(() => {});
-                    });
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = videoSrc;
-                }
-            }
-
-            // ----- ROTATION (FIXED for fullscreen) -----
-            function applyRotation(angle) {
-                if (!video) return;
-                video.style.transform = 'rotate(' + angle + 'deg)';
-                video.style.objectFit = 'cover';
-                console.log('🔄 Rotation: ' + angle + '°');
-            }
-
-            function getOrientationAngle() {
-                // 1) window.orientation (iOS, old Android)
-                if (typeof window.orientation !== 'undefined' && window.orientation !== null) {
-                    return window.orientation;
-                }
-                // 2) screen.orientation API
-                if (screen.orientation) {
-                    const type = screen.orientation.type;
-                    if (type.includes('portrait-primary')) return 0;
-                    if (type.includes('portrait-secondary')) return 180;
-                    if (type.includes('landscape-primary')) return 90;
-                    if (type.includes('landscape-secondary')) return -90;
-                }
-                // 3) fallback
-                return window.innerWidth > window.innerHeight ? 90 : 0;
-            }
-
-            function applyCurrentRotation() {
-                const angle = getOrientationAngle();
-                applyRotation(angle);
-            }
-
-            // ----- events -----
-            function attachEvents() {
-                window.addEventListener('orientationchange', () => {
-                    setTimeout(applyCurrentRotation, 350);
-                });
-
-                if (screen.orientation) {
-                    screen.orientation.addEventListener('change', () => {
-                        setTimeout(applyCurrentRotation, 350);
-                    });
-                }
-
-                window.addEventListener('resize', applyCurrentRotation);
-                video.addEventListener('loadedmetadata', applyCurrentRotation);
-            }
-
-            // ----- init -----
-            document.addEventListener('DOMContentLoaded', () => {
-                setupHls();
-                initPlyr();
-                attachEvents();
-
-                // initial rotation
-                setTimeout(applyCurrentRotation, 300);
-                setTimeout(applyCurrentRotation, 800);
-
-                // expose for debug
-                window.rotateVideo = applyCurrentRotation;
-                console.log('✅ Rotation fixed for fullscreen · Loading simplified');
+            // Plyr (empty video element)
+            plyr = new Plyr(video, {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                autoplay: true,
+                muted: true,
             });
 
-        })();
+            // HLS
+            if (Hls.isSupported()) {
+                hls = new Hls({ enableWorker: true });
+                hls.loadSource(src);
+                hls.attachMedia(video);
+
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    loading.classList.add('hidden');
+                    video.play().catch(() => {});
+                });
+
+                // error fallback
+                hls.on(Hls.Events.ERROR, () => {
+                    loading.classList.add('hidden');
+                });
+
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = src;
+                video.addEventListener('loadedmetadata', () => {
+                    loading.classList.add('hidden');
+                    video.play().catch(() => {});
+                });
+            } else {
+                loading.classList.add('hidden');
+            }
+
+            // rotation events
+            plyr.on('ready', applyRotation);
+            plyr.on('fullscreenchange', () => setTimeout(applyRotation, 200));
+
+            // fullscreen native
+            document.addEventListener('fullscreenchange', () => setTimeout(applyRotation, 200));
+            document.addEventListener('webkitfullscreenchange', () => setTimeout(applyRotation, 200));
+        }
+
+        // ----- ORIENTATION EVENTS -----
+        function attachOrientation() {
+            const handler = () => setTimeout(applyRotation, 200);
+
+            if (screen.orientation) {
+                screen.orientation.addEventListener('change', handler);
+            }
+
+            window.addEventListener('orientationchange', handler);
+            window.addEventListener('resize', handler);
+
+            // also on visibility change (some devices rotate after wake)
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) setTimeout(applyRotation, 300);
+            });
+        }
+
+        // ----- START -----
+        document.addEventListener('DOMContentLoaded', () => {
+            initPlayer();
+            attachOrientation();
+            // initial rotation
+            setTimeout(applyRotation, 300);
+        });
+
+        // expose for debug
+        window.__fixRotation = applyRotation;
+
+    })();
     </script>
 </body>
 </html>
