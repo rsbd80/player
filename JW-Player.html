@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -6,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>RS Live TV</title>
 
-    <!-- PWA (Add to Home Screen) -->
+    <!-- PWA Manifest (Add to Home Screen) -->
     <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUlMgTGl2ZSBUViIsInNob3J0X25hbWUiOiJSU0xpdmUiLCJzdGFydF91cmwiOiIuIiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vaS5wb3N0aW1nLmNjL21EMVZDdDJDL1JTLUxpdmUucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9XSwib3JpZW50YXRpb24iOiJhbnkifQ==" />
 
     <!-- Plyr CSS -->
@@ -22,14 +21,14 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* ===== VIDEO + PLYR OVERRIDE ===== */
+        /* ===== VIDEO PLAYER ===== */
         #player {
             width: 100% !important;
             height: 100% !important;
             background: #000;
             display: block;
             object-fit: cover;
-            /* force no rotation EVER */
+            /* 🔒 LOCK: NEVER ROTATE */
             transform: none !important;
             rotate: 0deg !important;
         }
@@ -46,37 +45,36 @@
             z-index: 20;
         }
 
-        /* ===== LOADING OVERLAY (compact, stylish) ===== */
+        /* ===== LOADING OVERLAY ===== */
         #loading-overlay {
             position: fixed;
             inset: 0;
             width: 100vw;
             height: 100vh;
-            background: radial-gradient(circle at 30% 40%, #14141e 0%, #06060c 100%);
+            background: radial-gradient(circle at center, #12121c 0%, #06060c 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 999;
-            transition: opacity 0.6s ease, visibility 0.6s ease;
-            pointer-events: none;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
         #loading-overlay.hidden {
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
         }
 
-        /* brand text — smaller & modern */
+        /* brand - small & premium */
         .loader-brand {
-            font-size: 26px;
+            font-size: 22px;
             font-weight: 900;
             letter-spacing: 0.5px;
             background: linear-gradient(135deg, #ffffff 10%, #8ad7ff 55%, #00f0ff 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(0, 240, 255, 0.10);
-            margin-bottom: 2px;
-            line-height: 1.1;
+            text-shadow: 0 0 30px rgba(0, 240, 255, 0.08);
+            line-height: 1.2;
         }
         .loader-brand span {
             background: linear-gradient(90deg, #ff296d 0%, #ff5e00 45%, #ffd000 100%);
@@ -85,66 +83,61 @@
         }
 
         .loader-sub {
-            font-size: 9px;
-            color: #6a7f99;
+            font-size: 8px;
+            color: #5a6f89;
             letter-spacing: 3px;
             text-transform: uppercase;
             font-weight: 500;
             margin-top: 2px;
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
-        /* loading ring (spinner) — cleaner */
-        .loader-ring {
+        /* spinner - minimal */
+        .loader-spinner {
             margin-top: 14px;
-            width: 32px;
-            height: 32px;
-            border: 2.5px solid rgba(255, 255, 255, 0.06);
+            width: 28px;
+            height: 28px;
+            border: 2px solid rgba(255, 255, 255, 0.05);
             border-top-color: #00f0ff;
             border-right-color: #ff296d;
             border-radius: 50%;
-            animation: spin 0.8s cubic-bezier(0.6, 0, 0.4, 1) infinite;
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.08);
+            animation: spin 0.7s cubic-bezier(0.6, 0, 0.4, 1) infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        /* pulse glow behind ring */
-        .loader-ring-wrapper {
-            position: relative;
-        }
-        .loader-ring-wrapper::after {
-            content: '';
-            position: absolute;
-            inset: -8px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(0, 240, 255, 0.06) 0%, transparent 70%);
-            animation: pulseGlow 1.6s ease-in-out infinite;
-        }
-        @keyframes pulseGlow {
-            0%, 100% { transform: scale(0.9); opacity: 0.3; }
-            50% { transform: scale(1.2); opacity: 0.6; }
-        }
-
         /* ===== FULLSCREEN: FORCE NO ROTATION ===== */
-        :-webkit-full-screen #player { transform: none !important; rotate: 0deg !important; }
-        :-moz-full-screen #player { transform: none !important; rotate: 0deg !important; }
-        :fullscreen #player { transform: none !important; rotate: 0deg !important; }
-
-        :-webkit-full-screen .plyr--video { transform: none !important; rotate: 0deg !important; }
-        :-moz-full-screen .plyr--video { transform: none !important; rotate: 0deg !important; }
-        :fullscreen .plyr--video { transform: none !important; rotate: 0deg !important; }
-
-        video:fullscreen { transform: none !important; rotate: 0deg !important; }
-        video:-webkit-full-screen { transform: none !important; rotate: 0deg !important; }
-        video:-moz-full-screen { transform: none !important; rotate: 0deg !important; }
-
-        /* extra lock for any rogue transforms */
-        #player {
+        :-webkit-full-screen #player,
+        :-moz-full-screen #player,
+        :fullscreen #player,
+        #player:-webkit-full-screen,
+        #player:-moz-full-screen,
+        #player:fullscreen {
             transform: none !important;
             rotate: 0deg !important;
+        }
+
+        :-webkit-full-screen .plyr--video,
+        :-moz-full-screen .plyr--video,
+        :fullscreen .plyr--video {
+            transform: none !important;
+            rotate: 0deg !important;
+        }
+
+        video:fullscreen,
+        video:-webkit-full-screen,
+        video:-moz-full-screen {
+            transform: none !important;
+            rotate: 0deg !important;
+        }
+
+        /* ===== RESPONSIVE: smaller text on very small screens ===== */
+        @media (max-width: 400px) {
+            .loader-brand { font-size: 18px; }
+            .loader-sub { font-size: 7px; letter-spacing: 2px; }
+            .loader-spinner { width: 22px; height: 22px; margin-top: 10px; }
         }
     </style>
 </head>
@@ -154,12 +147,10 @@
     <div id="loading-overlay">
         <div class="loader-brand">RS <span>LIVE TV</span></div>
         <div class="loader-sub">loading stream</div>
-        <div class="loader-ring-wrapper">
-            <div class="loader-ring"></div>
-        </div>
+        <div class="loader-spinner"></div>
     </div>
 
-    <!-- ===== VIDEO ===== -->
+    <!-- ===== VIDEO ELEMENT ===== -->
     <video id="player" playsinline muted autoplay></video>
 
     <!-- ===== PLYR + HLS ===== -->
@@ -175,31 +166,32 @@
             const video = document.getElementById('player');
             const overlay = document.getElementById('loading-overlay');
 
+            // Get video URL from query parameter
             const urlParams = new URLSearchParams(window.location.search);
-            const videoSrc = urlParams.get('url');
+            const videoSrc = urlParams.get('url') || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
 
             let plyr = null;
             let hls = null;
-            let loadingHidden = false;
+            let isHidden = false;
 
-            // ----- hide loading -----
+            // ----- Hide Loading -----
             function hideLoading() {
-                if (loadingHidden) return;
-                loadingHidden = true;
+                if (isHidden) return;
+                isHidden = true;
                 overlay.classList.add('hidden');
             }
 
-            // fallback: force hide after 5s
+            // Fallback: hide after 5 seconds
             const fallbackTimer = setTimeout(hideLoading, 5000);
 
-            // ----- force no rotation (applied repeatedly) -----
-            function forceNoRotation() {
+            // ----- FORCE: No Rotation EVER -----
+            function lockRotation() {
                 video.style.transform = 'none';
                 video.style.rotate = '0deg';
                 video.style.objectFit = 'cover';
             }
 
-            // ----- PLYR INIT -----
+            // ----- Initialize Plyr -----
             function initPlyr() {
                 if (plyr) return;
 
@@ -209,43 +201,43 @@
                     muted: true,
                 });
 
-                plyr.on('ready', forceNoRotation);
+                plyr.on('ready', lockRotation);
 
-                // fullscreen events — force no rotation
+                // Fullscreen events
                 plyr.on('fullscreenchange', function() {
-                    setTimeout(forceNoRotation, 100);
+                    setTimeout(lockRotation, 100);
                 });
 
-                // native fullscreen events
+                // Native fullscreen events
                 document.addEventListener('fullscreenchange', function() {
-                    setTimeout(forceNoRotation, 100);
+                    setTimeout(lockRotation, 100);
                 });
                 document.addEventListener('webkitfullscreenchange', function() {
-                    setTimeout(forceNoRotation, 100);
+                    setTimeout(lockRotation, 100);
                 });
 
-                // also on resize / orientation
-                window.addEventListener('resize', forceNoRotation);
+                // Orientation / resize
+                window.addEventListener('resize', lockRotation);
                 window.addEventListener('orientationchange', function() {
-                    setTimeout(forceNoRotation, 150);
+                    setTimeout(lockRotation, 150);
                 });
 
                 if (screen.orientation) {
                     screen.orientation.addEventListener('change', function() {
-                        setTimeout(forceNoRotation, 150);
+                        setTimeout(lockRotation, 150);
                     });
                 }
 
-                // extra safety: mutation observer on video style
+                // MutationObserver: if anything changes transform, fix it
                 const observer = new MutationObserver(function() {
-                    if (video.style.transform !== 'none') {
-                        forceNoRotation();
+                    if (video.style.transform !== 'none' || video.style.rotate !== '0deg') {
+                        lockRotation();
                     }
                 });
                 observer.observe(video, { attributes: true, attributeFilter: ['style'] });
             }
 
-            // ----- HLS SETUP -----
+            // ----- Setup HLS -----
             function setupHls() {
                 if (!videoSrc) {
                     hideLoading();
@@ -267,12 +259,16 @@
                         video.play().catch(function() {});
                     });
 
-                    hls.on(Hls.Events.ERROR, function() {
-                        clearTimeout(fallbackTimer);
-                        hideLoading();
+                    hls.on(Hls.Events.ERROR, function(event, data) {
+                        // if fatal error, try to recover
+                        if (data.fatal) {
+                            clearTimeout(fallbackTimer);
+                            hideLoading();
+                        }
                     });
 
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Native HLS (Safari)
                     video.src = videoSrc;
                     video.addEventListener('loadedmetadata', function() {
                         clearTimeout(fallbackTimer);
@@ -284,32 +280,27 @@
                 }
             }
 
-            // ----- INIT -----
+            // ----- START -----
             document.addEventListener('DOMContentLoaded', function() {
                 setupHls();
                 initPlyr();
+                lockRotation();
 
-                // initial force
-                forceNoRotation();
-
-                // if video can play early
+                // Additional events to hide loading
                 video.addEventListener('canplay', function() {
                     clearTimeout(fallbackTimer);
                     hideLoading();
                 });
-
-                // extra: if loadeddata fires
                 video.addEventListener('loadeddata', function() {
                     clearTimeout(fallbackTimer);
                     hideLoading();
                 });
 
-                // expose debug
-                window.__rs = { video, plyr, hls, forceNoRotation, hideLoading };
+                // Expose for debugging
+                window.__RS = { video, plyr, hls, lockRotation, hideLoading };
             });
 
         })();
     </script>
 </body>
 </html>
-```
