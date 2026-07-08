@@ -39,7 +39,7 @@
             background: #000;
         }
 
-        /* Allow rotation in fullscreen */
+        /* ALLOW ROTATION IN FULLSCREEN */
         :-webkit-full-screen #player,
         :-moz-full-screen #player,
         :fullscreen #player,
@@ -49,9 +49,10 @@
             width: 100vw !important;
             height: 100vh !important;
             object-fit: contain !important;
+            transform: none !important;
         }
 
-        /* Loading Overlay - Clean */
+        /* Loading Overlay */
         #loading-overlay {
             position: fixed;
             inset: 0;
@@ -63,7 +64,7 @@
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.5s ease;
         }
         
         #loading-overlay.hidden {
@@ -71,7 +72,6 @@
             pointer-events: none;
         }
 
-        /* Simple Spinner */
         .loader-spinner {
             width: 44px;
             height: 44px;
@@ -111,8 +111,11 @@
 
             let plyr = null;
             let hls = null;
+            let loadingHidden = false;
 
             function hideLoading() {
+                if (loadingHidden) return;
+                loadingHidden = true;
                 overlay.classList.add('hidden');
             }
 
@@ -127,16 +130,16 @@
 
                 plyr.on('ready', function() {
                     video.play().catch(function() {});
-                    setTimeout(hideLoading, 200);
                 });
 
-                // Allow rotation in fullscreen - remove any lock
-                plyr.on('fullscreenchange', function() {
-                    // Let device handle rotation naturally
-                });
-
+                // ONLY hide when video actually plays
                 video.addEventListener('playing', function() {
                     hideLoading();
+                });
+
+                // Fullscreen - allow rotation
+                plyr.on('fullscreenchange', function() {
+                    // Let device handle rotation naturally
                 });
             }
 
@@ -156,28 +159,21 @@
                     hls.attachMedia(video);
 
                     hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        hideLoading();
                         video.play().catch(function() {});
-                    });
-
-                    hls.on(Hls.Events.FRAG_LOADED, function() {
-                        hideLoading();
                     });
 
                     hls.on(Hls.Events.ERROR, function(event, data) {
                         if (data.fatal) {
-                            hideLoading();
+                            // Still show loading, don't hide
+                            console.warn('HLS Error:', data);
                         }
                     });
 
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                     video.src = videoSrc;
                     video.addEventListener('loadedmetadata', function() {
-                        hideLoading();
                         video.play().catch(function() {});
                     });
-                } else {
-                    hideLoading();
                 }
             }
 
@@ -185,8 +181,7 @@
                 setupHls();
                 initPlyr();
 
-                // Hide loading after 3 seconds max
-                setTimeout(hideLoading, 3000);
+                // NO AUTO HIDE - Loading will only hide when video plays
             });
 
         })();
