@@ -4,31 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>RS Live TV</title>
-
-    <!-- PWA Manifest (Add to Home Screen) -->
+    
+    <!-- PWA Manifest -->
     <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUlMgTGl2ZSBUViIsInNob3J0X25hbWUiOiJSU0xpdmUiLCJzdGFydF91cmwiOiIuIiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vaS5wb3N0aW1nLmNjL21EMVZDdDJDL1JTLUxpdmUucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9XSwib3JpZW50YXRpb24iOiJhbnkifQ==" />
 
     <!-- Plyr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
 
     <style>
-        /* ===== RESET ===== */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body {
-            width: 100%; height: 100%;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html,
+        body {
+            width: 100%;
+            height: 100%;
             background: #0a0a0a;
             overflow: hidden;
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* ===== VIDEO PLAYER ===== */
         #player {
             width: 100% !important;
             height: 100% !important;
             background: #000;
             display: block;
             object-fit: cover;
-            /* 🔒 LOCK: NEVER ROTATE */
             transform: none !important;
             rotate: 0deg !important;
         }
@@ -45,7 +49,7 @@
             z-index: 20;
         }
 
-        /* ===== LOADING OVERLAY ===== */
+        /* Loading Overlay - Improved */
         #loading-overlay {
             position: fixed;
             inset: 0;
@@ -57,15 +61,15 @@
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
+        
         #loading-overlay.hidden {
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
         }
 
-        /* brand - small & premium */
         .loader-brand {
             font-size: 22px;
             font-weight: 900;
@@ -76,6 +80,7 @@
             text-shadow: 0 0 30px rgba(0, 240, 255, 0.08);
             line-height: 1.2;
         }
+        
         .loader-brand span {
             background: linear-gradient(90deg, #ff296d 0%, #ff5e00 45%, #ffd000 100%);
             -webkit-background-clip: text;
@@ -92,7 +97,7 @@
             opacity: 0.5;
         }
 
-        /* spinner - minimal */
+        /* Better spinner with pulse effect */
         .loader-spinner {
             margin-top: 14px;
             width: 28px;
@@ -102,13 +107,26 @@
             border-right-color: #ff296d;
             border-radius: 50%;
             animation: spin 0.7s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+            position: relative;
+        }
+
+        .loader-spinner::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: rgba(0, 240, 255, 0.2);
+            animation: spin 1.4s cubic-bezier(0.6, 0, 0.4, 1) infinite reverse;
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
-        /* ===== FULLSCREEN: FORCE NO ROTATION ===== */
+        /* Force no rotation in fullscreen */
         :-webkit-full-screen #player,
         :-moz-full-screen #player,
         :fullscreen #player,
@@ -133,27 +151,34 @@
             rotate: 0deg !important;
         }
 
-        /* ===== RESPONSIVE: smaller text on very small screens ===== */
         @media (max-width: 400px) {
-            .loader-brand { font-size: 18px; }
-            .loader-sub { font-size: 7px; letter-spacing: 2px; }
-            .loader-spinner { width: 22px; height: 22px; margin-top: 10px; }
+            .loader-brand {
+                font-size: 18px;
+            }
+            .loader-sub {
+                font-size: 7px;
+                letter-spacing: 2px;
+            }
+            .loader-spinner {
+                width: 22px;
+                height: 22px;
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
-
-    <!-- ===== LOADING OVERLAY ===== -->
+    <!-- Loading Overlay -->
     <div id="loading-overlay">
         <div class="loader-brand">RS <span>LIVE TV</span></div>
         <div class="loader-sub">loading stream</div>
         <div class="loader-spinner"></div>
     </div>
 
-    <!-- ===== VIDEO ELEMENT ===== -->
+    <!-- Video Element -->
     <video id="player" playsinline muted autoplay></video>
 
-    <!-- ===== PLYR + HLS ===== -->
+    <!-- Plyr + HLS -->
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js">
     </script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js">
@@ -173,25 +198,36 @@
             let plyr = null;
             let hls = null;
             let isHidden = false;
+            let loadingTimeout = null;
 
-            // ----- Hide Loading -----
+            // Hide Loading with proper cleanup
             function hideLoading() {
                 if (isHidden) return;
                 isHidden = true;
+                
+                if (loadingTimeout) {
+                    clearTimeout(loadingTimeout);
+                    loadingTimeout = null;
+                }
+                
                 overlay.classList.add('hidden');
             }
 
-            // Fallback: hide after 5 seconds
-            const fallbackTimer = setTimeout(hideLoading, 5000);
-
-            // ----- FORCE: No Rotation EVER -----
+            // Force no rotation
             function lockRotation() {
+                // Direct CSS manipulation for maximum control
+                video.style.cssText += 'transform: none !important; rotate: 0deg !important;';
+                
+                // Also handle any inline styles
                 video.style.transform = 'none';
                 video.style.rotate = '0deg';
+                video.style.webkitTransform = 'none';
+                
+                // Ensure object-fit remains
                 video.style.objectFit = 'cover';
             }
 
-            // ----- Initialize Plyr -----
+            // Initialize Plyr
             function initPlyr() {
                 if (plyr) return;
 
@@ -199,45 +235,78 @@
                     controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
                     autoplay: true,
                     muted: true,
+                    keyboard: { focused: true, global: true },
+                    tooltips: { controls: false, seek: true },
+                    duration: null,
+                    displayDuration: true,
+                    invertTime: false,
+                    toggleInvert: false,
+                    disableContextMenu: true,
+                    loadSprite: true,
+                    iconPrefix: 'plyr',
+                    blankVideo: 'https://cdn.plyr.io/static/blank.mp4',
+                    seekTime: 10,
                 });
 
-                plyr.on('ready', lockRotation);
+                plyr.on('ready', function() {
+                    lockRotation();
+                    // Force hide loading if not already hidden
+                    setTimeout(hideLoading, 100);
+                });
 
                 // Fullscreen events
                 plyr.on('fullscreenchange', function() {
-                    setTimeout(lockRotation, 100);
+                    setTimeout(lockRotation, 50);
                 });
 
                 // Native fullscreen events
                 document.addEventListener('fullscreenchange', function() {
-                    setTimeout(lockRotation, 100);
+                    setTimeout(lockRotation, 50);
                 });
                 document.addEventListener('webkitfullscreenchange', function() {
-                    setTimeout(lockRotation, 100);
+                    setTimeout(lockRotation, 50);
                 });
 
                 // Orientation / resize
-                window.addEventListener('resize', lockRotation);
+                window.addEventListener('resize', function() {
+                    setTimeout(lockRotation, 50);
+                });
                 window.addEventListener('orientationchange', function() {
-                    setTimeout(lockRotation, 150);
+                    setTimeout(lockRotation, 100);
                 });
 
+                // Screen orientation API
                 if (screen.orientation) {
                     screen.orientation.addEventListener('change', function() {
-                        setTimeout(lockRotation, 150);
+                        setTimeout(lockRotation, 100);
                     });
                 }
 
-                // MutationObserver: if anything changes transform, fix it
-                const observer = new MutationObserver(function() {
-                    if (video.style.transform !== 'none' || video.style.rotate !== '0deg') {
-                        lockRotation();
-                    }
+                // MutationObserver for style changes
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                            const transform = video.style.transform;
+                            const rotate = video.style.rotate;
+                            if ((transform && transform !== 'none') || (rotate && rotate !== '0deg')) {
+                                lockRotation();
+                            }
+                        }
+                    });
                 });
                 observer.observe(video, { attributes: true, attributeFilter: ['style'] });
+
+                // Periodic check for rotation (backup)
+                setInterval(function() {
+                    const transform = video.style.transform;
+                    const rotate = video.style.rotate;
+                    if ((transform && transform !== 'none') || (rotate && rotate !== '0deg')) {
+                        lockRotation();
+                    }
+                }, 500);
             }
 
-            // ----- Setup HLS -----
+            // Setup HLS
             function setupHls() {
                 if (!videoSrc) {
                     hideLoading();
@@ -248,52 +317,91 @@
                     hls = new Hls({
                         enableWorker: true,
                         lowLatencyMode: true,
+                        backbufferLength: 30,
+                        maxBufferLength: 30,
+                        maxMaxBufferLength: 600,
+                        liveSyncDurationCount: 3,
+                        liveMaxLatencyDurationCount: 10,
+                        enableWebVTT: false,
                     });
 
                     hls.loadSource(videoSrc);
                     hls.attachMedia(video);
 
                     hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        clearTimeout(fallbackTimer);
                         hideLoading();
-                        video.play().catch(function() {});
+                        video.play().catch(function(e) {
+                            console.warn('Autoplay prevented:', e);
+                        });
                     });
 
                     hls.on(Hls.Events.ERROR, function(event, data) {
-                        // if fatal error, try to recover
                         if (data.fatal) {
-                            clearTimeout(fallbackTimer);
-                            hideLoading();
+                            console.warn('HLS fatal error, attempting recovery:', data);
+                            switch (data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    hls.startLoad();
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    hideLoading();
+                                    break;
+                            }
+                        } else {
+                            // Non-fatal error, just log
+                            console.warn('HLS non-fatal error:', data);
                         }
+                    });
+
+                    hls.on(Hls.Events.FRAG_LOADED, function() {
+                        // Hide loading as soon as we get any fragment
+                        hideLoading();
                     });
 
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                     // Native HLS (Safari)
                     video.src = videoSrc;
                     video.addEventListener('loadedmetadata', function() {
-                        clearTimeout(fallbackTimer);
                         hideLoading();
-                        video.play().catch(function() {});
+                        video.play().catch(function(e) {
+                            console.warn('Autoplay prevented:', e);
+                        });
                     });
                 } else {
                     hideLoading();
                 }
             }
 
-            // ----- START -----
+            // Start
             document.addEventListener('DOMContentLoaded', function() {
+                // Set loading timeout - hide after 4 seconds max
+                loadingTimeout = setTimeout(hideLoading, 4000);
+
                 setupHls();
                 initPlyr();
                 lockRotation();
 
                 // Additional events to hide loading
                 video.addEventListener('canplay', function() {
-                    clearTimeout(fallbackTimer);
                     hideLoading();
                 });
                 video.addEventListener('loadeddata', function() {
-                    clearTimeout(fallbackTimer);
                     hideLoading();
+                });
+                video.addEventListener('playing', function() {
+                    hideLoading();
+                });
+
+                // Prevent any click/touch from causing rotation
+                video.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    lockRotation();
+                });
+
+                video.addEventListener('touchstart', function(e) {
+                    lockRotation();
                 });
 
                 // Expose for debugging
