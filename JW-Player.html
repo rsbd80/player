@@ -1,23 +1,38 @@
+```html
 <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>RS Live · Fullscreen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>RS Live TV</title>
+
+    <!-- PWA (Add to Home Screen) -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUlMgTGl2ZSBUViIsInNob3J0X25hbWUiOiJSU0xpdmUiLCJzdGFydF91cmwiOiIuIiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vaS5wb3N0aW1nLmNjL21EMVZDdDJDL1JTLUxpdmUucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9XSwib3JpZW50YXRpb24iOiJhbnkifQ==" />
+
+    <!-- Plyr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
+
     <style>
+        /* ----- RESET ----- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
             width: 100%; height: 100%;
-            background: #000; overflow: hidden;
+            background: #0a0a0a;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, sans-serif;
         }
+
+        /* ----- VIDEO + PLYR OVERRIDE ----- */
         #player {
             width: 100% !important;
             height: 100% !important;
             background: #000;
             display: block;
             object-fit: cover;
+            transform-origin: center center;
+            transition: transform 0.2s ease;
         }
+
         .plyr--video {
             width: 100vw !important;
             height: 100vh !important;
@@ -25,141 +40,242 @@
             max-height: 100vh !important;
             background: #000;
         }
-        .plyr__controls { z-index: 20; }
-        #loading {
-            position: fixed; inset: 0; z-index: 999;
-            background: #0a0a0a;
-            display: flex; align-items: center; justify-content: center;
-            transition: opacity 0.5s ease;
-            color: rgba(255,255,255,0.3);
-            font-family: system-ui; font-size: 0.9rem; letter-spacing: 3px;
-            text-transform: uppercase;
+
+        .plyr__controls {
+            z-index: 20;
+        }
+
+        /* ----- LOADING OVERLAY (RS Live TV) ----- */
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #14141e 0%, #06060c 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: opacity 0.7s ease;
             pointer-events: none;
         }
-        #loading.hidden { opacity: 0; }
+        #loading-overlay.hidden {
+            opacity: 0;
+        }
+
+        .loader-brand {
+            font-size: 38px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            background: linear-gradient(135deg, #ffffff 20%, #8ad7ff 60%, #00f0ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(0, 240, 255, 0.15);
+            margin-bottom: 4px;
+        }
+        .loader-brand span {
+            background: linear-gradient(90deg, #ff296d 0%, #ff5e00 45%, #ffd000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .loader-sub {
+            font-size: 11px;
+            color: #8ea1b7;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-top: 4px;
+            opacity: 0.7;
+        }
+
+        /* loading dots */
+        .loader-dots {
+            display: flex;
+            gap: 8px;
+            margin-top: 18px;
+        }
+        .loader-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00f0ff;
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+            animation: dotBounce 1.2s infinite ease-in-out both;
+        }
+        .loader-dots span:nth-child(1) { animation-delay: -0.32s; background: #ff296d; box-shadow: 0 0 12px rgba(255, 41, 109, 0.6); }
+        .loader-dots span:nth-child(2) { animation-delay: -0.16s; background: #ffd000; box-shadow: 0 0 12px rgba(255, 208, 0, 0.5); }
+        .loader-dots span:nth-child(3) { background: #00f0ff; box-shadow: 0 0 12px rgba(0, 240, 255, 0.6); }
+
+        @keyframes dotBounce {
+            0%, 80%, 100% { transform: scale(0.4); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ----- fullscreen override (no rotation) ----- */
+        :-webkit-full-screen #player { transform: none !important; }
+        :-moz-full-screen #player { transform: none !important; }
+        :fullscreen #player { transform: none !important; }
+
+        :-webkit-full-screen .plyr--video { transform: none !important; }
+        :-moz-full-screen .plyr--video { transform: none !important; }
+        :fullscreen .plyr--video { transform: none !important; }
+
+        /* fallback for iframe / video inside fullscreen */
+        video:fullscreen { transform: none !important; }
+        video:-webkit-full-screen { transform: none !important; }
+        video:-moz-full-screen { transform: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="loading">● loading</div>
+    <!-- ===== LOADING OVERLAY (RS Live TV) ===== -->
+    <div id="loading-overlay">
+        <div class="loader-brand">RS <span>LIVE TV</span></div>
+        <div class="loader-sub">Loading stream...</div>
+        <div class="loader-dots">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <!-- ===== VIDEO ===== -->
     <video id="player" playsinline muted autoplay></video>
 
-    <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
+    <!-- ===== PLYR + HLS ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js">
+    </script>
 
     <script>
-    (function() {
-        'use strict';
+        (function() {
+            'use strict';
 
-        const video = document.getElementById('player');
-        const loading = document.getElementById('loading');
-        const src = new URLSearchParams(window.location.search).get('url');
+            const video = document.getElementById('player');
+            const overlay = document.getElementById('loading-overlay');
 
-        let plyr = null;
-        let hls = null;
+            // get video src from URL param
+            const urlParams = new URLSearchParams(window.location.search);
+            const videoSrc = urlParams.get('url');
 
-        // ----- ROTATION -----
-        function getAngle() {
-            // modern API
-            if (screen.orientation) {
-                const type = screen.orientation.type;
-                if (type === 'portrait-primary') return 0;
-                if (type === 'portrait-secondary') return 180;
-                if (type === 'landscape-primary') return 90;
-                if (type === 'landscape-secondary') return -90;
-            }
-            // fallback: window size
-            return window.innerWidth > window.innerHeight ? 90 : 0;
-        }
+            let plyr = null;
+            let hls = null;
 
-        function applyRotation() {
-            const angle = getAngle();
-            video.style.transform = `rotate(${angle}deg)`;
-            video.style.objectFit = 'cover';
-        }
-
-        // ----- HLS + PLYR -----
-        function initPlayer() {
-            // destroy previous
-            if (plyr) { plyr.destroy(); plyr = null; }
-            if (hls) { hls.destroy(); hls = null; }
-
-            if (!src) {
-                loading.classList.add('hidden');
-                return;
+            // ----- hide loading -----
+            function hideLoading() {
+                overlay.classList.add('hidden');
             }
 
-            // Plyr (empty video element)
-            plyr = new Plyr(video, {
-                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-                autoplay: true,
-                muted: true,
+            // fallback: force hide after 6s (if HLS stuck)
+            const fallbackTimer = setTimeout(hideLoading, 6000);
+
+            // ----- ROTATION: DISABLED in fullscreen (always 0) -----
+            // We force transform: none in fullscreen via CSS.
+            // For normal mode, we keep video straight (no rotation).
+            function applyNoRotation() {
+                video.style.transform = 'none';
+                video.style.objectFit = 'cover';
+            }
+
+            // ----- PLYR INIT -----
+            function initPlyr() {
+                if (plyr) return;
+
+                plyr = new Plyr(video, {
+                    controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                    autoplay: true,
+                    muted: true,
+                });
+
+                plyr.on('ready', applyNoRotation);
+                plyr.on('fullscreenchange', function() {
+                    // small delay to let fullscreen settle
+                    setTimeout(applyNoRotation, 150);
+                });
+
+                // native fullscreen events (extra safety)
+                document.addEventListener('fullscreenchange', function() {
+                    setTimeout(applyNoRotation, 150);
+                });
+                document.addEventListener('webkitfullscreenchange', function() {
+                    setTimeout(applyNoRotation, 150);
+                });
+            }
+
+            // ----- HLS SETUP -----
+            function setupHls() {
+                if (!videoSrc) {
+                    hideLoading();
+                    return;
+                }
+
+                if (Hls.isSupported()) {
+                    hls = new Hls({
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                    });
+
+                    hls.loadSource(videoSrc);
+                    hls.attachMedia(video);
+
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        clearTimeout(fallbackTimer);
+                        hideLoading();
+                        video.play().catch(function() {});
+                    });
+
+                    hls.on(Hls.Events.ERROR, function() {
+                        // if error, still try to show video
+                        clearTimeout(fallbackTimer);
+                        hideLoading();
+                    });
+
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // native HLS (Safari)
+                    video.src = videoSrc;
+                    video.addEventListener('loadedmetadata', function() {
+                        clearTimeout(fallbackTimer);
+                        hideLoading();
+                        video.play().catch(function() {});
+                    });
+                } else {
+                    // not supported
+                    hideLoading();
+                }
+            }
+
+            // ----- INIT -----
+            document.addEventListener('DOMContentLoaded', function() {
+                setupHls();
+                initPlyr();
+
+                // apply straight video (no rotation)
+                applyNoRotation();
+
+                // additional safety: after any resize/orientation, keep straight
+                window.addEventListener('resize', applyNoRotation);
+                window.addEventListener('orientationchange', function() {
+                    setTimeout(applyNoRotation, 200);
+                });
+
+                if (screen.orientation) {
+                    screen.orientation.addEventListener('change', function() {
+                        setTimeout(applyNoRotation, 200);
+                    });
+                }
+
+                // if video loads late
+                video.addEventListener('canplay', function() {
+                    clearTimeout(fallbackTimer);
+                    hideLoading();
+                });
+
+                // expose for debug
+                window.__rsPlayer = { video, plyr, hls, hideLoading };
             });
 
-            // HLS
-            if (Hls.isSupported()) {
-                hls = new Hls({ enableWorker: true });
-                hls.loadSource(src);
-                hls.attachMedia(video);
-
-                hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    loading.classList.add('hidden');
-                    video.play().catch(() => {});
-                });
-
-                // error fallback
-                hls.on(Hls.Events.ERROR, () => {
-                    loading.classList.add('hidden');
-                });
-
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = src;
-                video.addEventListener('loadedmetadata', () => {
-                    loading.classList.add('hidden');
-                    video.play().catch(() => {});
-                });
-            } else {
-                loading.classList.add('hidden');
-            }
-
-            // rotation events
-            plyr.on('ready', applyRotation);
-            plyr.on('fullscreenchange', () => setTimeout(applyRotation, 200));
-
-            // fullscreen native
-            document.addEventListener('fullscreenchange', () => setTimeout(applyRotation, 200));
-            document.addEventListener('webkitfullscreenchange', () => setTimeout(applyRotation, 200));
-        }
-
-        // ----- ORIENTATION EVENTS -----
-        function attachOrientation() {
-            const handler = () => setTimeout(applyRotation, 200);
-
-            if (screen.orientation) {
-                screen.orientation.addEventListener('change', handler);
-            }
-
-            window.addEventListener('orientationchange', handler);
-            window.addEventListener('resize', handler);
-
-            // also on visibility change (some devices rotate after wake)
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) setTimeout(applyRotation, 300);
-            });
-        }
-
-        // ----- START -----
-        document.addEventListener('DOMContentLoaded', () => {
-            initPlayer();
-            attachOrientation();
-            // initial rotation
-            setTimeout(applyRotation, 300);
-        });
-
-        // expose for debug
-        window.__fixRotation = applyRotation;
-
-    })();
+        })();
     </script>
 </body>
 </html>
+```
