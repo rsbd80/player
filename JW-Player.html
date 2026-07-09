@@ -6,22 +6,78 @@
     <title>RS Live TV · Player</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
     <style>
+        /* ===== RESET ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+        html, body {
+            width: 100%; height: 100%;
+            background: #000;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        /* ===== VIDEO ===== */
         #player {
             width: 100% !important;
             height: 100% !important;
+            background: #000;
             display: block;
             object-fit: cover;
-            transform: none !important;
-            rotate: 0deg !important;
+            /* 🔄 Rotation enabled */
+            transform-origin: center center;
+            transition: transform 0.2s ease;
         }
-        .plyr--video { width: 100vw !important; height: 100vh !important; background: #000; }
-        :-webkit-full-screen #player,
-        :fullscreen #player,
-        #player:fullscreen { transform: none !important; rotate: 0deg !important; }
 
-        /* Loading */
+        .plyr--video {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            background: #000;
+        }
+
+        .plyr__controls {
+            z-index: 20;
+        }
+
+        /* ===== FULLSCREEN: ROTATION ALLOWED, VIDEO FULL ===== */
+        :-webkit-full-screen #player,
+        :-moz-full-screen #player,
+        :fullscreen #player,
+        #player:-webkit-full-screen,
+        #player:-moz-full-screen,
+        #player:fullscreen {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            object-fit: cover !important;
+            /* allow rotation via JS */
+            transform: none !important;
+            transform-origin: center center !important;
+        }
+
+        video:fullscreen,
+        video:-webkit-full-screen,
+        video:-moz-full-screen {
+            width: 100vw !important;
+            height: 100vh !important;
+            object-fit: cover !important;
+            transform: none !important;
+            transform-origin: center center !important;
+        }
+
+        /* iOS Safari fullscreen support */
+        @supports (-webkit-touch-callout: none) {
+            #player:-webkit-full-screen {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover !important;
+                transform: none !important;
+                transform-origin: center center !important;
+            }
+        }
+
+        /* ===== LOADING ===== */
         #loading {
             position: fixed; inset: 0; z-index: 9999;
             background: radial-gradient(circle at center, #12121c, #06060c);
@@ -29,23 +85,43 @@
             transition: opacity 0.5s;
         }
         #loading.hidden { opacity: 0; pointer-events: none; }
-        .brand { font-size: 22px; font-weight: 900; background: linear-gradient(135deg, #fff 10%, #00f0ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .brand span { background: linear-gradient(90deg, #ff296d, #ffd000); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .sub { font-size: 8px; color: #5a6f89; letter-spacing: 3px; text-transform: uppercase; margin-top: 2px; opacity: 0.5; }
-        .spin { margin-top: 14px; width: 28px; height: 28px; border: 2px solid rgba(255,255,255,0.05); border-top-color: #00f0ff; border-right-color: #ff296d; border-radius: 50%; animation: spin 0.7s infinite; }
+
+        .brand {
+            font-size: 22px; font-weight: 900;
+            background: linear-gradient(135deg, #fff 10%, #00f0ff 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .brand span {
+            background: linear-gradient(90deg, #ff296d, #ffd000);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .sub {
+            font-size: 8px; color: #5a6f89; letter-spacing: 3px;
+            text-transform: uppercase; margin-top: 2px; opacity: 0.5;
+        }
+        .spin {
+            margin-top: 14px; width: 28px; height: 28px;
+            border: 2px solid rgba(255,255,255,0.05);
+            border-top-color: #00f0ff; border-right-color: #ff296d;
+            border-radius: 50%;
+            animation: spin 0.7s infinite;
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+    <!-- ===== LOADING ===== -->
     <div id="loading">
         <div class="brand">RS <span>LIVE TV</span></div>
         <div class="sub">loading stream</div>
         <div class="spin"></div>
     </div>
 
+    <!-- ===== VIDEO ===== -->
     <video id="player" playsinline muted autoplay></video>
 
+    <!-- ===== SCRIPTS ===== -->
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
     <script>
@@ -55,140 +131,271 @@
             const video = document.getElementById('player');
             const loading = document.getElementById('loading');
 
-            // URL থেকে চ্যানেল সোর্স নেওয়া (ডিফল্ট টেস্ট স্ট্রিম)
-            const src = new URLSearchParams(location.search).get('url') || 
-                       'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+            // ===== PLAYLIST =====
+            const urlParams = new URLSearchParams(window.location.search);
+            const playlistParam = urlParams.get('playlist');
 
+            const defaultPlaylist = [
+                { name: 'Channel 1', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8' },
+                { name: 'Channel 2', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8' },
+                { name: 'Channel 3', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8' },
+            ];
+
+            let playlist = defaultPlaylist;
+            if (playlistParam) {
+                try {
+                    const parsed = JSON.parse(decodeURIComponent(playlistParam));
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        playlist = parsed;
+                    }
+                } catch(e) {}
+            }
+
+            let currentIndex = 0;
             let plyr = null;
             let hls = null;
             let isPlaying = false;
+            let isFirstLoad = true;
 
-            // ===== LOADING HIDE =====
+            // ===== HIDE LOADING =====
             function hideLoading() {
                 loading.classList.add('hidden');
             }
 
-            // ===== FORCE NO ROTATION =====
-            function lockRotation() {
-                video.style.transform = 'none';
-                video.style.rotate = '0deg';
+            // ===== ROTATION: DETECT ORIENTATION & APPLY =====
+            function applyRotation() {
+                if (!video) return;
+
+                let angle = 0;
+
+                // 1) screen.orientation API (modern)
+                if (screen.orientation) {
+                    const type = screen.orientation.type;
+                    if (type === 'landscape-primary') angle = 90;
+                    else if (type === 'landscape-secondary') angle = -90;
+                    else if (type === 'portrait-secondary') angle = 180;
+                    // portrait-primary = 0
+                } 
+                // 2) window.orientation (iOS Safari, old)
+                else if (typeof window.orientation !== 'undefined') {
+                    angle = window.orientation; // 0, 90, -90, 180
+                }
+                // 3) fallback: width vs height
+                else {
+                    angle = window.innerWidth > window.innerHeight ? 90 : 0;
+                }
+
+                // Apply transform
+                video.style.transform = `rotate(${angle}deg)`;
+                video.style.objectFit = 'cover';
+
+                console.log(`🔄 Rotation: ${angle}°`);
             }
 
-            // ===== AUTOPLAY: MULTIPLE ATTEMPTS =====
+            // ===== AUTOPLAY =====
             function attemptAutoplay() {
                 if (isPlaying) return;
+
                 video.play()
                     .then(() => {
                         isPlaying = true;
-                        console.log('✅ Autoplay successful');
+                        console.log('✅ Autoplay success');
                     })
                     .catch((err) => {
-                        console.warn('⚠️ Autoplay blocked, retrying...', err.message);
-                        // Retry after user interaction (click/tap)
-                        const retry = () => {
+                        console.warn('⚠️ Autoplay blocked, waiting for interaction');
+                        const resume = () => {
                             video.play().then(() => {
                                 isPlaying = true;
                                 console.log('✅ Autoplay after interaction');
                             }).catch(() => {});
-                            document.removeEventListener('click', retry);
-                            document.removeEventListener('touchstart', retry);
+                            document.removeEventListener('click', resume);
+                            document.removeEventListener('touchstart', resume);
                         };
-                        document.addEventListener('click', retry);
-                        document.addEventListener('touchstart', retry);
+                        document.addEventListener('click', resume);
+                        document.addEventListener('touchstart', resume);
                     });
             }
 
-            // ===== PLYR INIT =====
-            function initPlyr() {
-                if (plyr) return;
+            // ===== LOAD CHANNEL =====
+            function loadChannel(index) {
+                if (index < 0 || index >= playlist.length) return;
 
-                plyr = new Plyr(video, {
-                    controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-                    autoplay: true,  // Plyr autoplay — কিন্তু HLS এর সাথে sync নাও হতে পারে
-                    muted: true,
-                });
+                currentIndex = index;
+                const channel = playlist[index];
+                const src = channel.url;
 
-                plyr.on('ready', () => {
-                    lockRotation();
-                    // Plyr ready হলে autoplay চেষ্টা
-                    attemptAutoplay();
-                });
+                console.log(`📺 Loading: ${channel.name} (${index + 1}/${playlist.length})`);
 
-                plyr.on('fullscreenchange', () => setTimeout(lockRotation, 100));
-                document.addEventListener('fullscreenchange', () => setTimeout(lockRotation, 100));
-                window.addEventListener('resize', lockRotation);
-                window.addEventListener('orientationchange', () => setTimeout(lockRotation, 150));
-            }
-
-            // ===== HLS SETUP =====
-            function setupHls() {
-                if (!src) {
-                    hideLoading();
-                    return;
+                // Destroy old HLS
+                if (hls) {
+                    hls.destroy();
+                    hls = null;
                 }
 
-                if (Hls.isSupported()) {
-                    hls = new Hls({
-                        enableWorker: true,
-                        lowLatencyMode: true,
-                    });
+                // Reset video
+                video.pause();
+                video.removeAttribute('src');
+                video.load();
+                isPlaying = false;
 
+                // Show loading
+                loading.classList.remove('hidden');
+
+                // Load new stream
+                if (Hls.isSupported()) {
+                    hls = new Hls({ enableWorker: true, lowLatencyMode: true });
                     hls.loadSource(src);
                     hls.attachMedia(video);
 
                     hls.on(Hls.Events.MANIFEST_PARSED, () => {
                         hideLoading();
-                        // Manifest parsed হলে autoplay ট্রিগার
-                        attemptAutoplay();
+                        applyRotation();
+                        setTimeout(attemptAutoplay, 100);
                     });
 
                     hls.on(Hls.Events.ERROR, (event, data) => {
                         if (data.fatal) {
                             hideLoading();
-                            // Error থাকলেও autoplay চেষ্টা
+                            applyRotation();
                             attemptAutoplay();
                         }
                     });
 
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    // Safari native HLS
                     video.src = src;
                     video.addEventListener('loadedmetadata', () => {
                         hideLoading();
+                        applyRotation();
                         attemptAutoplay();
-                    });
+                    }, { once: true });
                 } else {
                     hideLoading();
+                    applyRotation();
                     attemptAutoplay();
                 }
 
-                // fallback: 5 sec পরে loading hide
-                setTimeout(() => {
+                // Fallback
+                clearTimeout(window._loadTimeout);
+                window._loadTimeout = setTimeout(() => {
                     hideLoading();
+                    applyRotation();
                     attemptAutoplay();
                 }, 5000);
+
+                applyRotation();
             }
 
-            // ===== VIDEO EVENTS (additional safety) =====
+            // ===== NEXT CHANNEL =====
+            function nextChannel() {
+                const next = (currentIndex + 1) % playlist.length;
+                loadChannel(next);
+            }
+
+            // ===== PLYR =====
+            function initPlyr() {
+                if (plyr) return;
+
+                plyr = new Plyr(video, {
+                    controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                    autoplay: true,
+                    muted: true,
+                    fullscreen: {
+                        enabled: true,
+                        fallback: true,
+                        iosNative: false, // use Plyr fullscreen
+                    }
+                });
+
+                plyr.on('ready', () => {
+                    applyRotation();
+                    if (isFirstLoad) {
+                        isFirstLoad = false;
+                        loadChannel(0);
+                    }
+                });
+
+                // ===== FULLSCREEN: ONLY RESIZE + ROTATE (NO AUTOPLAY TOGGLE) =====
+                plyr.on('fullscreenchange', () => {
+                    // Just apply rotation, don't touch play/pause
+                    setTimeout(applyRotation, 50);
+                    setTimeout(applyRotation, 150);
+                    setTimeout(applyRotation, 350);
+                });
+
+                // Native fullscreen events
+                document.addEventListener('fullscreenchange', () => {
+                    setTimeout(applyRotation, 50);
+                    setTimeout(applyRotation, 150);
+                    setTimeout(applyRotation, 350);
+                });
+                document.addEventListener('webkitfullscreenchange', () => {
+                    setTimeout(applyRotation, 50);
+                    setTimeout(applyRotation, 150);
+                    setTimeout(applyRotation, 350);
+                });
+
+                // Orientation change
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(applyRotation, 100);
+                    setTimeout(applyRotation, 300);
+                });
+
+                if (screen.orientation) {
+                    screen.orientation.addEventListener('change', () => {
+                        setTimeout(applyRotation, 100);
+                        setTimeout(applyRotation, 300);
+                    });
+                }
+
+                window.addEventListener('resize', applyRotation);
+
+                // Video end → next channel
+                video.addEventListener('ended', nextChannel);
+
+                // Error → next channel
+                video.addEventListener('error', () => {
+                    console.warn('⚠️ Video error, loading next channel');
+                    setTimeout(nextChannel, 2000);
+                });
+            }
+
+            // ===== VIDEO EVENTS =====
             video.addEventListener('canplay', () => {
                 hideLoading();
                 attemptAutoplay();
+                applyRotation();
             });
-
             video.addEventListener('loadeddata', () => {
                 hideLoading();
                 attemptAutoplay();
+                applyRotation();
             });
+            video.addEventListener('play', applyRotation);
+            video.addEventListener('playing', applyRotation);
 
             // ===== START =====
             document.addEventListener('DOMContentLoaded', () => {
-                setupHls();
                 initPlyr();
-                lockRotation();
+                applyRotation();
+
+                // Keep rotation locked (continuous check)
+                setInterval(applyRotation, 1000);
             });
 
-            // ===== EXPOSE DEBUG =====
-            window.__RS = { video, plyr, hls, attemptAutoplay, lockRotation };
+            // ===== EXPOSE =====
+            window.__RS = {
+                video,
+                plyr,
+                hls,
+                playlist,
+                loadChannel,
+                nextChannel,
+                applyRotation,
+                attemptAutoplay
+            };
+
+            console.log('✅ RS Live TV Player loaded');
+            console.log(`📋 Playlist: ${playlist.length} channels`);
 
         })();
     </script>
