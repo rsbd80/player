@@ -3,462 +3,192 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>RS Live TV</title>
-    
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUlMgTGl2ZSBUViIsInNob3J0X25hbWUiOiJSU0xpdmUiLCJzdGFydF91cmwiOiIuIiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vaS5wb3N0aW1nLmNjL21EMVZDdDJDL1JTLUxpdmUucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9XSwib3JpZW50YXRpb24iOiJhbnkifQ==" />
-
+    <title>RS Live TV · Player</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
-
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        html, body {
-            width: 100%;
-            height: 100%;
-            background: #000;
-            overflow: hidden;
-            font-family: system-ui, -apple-system, sans-serif;
-            position: fixed;
-            top: 0;
-            left: 0;
-        }
-
-        /* Main wrapper - rotates on fullscreen */
-        #main-wrapper {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: center center;
-            z-index: 1;
-            will-change: transform;
-        }
-
-        /* Rotated state - fullscreen rotation */
-        #main-wrapper.rotated {
-            transform: rotate(90deg) scale(1.78);
-        }
-
-        #player-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            background: #000;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
         #player {
             width: 100% !important;
             height: 100% !important;
-            object-fit: cover !important;
-            background: #000;
             display: block;
+            object-fit: cover;
+            transform: none !important;
+            rotate: 0deg !important;
         }
+        .plyr--video { width: 100vw !important; height: 100vh !important; background: #000; }
+        :-webkit-full-screen #player,
+        :fullscreen #player,
+        #player:fullscreen { transform: none !important; rotate: 0deg !important; }
 
-        /* Plyr overrides for mobile */
-        .plyr {
-            width: 100% !important;
-            height: 100% !important;
+        /* Loading */
+        #loading {
+            position: fixed; inset: 0; z-index: 9999;
+            background: radial-gradient(circle at center, #12121c, #06060c);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s;
         }
-
-        .plyr--video {
-            width: 100% !important;
-            height: 100% !important;
-            background: #000 !important;
-        }
-
-        .plyr__controls {
-            position: absolute !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            z-index: 20 !important;
-            background: linear-gradient(transparent, rgba(0,0,0,0.85) 80%) !important;
-            padding: 20px 10px 15px !important;
-        }
-
-        .plyr__controls button {
-            color: #fff !important;
-            padding: 8px !important;
-        }
-
-        .plyr__control--overlaid {
-            background: rgba(0, 0, 0, 0.6) !important;
-            padding: 18px !important;
-        }
-
-        .plyr__progress input[type="range"] {
-            height: 4px !important;
-        }
-
-        /* Loading Overlay */
-        #loading-overlay {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: 100vh;
-            background: radial-gradient(circle at center, #12121c 0%, #06060c 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.4s ease;
-        }
-        
-        #loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .loader-brand {
-            font-size: clamp(18px, 5vw, 26px);
-            font-weight: 900;
-            letter-spacing: 0.5px;
-            background: linear-gradient(135deg, #ffffff 10%, #8ad7ff 55%, #00f0ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(0, 240, 255, 0.08);
-            line-height: 1.2;
-        }
-        
-        .loader-brand span {
-            background: linear-gradient(90deg, #ff296d 0%, #ff5e00 45%, #ffd000 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .loader-sub {
-            font-size: clamp(7px, 2vw, 10px);
-            color: #5a6f89;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            font-weight: 500;
-            margin-top: 4px;
-            opacity: 0.5;
-        }
-
-        .loader-spinner {
-            margin-top: 16px;
-            width: clamp(24px, 5vw, 32px);
-            height: clamp(24px, 5vw, 32px);
-            border: 2px solid rgba(255, 255, 255, 0.05);
-            border-top-color: #00f0ff;
-            border-right-color: #ff296d;
-            border-radius: 50%;
-            animation: spin 0.7s cubic-bezier(0.6, 0, 0.4, 1) infinite;
-            position: relative;
-        }
-
-        .loader-spinner::after {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            border-top-color: rgba(0, 240, 255, 0.2);
-            animation: spin 1.4s cubic-bezier(0.6, 0, 0.4, 1) infinite reverse;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        #error-msg {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 0, 0, 0.9);
-            color: #fff;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: clamp(12px, 3vw, 16px);
-            z-index: 100;
-            display: none;
-            text-align: center;
-            max-width: 90%;
-            font-weight: 500;
-        }
-
-        /* Fullscreen fixes for mobile */
-        :-webkit-full-screen #main-wrapper,
-        :-moz-full-screen #main-wrapper,
-        :fullscreen #main-wrapper {
-            width: 100vw !important;
-            height: 100vh !important;
-        }
-
-        /* iOS Safari fullscreen fix */
-        .plyr--fullscreen {
-            width: 100vw !important;
-            height: 100vh !important;
-        }
+        #loading.hidden { opacity: 0; pointer-events: none; }
+        .brand { font-size: 22px; font-weight: 900; background: linear-gradient(135deg, #fff 10%, #00f0ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand span { background: linear-gradient(90deg, #ff296d, #ffd000); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sub { font-size: 8px; color: #5a6f89; letter-spacing: 3px; text-transform: uppercase; margin-top: 2px; opacity: 0.5; }
+        .spin { margin-top: 14px; width: 28px; height: 28px; border: 2px solid rgba(255,255,255,0.05); border-top-color: #00f0ff; border-right-color: #ff296d; border-radius: 50%; animation: spin 0.7s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div id="loading-overlay">
-        <div class="loader-brand">RS <span>LIVE TV</span></div>
-        <div class="loader-sub">loading stream</div>
-        <div class="loader-spinner"></div>
+
+    <div id="loading">
+        <div class="brand">RS <span>LIVE TV</span></div>
+        <div class="sub">loading stream</div>
+        <div class="spin"></div>
     </div>
 
-    <div id="error-msg"></div>
-
-    <div id="main-wrapper">
-        <div id="player-container">
-            <video id="player" playsinline muted autoplay></video>
-        </div>
-    </div>
+    <video id="player" playsinline muted autoplay></video>
 
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
-
     <script>
         (function() {
             'use strict';
 
             const video = document.getElementById('player');
-            const mainWrapper = document.getElementById('main-wrapper');
-            const overlay = document.getElementById('loading-overlay');
-            const errorMsg = document.getElementById('error-msg');
+            const loading = document.getElementById('loading');
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const videoSrc = urlParams.get('url') || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+            // URL থেকে চ্যানেল সোর্স নেওয়া (ডিফল্ট টেস্ট স্ট্রিম)
+            const src = new URLSearchParams(location.search).get('url') || 
+                       'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
 
             let plyr = null;
             let hls = null;
-            let isHidden = false;
-            let loadingTimeout = null;
-            let isRotated = false;
-            let isFullscreen = false;
+            let isPlaying = false;
 
+            // ===== LOADING HIDE =====
             function hideLoading() {
-                if (isHidden) return;
-                isHidden = true;
-                if (loadingTimeout) {
-                    clearTimeout(loadingTimeout);
-                    loadingTimeout = null;
-                }
-                overlay.classList.add('hidden');
+                loading.classList.add('hidden');
             }
 
-            function showError(msg) {
-                errorMsg.textContent = msg;
-                errorMsg.style.display = 'block';
-                setTimeout(() => {
-                    errorMsg.style.display = 'none';
-                }, 8000);
+            // ===== FORCE NO ROTATION =====
+            function lockRotation() {
+                video.style.transform = 'none';
+                video.style.rotate = '0deg';
             }
 
-            // Rotation function
-            function toggleRotation() {
-                isRotated = !isRotated;
-                mainWrapper.classList.toggle('rotated', isRotated);
-                console.log('🔄 Rotation:', isRotated ? 'ON' : 'OFF');
-            }
-
-            function resetRotation() {
-                isRotated = false;
-                mainWrapper.classList.remove('rotated');
-            }
-
-            function setupHls() {
-                if (!videoSrc) {
-                    hideLoading();
-                    return;
-                }
-
-                if (Hls.isSupported()) {
-                    try {
-                        hls = new Hls({
-                            enableWorker: true,
-                            lowLatencyMode: true,
-                            backbufferLength: 30,
-                            maxBufferLength: 30,
-                            maxMaxBufferLength: 600,
-                            liveSyncDurationCount: 3,
-                            liveMaxLatencyDurationCount: 10,
-                            enableWebVTT: false,
-                        });
-
-                        hls.loadSource(videoSrc);
-                        hls.attachMedia(video);
-
-                        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                            hideLoading();
-                            video.play().catch(function(e) {
-                                console.warn('Autoplay prevented:', e);
-                            });
-                        });
-
-                        hls.on(Hls.Events.ERROR, function(event, data) {
-                            if (data.fatal) {
-                                console.warn('HLS fatal error:', data);
-                                switch (data.type) {
-                                    case Hls.ErrorTypes.NETWORK_ERROR:
-                                        hls.startLoad();
-                                        break;
-                                    case Hls.ErrorTypes.MEDIA_ERROR:
-                                        hls.recoverMediaError();
-                                        break;
-                                    default:
-                                        hideLoading();
-                                        break;
-                                }
-                            }
-                        });
-
-                        hls.on(Hls.Events.FRAG_LOADED, hideLoading);
-
-                    } catch (e) {
-                        console.error('HLS setup error:', e);
-                        hideLoading();
-                    }
-
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = videoSrc;
-                    video.addEventListener('loadedmetadata', function() {
-                        hideLoading();
-                        video.play().catch(function(e) {
-                            console.warn('Autoplay prevented:', e);
-                        });
+            // ===== AUTOPLAY: MULTIPLE ATTEMPTS =====
+            function attemptAutoplay() {
+                if (isPlaying) return;
+                video.play()
+                    .then(() => {
+                        isPlaying = true;
+                        console.log('✅ Autoplay successful');
+                    })
+                    .catch((err) => {
+                        console.warn('⚠️ Autoplay blocked, retrying...', err.message);
+                        // Retry after user interaction (click/tap)
+                        const retry = () => {
+                            video.play().then(() => {
+                                isPlaying = true;
+                                console.log('✅ Autoplay after interaction');
+                            }).catch(() => {});
+                            document.removeEventListener('click', retry);
+                            document.removeEventListener('touchstart', retry);
+                        };
+                        document.addEventListener('click', retry);
+                        document.addEventListener('touchstart', retry);
                     });
-                } else {
-                    hideLoading();
-                    showError('এই ব্রাউজার HLS সাপোর্ট করে না');
-                }
             }
 
+            // ===== PLYR INIT =====
             function initPlyr() {
                 if (plyr) return;
 
                 plyr = new Plyr(video, {
                     controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-                    autoplay: true,
+                    autoplay: true,  // Plyr autoplay — কিন্তু HLS এর সাথে sync নাও হতে পারে
                     muted: true,
-                    keyboard: { focused: true, global: true },
-                    tooltips: { controls: false, seek: true },
-                    disableContextMenu: true,
-                    loadSprite: true,
-                    iconPrefix: 'plyr',
-                    blankVideo: 'https://cdn.plyr.io/static/blank.mp4',
-                    seekTime: 10,
                 });
 
-                plyr.on('ready', function() {
-                    resetRotation();
-                    setTimeout(hideLoading, 100);
+                plyr.on('ready', () => {
+                    lockRotation();
+                    // Plyr ready হলে autoplay চেষ্টা
+                    attemptAutoplay();
                 });
 
-                // FULLSCREEN AUTO ROTATE
-                plyr.on('fullscreenchange', function() {
-                    isFullscreen = plyr.fullscreen.active;
-                    console.log('📱 Fullscreen:', isFullscreen);
-                    
-                    if (isFullscreen) {
-                        // Entering fullscreen - rotate
-                        setTimeout(() => {
-                            if (!isRotated) {
-                                toggleRotation();
-                            }
-                        }, 300);
-                    } else {
-                        // Exiting fullscreen - reset
-                        setTimeout(() => {
-                            resetRotation();
-                        }, 100);
-                    }
-                });
-
-                // ESC key
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && isRotated) {
-                        resetRotation();
-                        if (plyr && plyr.fullscreen && plyr.fullscreen.active) {
-                            plyr.fullscreen.exit();
-                        }
-                    }
-                });
-
-                // Mobile orientation change
-                window.addEventListener('orientationchange', function() {
-                    setTimeout(function() {
-                        if (isFullscreen) {
-                            if (!isRotated) {
-                                toggleRotation();
-                            }
-                        }
-                    }, 500);
-                });
-
-                if (screen.orientation) {
-                    screen.orientation.addEventListener('change', function() {
-                        setTimeout(function() {
-                            if (isFullscreen) {
-                                if (!isRotated) {
-                                    toggleRotation();
-                                }
-                            }
-                        }, 500);
-                    });
-                }
-
-                // Window resize for mobile
-                window.addEventListener('resize', function() {
-                    if (isFullscreen && isRotated) {
-                        mainWrapper.classList.add('rotated');
-                    }
-                });
+                plyr.on('fullscreenchange', () => setTimeout(lockRotation, 100));
+                document.addEventListener('fullscreenchange', () => setTimeout(lockRotation, 100));
+                window.addEventListener('resize', lockRotation);
+                window.addEventListener('orientationchange', () => setTimeout(lockRotation, 150));
             }
 
-            // Start
-            document.addEventListener('DOMContentLoaded', function() {
-                loadingTimeout = setTimeout(hideLoading, 6000);
+            // ===== HLS SETUP =====
+            function setupHls() {
+                if (!src) {
+                    hideLoading();
+                    return;
+                }
 
+                if (Hls.isSupported()) {
+                    hls = new Hls({
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                    });
+
+                    hls.loadSource(src);
+                    hls.attachMedia(video);
+
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        hideLoading();
+                        // Manifest parsed হলে autoplay ট্রিগার
+                        attemptAutoplay();
+                    });
+
+                    hls.on(Hls.Events.ERROR, (event, data) => {
+                        if (data.fatal) {
+                            hideLoading();
+                            // Error থাকলেও autoplay চেষ্টা
+                            attemptAutoplay();
+                        }
+                    });
+
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Safari native HLS
+                    video.src = src;
+                    video.addEventListener('loadedmetadata', () => {
+                        hideLoading();
+                        attemptAutoplay();
+                    });
+                } else {
+                    hideLoading();
+                    attemptAutoplay();
+                }
+
+                // fallback: 5 sec পরে loading hide
+                setTimeout(() => {
+                    hideLoading();
+                    attemptAutoplay();
+                }, 5000);
+            }
+
+            // ===== VIDEO EVENTS (additional safety) =====
+            video.addEventListener('canplay', () => {
+                hideLoading();
+                attemptAutoplay();
+            });
+
+            video.addEventListener('loadeddata', () => {
+                hideLoading();
+                attemptAutoplay();
+            });
+
+            // ===== START =====
+            document.addEventListener('DOMContentLoaded', () => {
                 setupHls();
                 initPlyr();
-
-                video.addEventListener('canplay', hideLoading);
-                video.addEventListener('loadeddata', hideLoading);
-                video.addEventListener('playing', hideLoading);
-
-                // Force video to fill screen
-                video.style.objectFit = 'cover';
-
-                // Handle visibility change - resume if needed
-                document.addEventListener('visibilitychange', function() {
-                    if (!document.hidden && video.paused && !video.ended) {
-                        video.play().catch(function(e) {
-                            console.warn('Resume play failed:', e);
-                        });
-                    }
-                });
-
-                window.__RS = { 
-                    video, 
-                    plyr, 
-                    hls, 
-                    toggleRotation, 
-                    resetRotation,
-                    isRotated: () => isRotated,
-                    isFullscreen: () => isFullscreen
-                };
-
-                console.log('✅ RS Live TV Loaded!');
-                console.log('📱 Mobile optimized - auto rotate on fullscreen');
-                console.log('🛠️ Debug: window.__RS.toggleRotation()');
+                lockRotation();
             });
+
+            // ===== EXPOSE DEBUG =====
+            window.__RS = { video, plyr, hls, attemptAutoplay, lockRotation };
 
         })();
     </script>
