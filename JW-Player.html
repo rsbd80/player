@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>RS Live TV</title>
 
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUlMgTGl2ZSBUViIsInNob3J0X25hbWUiOiJSU0xpdmUiLCJzdGFydF91cmwiOiIuIiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vaS5wb3N0aW1nLmNjL21EMVZDdDJDL1JTLUxpdmUucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9XSwib3JpZW50YXRpb24iOiJhbnkifQ==" />
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
 
     <style>
@@ -24,7 +22,7 @@
             background: #000;
             display: block;
             object-fit: contain !important;
-            /* 🔄 রোটেশন সাপোর্ট (JS দিয়ে কন্ট্রোল) */
+            /* ✅ রোটেশন সাপোর্ট (JS দিয়ে কন্ট্রোল) */
             transform-origin: center center;
             transition: transform 0.25s ease;
         }
@@ -36,7 +34,6 @@
             max-height: 100vh !important;
             background: #000;
         }
-
         .plyr__controls { z-index: 20; }
 
         /* LOADING */
@@ -123,7 +120,6 @@
             const video = document.getElementById('player');
             const overlay = document.getElementById('loading-overlay');
 
-            // 📌 URL থেকে ভিডিও সোর্স নেওয়া
             const urlParams = new URLSearchParams(window.location.search);
             const videoSrc = urlParams.get('url') || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
 
@@ -145,23 +141,17 @@
 
                 let angle = 0;
 
-                // 1) screen.orientation API (মডার্ন)
                 if (screen.orientation) {
                     const type = screen.orientation.type;
                     if (type === 'landscape-primary') angle = 90;
                     else if (type === 'landscape-secondary') angle = -90;
                     else if (type === 'portrait-secondary') angle = 180;
-                }
-                // 2) window.orientation (iOS Safari)
-                else if (typeof window.orientation !== 'undefined') {
+                } else if (typeof window.orientation !== 'undefined') {
                     angle = window.orientation;
-                }
-                // 3) fallback
-                else {
+                } else {
                     angle = window.innerWidth > window.innerHeight ? 90 : 0;
                 }
 
-                // ফুলস্ক্রিন চেক
                 const isFullscreen = !!(document.fullscreenElement || 
                                         document.webkitFullscreenElement || 
                                         document.mozFullScreenElement);
@@ -293,7 +283,7 @@
                 applyRotation();
 
                 window.__RS = { video, plyr, hls, applyRotation, hideLoading };
-                console.log('✅ RS Live TV · Rotation ENABLED · Fullscreen OK');
+                console.log('✅ RS Live TV · Rotation ENABLED');
                 console.log('📺 Video Source:', videoSrc);
             });
 
