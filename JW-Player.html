@@ -31,7 +31,7 @@
             display: block;
             object-fit: contain !important;
             transform-origin: center center;
-            transition: transform 0.25s ease;
+            transition: transform 0.3s ease;
         }
 
         .plyr--video {
@@ -46,30 +46,7 @@
             z-index: 20;
         }
 
-        /* ===== রোটেট বাটনের স্টাইল ===== */
-        .plyr__control--rotate {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .plyr__control--rotate svg {
-            width: 22px;
-            height: 22px;
-            fill: currentColor;
-            transition: transform 0.3s ease;
-        }
-        /* বর্তমান ঘূর্ণন অনুযায়ী আইকন ঘুরবে */
-        .plyr__control--rotate[data-rotate="90"] svg {
-            transform: rotate(90deg);
-        }
-        .plyr__control--rotate[data-rotate="180"] svg {
-            transform: rotate(180deg);
-        }
-        .plyr__control--rotate[data-rotate="270"] svg {
-            transform: rotate(270deg);
-        }
-
-        /* ===== লোডিং ওভারলে ===== */
+        /* লোডিং ওভারলে */
         #loading-overlay {
             position: fixed;
             inset: 0;
@@ -79,7 +56,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
         #loading-overlay.hidden {
             opacity: 0;
@@ -162,7 +139,7 @@
 </head>
 <body>
 
-    <!-- লোডিং ওভারলে (বাংলা টেক্সট) -->
+    <!-- লোডিং ওভারলে (বাংলা) -->
     <div id="loading-overlay">
         <div class="loader-brand">আরএস <span>লাইভ টিভি</span></div>
         <div class="loader-sub">স্ট্রিম লোড হচ্ছে...</div>
@@ -192,9 +169,9 @@
             let isHidden = false;
             let loadingTimeout = null;
 
-            // ---- ম্যানুয়াল রোটেট কন্ট্রোল ----
+            // ---- রোটেট কন্ট্রোল ----
             let manualRotation = 0; // 0, 90, 180, 270
-            let autoRotationEnabled = true; // true=অটো, false=ম্যানুয়াল
+            let autoRotationEnabled = true; // true=অটো (ওরিয়েন্টেশন), false=ম্যানুয়াল
 
             // ---- রোটেট ফাংশন ----
             function applyRotation() {
@@ -220,65 +197,26 @@
 
                 video.style.transform = `rotate(${angle}deg)`;
                 video.style.objectFit = 'contain';
-                console.log(`🔄 Rotation: ${angle}° (auto: ${autoRotationEnabled})`);
+                // console.log(`🔄 Rotation: ${angle}° (auto: ${autoRotationEnabled})`);
             }
 
-            // ---- রোটেট বাটন ক্লিক হ্যান্ডলার ----
-            function rotateVideo() {
-                autoRotationEnabled = false;
-                manualRotation = (manualRotation + 90) % 360;
-                applyRotation();
+            // ---- ফুলস্ক্রিন টগল করার সময় রোটেট নিয়ন্ত্রণ ----
+            function handleFullscreenChange() {
+                const isFullscreen = !!(document.fullscreenElement ||
+                    document.webkitFullscreenElement ||
+                    document.mozFullScreenElement);
 
-                const btn = document.querySelector('.plyr__control--rotate');
-                if (btn) {
-                    btn.dataset.rotate = String(manualRotation);
-                }
-                console.log(`👆 Manual rotate → ${manualRotation}°`);
-            }
-
-            // ---- অটো রোটেট আবার চালু (ডাবল ক্লিক বা রিসেট) ----
-            function enableAutoRotation() {
-                autoRotationEnabled = true;
-                applyRotation();
-                const btn = document.querySelector('.plyr__control--rotate');
-                if (btn) {
-                    btn.dataset.rotate = '0';
-                }
-                console.log('🔄 Auto-rotation enabled');
-            }
-
-            // ---- প্লেয়ার কন্ট্রোলে রোটেট বাটন যোগ করা ----
-            function addRotateButton() {
-                const controls = document.querySelector('.plyr__controls');
-                if (!controls) return;
-
-                // পুরনো বাটন থাকলে মুছে ফেলো
-                const oldBtn = document.querySelector('.plyr__control--rotate');
-                if (oldBtn) oldBtn.remove();
-
-                const btn = document.createElement('button');
-                btn.className = 'plyr__controls__item plyr__control plyr__control--rotate';
-                btn.setAttribute('type', 'button');
-                btn.setAttribute('aria-label', 'ভিডিও ঘোরান'); // বাংলা
-                btn.dataset.rotate = '0';
-
-                btn.innerHTML = `
-                    <svg viewBox="0 0 24 24" width="22" height="22">
-                        <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
-                    </svg>
-                `;
-
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    rotateVideo();
-                });
-
-                // পছন্দমতো পজিশন: ভলিউমের আগে বসানো
-                const volumeBtn = controls.querySelector('.plyr__control[data-plyr="mute"]');
-                if (volumeBtn) {
-                    controls.insertBefore(btn, volumeBtn);
+                if (isFullscreen) {
+                    // ফুলস্ক্রিনে গেলে অটো বন্ধ করে 90° ঘোরাও
+                    autoRotationEnabled = false;
+                    manualRotation = 90; // ল্যান্ডস্কেপ
+                    applyRotation();
+                    console.log('📱 Fullscreen ON → Rotated 90°');
                 } else {
-                    controls.appendChild(btn);
+                    // ফুলস্ক্রিন থেকে বের হলে আবার অটো চালু করো
+                    autoRotationEnabled = true;
+                    applyRotation();
+                    console.log('📱 Fullscreen OFF → Auto-rotation resumed');
                 }
             }
 
@@ -309,32 +247,31 @@
                 });
 
                 plyr.on('ready', function() {
-                    // কন্ট্রোল তৈরি হওয়ার পর বাটন যোগ করো
-                    setTimeout(addRotateButton, 100);
                     applyRotation();
                     setTimeout(hideLoading, 100);
                 });
 
+                // Plyr এর fullscreen ইভেন্ট
                 plyr.on('fullscreenchange', function() {
-                    setTimeout(applyRotation, 100);
-                    setTimeout(applyRotation, 300);
+                    setTimeout(handleFullscreenChange, 50);
+                    setTimeout(handleFullscreenChange, 200); // নিরাপত্তার জন্য
                 });
 
-                // ইভেন্ট লিসেনার
+                // নেটিভ ফুলস্ক্রিন ইভেন্ট (ব্যাকআপ)
                 document.addEventListener('fullscreenchange', function() {
-                    setTimeout(applyRotation, 100);
-                    setTimeout(applyRotation, 300);
+                    setTimeout(handleFullscreenChange, 50);
+                    setTimeout(handleFullscreenChange, 200);
                 });
                 document.addEventListener('webkitfullscreenchange', function() {
-                    setTimeout(applyRotation, 100);
-                    setTimeout(applyRotation, 300);
+                    setTimeout(handleFullscreenChange, 50);
+                    setTimeout(handleFullscreenChange, 200);
                 });
 
+                // ওরিয়েন্টেশন পরিবর্তন
                 window.addEventListener('orientationchange', function() {
                     setTimeout(applyRotation, 150);
                     setTimeout(applyRotation, 350);
                 });
-
                 if (screen.orientation) {
                     screen.orientation.addEventListener('change', function() {
                         setTimeout(applyRotation, 150);
@@ -348,11 +285,6 @@
 
                 // প্রতি সেকেন্ডে রোটেট চেক (নিরাপত্তার জন্য)
                 setInterval(applyRotation, 1000);
-
-                // ডাবল ক্লিক করলে অটো রোটেট রিসেট (অপশনাল)
-                video.addEventListener('dblclick', function() {
-                    enableAutoRotation();
-                });
             }
 
             // ---- HLS সেটআপ ----
@@ -412,7 +344,7 @@
                 }
             }
 
-            // ---- ইভেন্ট ----
+            // ---- ভিডিও ইভেন্ট (লোডিং শেষ) ----
             video.addEventListener('canplay', function() { hideLoading();
                 applyRotation(); });
             video.addEventListener('loadeddata', function() { hideLoading();
@@ -422,13 +354,13 @@
 
             // ---- ডোম রেডি ----
             document.addEventListener('DOMContentLoaded', function() {
-                loadingTimeout = setTimeout(hideLoading, 4000);
+                loadingTimeout = setTimeout(hideLoading, 4000); // সেফটি টাইমআউট
                 setupHls();
                 initPlyr();
                 applyRotation();
 
-                window.__RS = { video, plyr, hls, applyRotation, hideLoading, rotateVideo, enableAutoRotation };
-                console.log('✅ আরএস লাইভ টিভি · রোটেট ইনেবল · ফুলস্ক্রিন সাপোর্টেড');
+                window.__RS = { video, plyr, hls, applyRotation, hideLoading };
+                console.log('✅ আরএস লাইভ টিভি · ফুলস্ক্রিন রোটেট সক্রিয়');
                 console.log('📺 ভিডিও সোর্স:', videoSrc);
             });
 
