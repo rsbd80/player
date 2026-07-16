@@ -1,140 +1,696 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>RS Player Pro - Compact Loader</title>
-
-    <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
-    <script>
-        jwplayer.key="Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
-    </script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ইউআরএল প্লেয়ার</title>
+    <!-- HLS.js লাইব্রেরি -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family: 'Segoe UI', sans-serif; position: fixed; }
-        
-        #player-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
-        #player { width:100% !important; height:100% !important; position: absolute; top:0; left:0; }
-
-        /* --- কন্ট্রোলার কাস্টমাইজেশন --- */
-        .jw-skin-glow .jw-display-icon-container { 
-            background: rgba(255, 255, 255, 0.1) !important; 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            backdrop-filter: none !important; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .jw-skin-glow .jw-button-color { color: #ffffff !important; }
-        .jw-skin-glow .jw-controlbar { 
-            background: transparent !important; 
-            backdrop-filter: none !important; 
+        body {
+            background: #0b0b0b;
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
         }
-
-        /* --- লোডার ডিজাইন (সাইজ ছোট করা হয়েছে) --- */
-        #loader {
-            position: absolute; top:0; left:0; width:100%; height:100%;
-            background: #000; display:flex; justify-content:center; align-items:center;
-            z-index:99; flex-direction: column; transition: opacity 0.4s ease;
+        .player-container {
+            width: 100%;
+            max-width: 1000px;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+            position: relative;
         }
-
-        .loader-container {
-            position: relative; 
-            width: 100px; /* ১৫০ থেকে কমিয়ে ১০০ করা হয়েছে */
-            height: 100px; /* ১৫০ থেকে কমিয়ে ১০০ করা হয়েছে */
-            display: flex; justify-content: center; align-items: center;
+        /* ভিডিও র‍্যাপার */
+        .video-wrapper {
+            position: relative;
+            background: #000;
+            aspect-ratio: 16 / 9;
+            width: 100%;
         }
-
-        .loader-brand { text-align: center; z-index: 10; }
-        .tv-icon { font-size: 24px; color: #00c3ff; text-shadow: 0 0 10px #00c3ff; } /* আইকন সাইজ কিছুটা কমানো হয়েছে */
-        .brand-name { font-size: 10px; font-weight: 700; color: #fff; text-transform: uppercase; margin-top: 5px; letter-spacing: 1px; }
-        .brand-name span { color: #00c3ff; }
-
-        .neon-ring {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; border: 2px solid transparent;
-            animation: rotate-vortex 1.5s linear infinite;
+        #video-player {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #000;
+            cursor: pointer;
         }
-        .neon-ring:nth-child(1) { border-top: 2px solid #00c3ff; border-right: 2px solid #00c3ff; box-shadow: 0 0 10px #00c3ff; }
-        .neon-ring:nth-child(2) { border-bottom: 2px solid #ff007f; border-left: 2px solid #ff007f; animation-direction: reverse; animation-duration: 2s; box-shadow: 0 0 10px #ff007f; }
-
-        @keyframes rotate-vortex { 100% { transform: rotate(360deg); } }
-
-        .loading-text { color: rgba(255, 255, 255, 0.6); font-size: 10px; margin-top: 15px; letter-spacing: 2px; text-transform: uppercase; }
-
-        /* --- ভিডিও সাইড কাটা ফিক্স --- */
-        .jw-video.jw-reset { 
-            object-fit: fill !important; 
+        /* ওভারলে সেন্টার প্লে বাটন */
+        .center-play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(6px);
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            z-index: 10;
+            pointer-events: auto;
         }
-        
-        .hide-now { opacity: 0 !important; visibility: hidden !important; }
-
-        /* এরর মেসেজ */
-        .error-content { text-align: center; color: #fff; z-index: 100; }
-        .error-content i { font-size: 40px; color: #ff4d4d; margin-bottom: 15px; }
+        .center-play-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        .center-play-btn svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+            margin-left: 6px;
+        }
+        .center-play-btn.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        /* লোডিং স্পিনার */
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .loader.active {
+            opacity: 1;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #1e90ff;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        /* কন্ট্রোল বার (নিচে) */
+        .controls-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+            padding: 20px 16px 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .controls-bar.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .progress-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .progress-bar-wrapper {
+            flex: 1;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+        }
+        .progress-played {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #1e90ff, #00bfff);
+            border-radius: 10px;
+            position: relative;
+            transition: width 0.1s;
+        }
+        .progress-buffered {
+            height: 100%;
+            width: 0%;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .time-display {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 13px;
+            font-variant-numeric: tabular-nums;
+            min-width: 110px;
+            text-align: right;
+            letter-spacing: 0.3px;
+        }
+        .btn-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .btn-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .ctrl-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 22px;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+        }
+        .ctrl-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .ctrl-btn svg {
+            fill: currentColor;
+            width: 24px;
+            height: 24px;
+        }
+        .volume-slider {
+            width: 70px;
+            height: 4px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            outline: none;
+            transition: width 0.2s;
+        }
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .volume-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+        @media (max-width: 600px) {
+            .center-play-btn {
+                width: 64px;
+                height: 64px;
+            }
+            .center-play-btn svg {
+                width: 32px;
+                height: 32px;
+            }
+            .ctrl-btn {
+                font-size: 18px;
+                width: 30px;
+                height: 30px;
+            }
+            .volume-slider {
+                width: 50px;
+            }
+            .time-display {
+                font-size: 11px;
+                min-width: 80px;
+            }
+            .controls-bar {
+                padding: 16px 10px 10px 10px;
+            }
+        }
+        /* পোস্টার ইমেজ ব্যাকগ্রাউন্ড */
+        .poster-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+            transition: opacity 0.6s;
+            opacity: 1;
+            pointer-events: none;
+        }
+        .poster-bg.fade {
+            opacity: 0;
+        }
+        /* ত্রুটি বার্তা */
+        .error-msg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff6b6b;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px 30px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 16px;
+            z-index: 30;
+            display: none;
+            border: 1px solid #ff6b6b33;
+        }
+        .error-msg.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
 
-<div id="player-wrapper">
-    <div id="loader">
-        <div class="loader-container">
-            <div class="neon-ring"></div>
-            <div class="neon-ring"></div>
-            <div class="loader-brand">
-                <i class="fas fa-tv tv-icon"></i>
-                <div class="brand-name">RS LIVE <span>TV</span></div>
+    <div class="player-container" id="playerContainer">
+        <div class="video-wrapper" id="videoWrapper">
+            <!-- পোস্টার ব্যাকগ্রাউন্ড -->
+            <div class="poster-bg" id="posterBg"></div>
+
+            <!-- লোডিং -->
+            <div class="loader" id="loader">
+                <div class="spinner"></div>
+                <span>লোড হচ্ছে...</span>
+            </div>
+
+            <!-- সেন্টার প্লে বাটন -->
+            <div class="center-play-btn" id="centerPlayBtn">
+                <svg viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21" /></svg>
+            </div>
+
+            <!-- ভিডিও এলিমেন্ট -->
+            <video id="video-player" playsinline preload="metadata"></video>
+
+            <!-- ত্রুটি বার্তা -->
+            <div class="error-msg" id="errorMsg">⛔ ভিডিও লোড করা সম্ভব হয়নি</div>
+
+            <!-- কন্ট্রোল বার -->
+            <div class="controls-bar" id="controlsBar">
+                <div class="progress-row">
+                    <div class="progress-bar-wrapper" id="progressWrapper">
+                        <div class="progress-buffered" id="progressBuffered"></div>
+                        <div class="progress-played" id="progressPlayed"></div>
+                    </div>
+                    <span class="time-display" id="timeDisplay">00:00 / 00:00</span>
+                </div>
+                <div class="btn-row">
+                    <div class="btn-group">
+                        <button class="ctrl-btn" id="playPauseBtn">
+                            <svg viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21" id="playIcon"/></svg>
+                        </button>
+                        <button class="ctrl-btn" id="muteBtn">
+                            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                        </button>
+                        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="0.8" />
+                    </div>
+                    <div class="btn-group">
+                        <button class="ctrl-btn" id="fullscreenBtn">
+                            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="loading-text">BUFFERING...</div>
     </div>
-    <div id="player"></div>
-</div>
 
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const streamSource = urlParams.get('url');
+    <script>
+        (function() {
+            // --- DOM elements ---
+            const video = document.getElementById('video-player');
+            const posterBg = document.getElementById('posterBg');
+            const loader = document.getElementById('loader');
+            const centerBtn = document.getElementById('centerPlayBtn');
+            const controlsBar = document.getElementById('controlsBar');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const playIcon = document.getElementById('playIcon');
+            const progressWrapper = document.getElementById('progressWrapper');
+            const progressPlayed = document.getElementById('progressPlayed');
+            const progressBuffered = document.getElementById('progressBuffered');
+            const timeDisplay = document.getElementById('timeDisplay');
+            const muteBtn = document.getElementById('muteBtn');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const errorMsg = document.getElementById('errorMsg');
 
-    if (streamSource) {
-        const player = jwplayer("player").setup({
-            playlist: [{ file: streamSource, type: "hls" }],
-            width: "100%",
-            height: "100%",
-            autostart: true,
-            stretching: "exactfit",
-            skin: { name: "glow" },
-            displaytitle: false
-        });
+            let hlsInstance = null;
+            let controlsTimeout = null;
+            let isScrubbing = false;
+            let isMuted = false;
 
-        player.on("ready", () => {
-            player.setMute(false);
-            player.setVolume(100);
-        });
+            // --- URL থেকে প্যারামিটার পড়ি ---
+            const params = new URLSearchParams(window.location.search);
+            const videoUrl = params.get('url');
+            const posterUrl = params.get('poster') || '';
 
-        player.on("play", () => {
-            document.getElementById("loader").classList.add("hide-now");
-        });
+            // --- যদি URL না থাকে ---
+            if (!videoUrl) {
+                errorMsg.textContent = '⚠️ কোন URL দেওয়া হয়নি। (প্যারামিটার: ?url=)';
+                errorMsg.classList.add('show');
+                loader.classList.remove('active');
+                return;
+            }
 
-        player.on("buffer", () => {
-            document.getElementById("loader").classList.remove("hide-now");
-        });
+            // --- পোস্টার সেট ---
+            if (posterUrl) {
+                posterBg.style.backgroundImage = `url(${posterUrl})`;
+            } else {
+                posterBg.style.background = '#111';
+            }
 
-        player.on("error", () => {
-            const loader = document.getElementById("loader");
-            loader.classList.remove("hide-now"); 
-            loader.innerHTML = `
-                <div class="error-content">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Stream Offline!</p>
-                    <div class="brand-name">RS LIVE <span>TV</span></div>
-                </div>
-            `;
-        });
+            // --- হেল্পার: সময় ফরম্যাট ---
+            function formatTime(seconds) {
+                if (isNaN(seconds) || !isFinite(seconds)) return '00:00';
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = Math.floor(seconds % 60);
+                if (h > 0) {
+                    return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                }
+                return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            }
 
-    } else {
-        document.getElementById("loader").innerHTML = '<div class="brand-name">No Stream URL Found</div>';
-    }
-</script>
+            // --- UI আপডেট ---
+            function updatePlayButton(playing) {
+                if (playing) {
+                    playIcon.setAttribute('viewBox', '0 0 24 24');
+                    playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+                    centerBtn.classList.add('hidden');
+                } else {
+                    playIcon.setAttribute('viewBox', '0 0 24 24');
+                    playIcon.innerHTML = '<polygon points="6,3 20,12 6,21"/>';
+                    centerBtn.classList.remove('hidden');
+                }
+            }
 
+            function updateTime() {
+                if (!isScrubbing) {
+                    const current = video.currentTime || 0;
+                    const duration = video.duration || 0;
+                    const pct = duration ? (current / duration) * 100 : 0;
+                    progressPlayed.style.width = Math.min(pct, 100) + '%';
+                    timeDisplay.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
+                }
+            }
+
+            function updateBuffered() {
+                if (video.buffered.length > 0) {
+                    const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+                    const duration = video.duration || 1;
+                    const pct = (bufferedEnd / duration) * 100;
+                    progressBuffered.style.width = Math.min(pct, 100) + '%';
+                }
+            }
+
+            // --- কন্ট্রোল শো/হাইড ---
+            function showControls() {
+                controlsBar.classList.add('visible');
+                clearTimeout(controlsTimeout);
+                if (!video.paused) {
+                    controlsTimeout = setTimeout(() => {
+                        controlsBar.classList.remove('visible');
+                    }, 3000);
+                }
+            }
+
+            function toggleControls() {
+                if (controlsBar.classList.contains('visible')) {
+                    controlsBar.classList.remove('visible');
+                    clearTimeout(controlsTimeout);
+                } else {
+                    showControls();
+                }
+            }
+
+            // --- ভিডিও লোড করা ---
+            function loadVideo(url) {
+                loader.classList.add('active');
+                errorMsg.classList.remove('show');
+
+                // HLS চেক
+                const isHls = url.toLowerCase().includes('.m3u8') || url.includes('m3u8');
+
+                if (isHls && Hls.isSupported()) {
+                    if (hlsInstance) {
+                        hlsInstance.destroy();
+                        hlsInstance = null;
+                    }
+                    hlsInstance = new Hls({
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                    });
+                    hlsInstance.loadSource(url);
+                    hlsInstance.attachMedia(video);
+                    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                        loader.classList.remove('active');
+                        posterBg.classList.add('fade');
+                        video.play().catch(() => {});
+                    });
+                    hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+                        if (data.fatal) {
+                            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                                hlsInstance.startLoad();
+                            } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                                hlsInstance.recoverMediaError();
+                            } else {
+                                hlsInstance.destroy();
+                                hlsInstance = null;
+                                showError('HLS ত্রুটি: ভিডিও লোড করা যায়নি');
+                            }
+                        }
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl') && isHls) {
+                    // Safari native HLS
+                    video.src = url;
+                } else {
+                    // MP4 বা অন্যান্য
+                    video.src = url;
+                }
+
+                // নেটিভ ইভেন্ট
+                video.addEventListener('loadedmetadata', () => {
+                    loader.classList.remove('active');
+                    posterBg.classList.add('fade');
+                    updateTime();
+                });
+
+                video.addEventListener('canplay', () => {
+                    loader.classList.remove('active');
+                    posterBg.classList.add('fade');
+                });
+
+                video.addEventListener('waiting', () => {
+                    loader.classList.add('active');
+                });
+
+                video.addEventListener('playing', () => {
+                    loader.classList.remove('active');
+                    updatePlayButton(true);
+                });
+
+                video.addEventListener('pause', () => {
+                    updatePlayButton(false);
+                });
+
+                video.addEventListener('ended', () => {
+                    updatePlayButton(false);
+                    video.currentTime = 0;
+                    progressPlayed.style.width = '0%';
+                });
+
+                video.addEventListener('timeupdate', updateTime);
+                video.addEventListener('progress', updateBuffered);
+
+                // যদি লোড না হয়
+                video.addEventListener('error', (e) => {
+                    loader.classList.remove('active');
+                    showError('ভিডিও লোড করতে সমস্যা হয়েছে (কোড: ' + video.error?.code + ')');
+                });
+
+                // AutoPlay চেষ্টা
+                video.play().then(() => {
+                    loader.classList.remove('active');
+                    posterBg.classList.add('fade');
+                }).catch(() => {
+                    // ইউজার ইন্টারঅ্যাকশন ছাড়া অটোপ্লে ব্লক হলে কিছু করবেন না
+                    loader.classList.remove('active');
+                });
+            }
+
+            function showError(msg) {
+                errorMsg.textContent = '⛔ ' + msg;
+                errorMsg.classList.add('show');
+                loader.classList.remove('active');
+            }
+
+            // --- ইভেন্ট হ্যান্ডলার ---
+
+            // প্লে/পজ
+            function togglePlay() {
+                if (video.paused) {
+                    video.play().catch(() => {});
+                } else {
+                    video.pause();
+                }
+                showControls();
+            }
+
+            // ভলিউম
+            function setVolume(val) {
+                const v = parseFloat(val);
+                if (!isNaN(v)) {
+                    video.volume = v;
+                    video.muted = (v === 0);
+                    isMuted = (v === 0);
+                    volumeSlider.value = v;
+                }
+            }
+
+            // মিউট টগল
+            function toggleMute() {
+                if (video.muted) {
+                    video.muted = false;
+                    isMuted = false;
+                    volumeSlider.value = video.volume;
+                } else {
+                    video.muted = true;
+                    isMuted = true;
+                    volumeSlider.value = 0;
+                }
+            }
+
+            // প্রোগ্রেস বার ক্লিক/ড্র্যাগ
+            function seekTo(e) {
+                const rect = progressWrapper.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const clamped = Math.min(Math.max(x, 0), 1);
+                if (video.duration) {
+                    const newTime = clamped * video.duration;
+                    video.currentTime = newTime;
+                    progressPlayed.style.width = (clamped * 100) + '%';
+                    timeDisplay.textContent = `${formatTime(newTime)} / ${formatTime(video.duration)}`;
+                }
+            }
+
+            // ফুলস্ক্রিন
+            function toggleFullscreen() {
+                const container = document.getElementById('playerContainer');
+                if (!document.fullscreenElement) {
+                    container.requestFullscreen?.() || container.webkitRequestFullscreen?.();
+                } else {
+                    document.exitFullscreen?.() || document.webkitExitFullscreen?.();
+                }
+            }
+
+            // --- ইভেন্ট লিসেনার বসানো ---
+
+            // প্লে/পজ বাটন
+            playPauseBtn.addEventListener('click', togglePlay);
+            centerBtn.addEventListener('click', togglePlay);
+
+            // ভলিউম
+            volumeSlider.addEventListener('input', (e) => {
+                setVolume(e.target.value);
+            });
+
+            muteBtn.addEventListener('click', toggleMute);
+
+            // প্রোগ্রেস বার
+            progressWrapper.addEventListener('mousedown', (e) => {
+                isScrubbing = true;
+                seekTo(e);
+                showControls();
+            });
+            window.addEventListener('mouseup', () => {
+                isScrubbing = false;
+                updateTime();
+            });
+            progressWrapper.addEventListener('mousemove', (e) => {
+                if (isScrubbing) seekTo(e);
+            });
+            // টাচ সাপোর্ট
+            progressWrapper.addEventListener('touchstart', (e) => {
+                isScrubbing = true;
+                seekTo(e.touches[0]);
+                showControls();
+            });
+            progressWrapper.addEventListener('touchmove', (e) => {
+                if (isScrubbing) seekTo(e.touches[0]);
+            });
+            progressWrapper.addEventListener('touchend', () => {
+                isScrubbing = false;
+                updateTime();
+            });
+
+            // ফুলস্ক্রিন
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+            // ভিডিও ক্লিক = কন্ট্রোল টগল
+            video.addEventListener('click', toggleControls);
+            // ডাবল ক্লিক = ফুলস্ক্রিন
+            video.addEventListener('dblclick', toggleFullscreen);
+
+            // মাউস মুভে কন্ট্রোল দেখানো
+            document.getElementById('videoWrapper').addEventListener('mousemove', showControls);
+
+            // ভলিউম স্লাইডার ডিফল্ট
+            video.volume = 0.8;
+            volumeSlider.value = 0.8;
+
+            // --- শুরু করি ---
+            if (videoUrl) {
+                loadVideo(videoUrl);
+            }
+
+            // ক্লিনআপ (HLS ধ্বংস)
+            window.addEventListener('beforeunload', () => {
+                if (hlsInstance) {
+                    hlsInstance.destroy();
+                    hlsInstance = null;
+                }
+            });
+
+            // কিবোর্ড শর্টকাট (স্পেস = প্লে/পজ)
+            document.addEventListener('keydown', (e) => {
+                if (e.key === ' ' || e.key === 'Space') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+                if (e.key === 'f' || e.key === 'F') {
+                    toggleFullscreen();
+                }
+            });
+
+        })();
+    </script>
 </body>
-</html>
+    </html>
