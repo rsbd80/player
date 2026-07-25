@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-    <title>RS Player - Universal</title>
+    <title>RS Player - All Device</title>
 
     <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
     <script>
@@ -15,7 +15,9 @@
         html,body { width:100%; height:100%; background:#000; overflow:hidden; position:fixed; }
         #player { width:100%; height:100%; position:absolute; top:0; left:0; }
         
+        /* ভিডিও পুরো স্ক্রিনে ফিট - কাটবে না */
         .jw-video.jw-reset {
+            object-fit: contain !important;
             width: 100% !important;
             height: 100% !important;
         }
@@ -31,6 +33,7 @@
         }
         
         .jwplayer.jw-flag-fullscreen .jw-media video {
+            object-fit: contain !important;
             width: 100% !important;
             height: 100% !important;
         }
@@ -41,6 +44,7 @@
             }
         }
         
+        /* লোডার */
         #loader {
             position:fixed; top:0; left:0; width:100%; height:100%;
             background:#000; display:flex; justify-content:center; align-items:center;
@@ -77,46 +81,87 @@
         const player = jwplayer("player");
 
         // ============================================================
-        // আপনার আগের সেটআপ + আমার ফুলস্ক্রিন ফিট একসাথে
+        // ইউনিভার্সাল সেটআপ - সব ডিভাইসে কাজ করবে
         // ============================================================
         player.setup({
             playlist: [{
                 file: streamSource,
-                type: "hls"  // HLS স্ট্রিম
+                type: "hls"
             }],
             width: "100%",
             height: "100%",
             autostart: true,
             mute: false,
-            stretching: "uniform",  // আপনার আগের সেটিং
+            stretching: "uniform",      // ভিডিও কাটবে না
             controls: true,
-            preload: "auto",        // দ্রুত লোড
+            preload: "auto",
             playbackRateControls: [0.5, 0.75, 1, 1.25, 1.5, 2],
             defaultPlaybackRate: 1,
-            primary: "html5",       // HTML5 প্রাথমিক
-            hlshtml: true,          // HLS সাপোর্ট
-            file: streamSource,     // ডাইরেক্ট ফাইল
-            type: "hls"            // টাইপ HLS
+            primary: "html5",           // HTML5 প্রাথমিক
+            hlshtml: true,              // HLS সাপোর্ট অন
+            androidhls: true,           // অ্যান্ড্রয়েড HLS
+            file: streamSource,
+            type: "hls",
+            // মোবাইল ও ডেস্কটপ উভয়ের জন্য
+            sources: [{
+                file: streamSource,
+                type: "hls"
+            }],
+            // ফুলস্ক্রিনে পোর্ট্রেট সাপোর্ট
+            fullscreen: {
+                allow: true,
+                on: false,
+                orientation: "auto"
+            }
         });
 
         // ============================================================
-        // ফুলস্ক্রিন ফিট - CSS দিয়ে করা
+        // ডিভাইস ডিটেক্ট ও অ্যাডজাস্ট
         // ============================================================
-        function applyFullscreenFit() {
-            setTimeout(() => {
-                const videoElement = document.querySelector('.jw-video');
-                if (videoElement) {
-                    videoElement.style.objectFit = 'contain';
-                    videoElement.style.width = '100%';
-                    videoElement.style.height = '100%';
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const isDesktop = !isMobile;
+
+        if (isDesktop) {
+            // ডেস্কটপে HLS নেটিভ সাপোর্ট নেই - HLS.js ব্যবহার
+            console.log('Desktop detected - using HLS.js fallback');
+            
+            // HLS.js লোড করুন
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/hls.js@0.14.17/dist/hls.min.js';
+            script.onload = function() {
+                if (Hls.isSupported()) {
+                    const hls = new Hls({
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                        backbufferLength: 30
+                    });
+                    
+                    // ভিডিও এলিমেন্ট খুঁজুন
+                    const videoElement = document.querySelector('.jw-video');
+                    if (videoElement) {
+                        hls.loadSource(streamSource);
+                        hls.attachMedia(videoElement);
+                        
+                        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                            videoElement.play().catch(function(e) {
+                                console.log('Play prevented:', e);
+                            });
+                        });
+                        
+                        hls.on(Hls.Events.ERROR, function(event, data) {
+                            if (data.fatal) {
+                                console.log('HLS Error - trying native playback');
+                                // নেটিভ প্লেব্যাক চেষ্টা
+                                videoElement.src = streamSource;
+                                videoElement.play().catch(function(e) {
+                                    console.log('Native play failed:', e);
+                                });
+                            }
+                        });
+                    }
                 }
-                
-                const mediaElements = document.querySelectorAll('.jw-media, .jw-media video');
-                mediaElements.forEach(el => {
-                    el.style.width = '100%';
-                    el.style.height = '100%';
-                });
-            }, 200);
+            };
+            document.head.appendChild(script);
         }
 
         // ============================================================
@@ -138,7 +183,16 @@
             hideLoader();
             player.setMute(false);
             player.setVolume(100);
-            applyFullscreenFit();
+            
+            // ভিডিও ফিট ফোর্স
+            setTimeout(() => {
+                const videoElement = document.querySelector('.jw-video');
+                if (videoElement) {
+                    videoElement.style.objectFit = 'contain';
+                    videoElement.style.width = '100%';
+                    videoElement.style.height = '100%';
+                }
+            }, 200);
         });
 
         player.on("play", function() {
@@ -146,37 +200,33 @@
             if(player.getMute()) {
                 player.setMute(false);
             }
-            applyFullscreenFit();
         });
 
         player.on("fullscreen", function() {
-            applyFullscreenFit();
-        });
-
-        player.on("loaded", function() {
-            hideLoader();
-            applyFullscreenFit();
-        });
-
-        player.on("bufferChange", function(event) {
-            if (event.bufferPercent === 100) {
-                hideLoader();
-            }
+            setTimeout(() => {
+                const videoElement = document.querySelector('.jw-video');
+                if (videoElement) {
+                    videoElement.style.objectFit = 'contain';
+                    videoElement.style.width = '100%';
+                    videoElement.style.height = '100%';
+                }
+            }, 200);
         });
 
         player.on("error", function(error) {
-            document.getElementById("status-text").innerText = "Stream Failed!";
             console.log("JW Player Error:", error);
             
-            // যদি HLS ফেইল করে, তাহলে ডাইরেক্ট প্লে চেষ্টা
-            try {
-                player.load([{
-                    file: streamSource,
-                    type: "mp4"
-                }]);
-            } catch(e) {
-                console.log("Fallback failed:", e);
-            }
+            // যদি স্ট্রিম ফেইল করে, রিলোড চেষ্টা
+            setTimeout(() => {
+                try {
+                    player.load([{
+                        file: streamSource,
+                        type: "hls"
+                    }]);
+                } catch(e) {
+                    document.getElementById("status-text").innerText = "Stream Failed!";
+                }
+            }, 2000);
         });
 
         // ============================================================
@@ -186,9 +236,6 @@
             if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
                 player.setFullscreen(true);
-                setTimeout(() => {
-                    applyFullscreenFit();
-                }, 300);
             }
             if (e.key === ' ' && e.target === document.body) {
                 e.preventDefault();
@@ -200,14 +247,8 @@
             }
         });
 
-        // ============================================================
-        // উইন্ডো রিসাইজ
-        // ============================================================
-        window.addEventListener('resize', function() {
-            applyFullscreenFit();
-        });
-
-        console.log('RS Player Loaded - Universal Mode');
+        console.log('RS Player Loaded - All Device Support');
+        console.log('Device:', isMobile ? 'Mobile' : 'Desktop');
 
     } else {
         document.getElementById("status-text").innerText = "No URL Provided!";
