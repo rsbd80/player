@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dynamic Player with Rotation & Auto Play</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Dynamic Player with Full Rotation</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
     <style>
         * {
@@ -19,46 +19,73 @@
             align-items: center; 
             height: 100vh; 
             overflow: hidden;
+            width: 100vw;
         }
+        
+        #player-container {
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
         #player { 
             width: 100%; 
-            max-width: 800px; 
+            height: auto;
+            display: block;
         }
         
-        /* রোটেশন স্টাইল */
-        .plyr--video.plyr--rotated-90 .plyr__video-wrapper {
+        /* সম্পূর্ণ প্লেয়ার রোটেশন */
+        .rotated-90 {
             transform: rotate(90deg) scale(1.2);
-            width: 100% !important;
-            height: 100% !important;
+            transform-origin: center center;
         }
-        .plyr--video.plyr--rotated-180 .plyr__video-wrapper {
+        
+        .rotated-180 {
             transform: rotate(180deg);
+            transform-origin: center center;
         }
-        .plyr--video.plyr--rotated-270 .plyr__video-wrapper {
+        
+        .rotated-270 {
             transform: rotate(270deg) scale(1.2);
+            transform-origin: center center;
         }
         
-        /* ফুলস্ক্রিনে রোটেশন অ্যাডজাস্ট - পুরো স্ক্রিন ফিট */
-        .plyr--fullscreen.plyr--rotated-90 .plyr__video-wrapper,
-        .plyr--fullscreen.plyr--rotated-270 .plyr__video-wrapper {
-            transform: rotate(90deg) scale(1.8);
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
+        /* ফুলস্ক্রিনে পুরো প্লেয়ার রোটেশন */
+        .plyr--fullscreen #player-container.rotated-90 {
+            transform: rotate(90deg) scale(1.5);
+            transform-origin: center center;
+            width: 100vh !important;
+            height: 100vw !important;
+            max-width: none !important;
         }
         
-        .plyr--fullscreen.plyr--rotated-180 .plyr__video-wrapper {
+        .plyr--fullscreen #player-container.rotated-270 {
+            transform: rotate(270deg) scale(1.5);
+            transform-origin: center center;
+            width: 100vh !important;
+            height: 100vw !important;
+            max-width: none !important;
+        }
+        
+        .plyr--fullscreen #player-container.rotated-180 {
             transform: rotate(180deg) scale(1.2);
+            transform-origin: center center;
         }
         
-        /* ফুলস্ক্রিনে ভিডিও ফিট */
-        .plyr--fullscreen .plyr__video-wrapper video {
-            object-fit: contain !important;
+        /* ফুলস্ক্রিনে ভিডিও পুরো স্ক্রিন ফিট */
+        .plyr--fullscreen .plyr__video-wrapper {
             width: 100% !important;
             height: 100% !important;
         }
         
-        /* রোটেশন ইনডিকেটর */
+        .plyr--fullscreen .plyr__video-wrapper video {
+            object-fit: cover !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* কন্ট্রোল বাটন রোটেশন ইন্ডিকেটর */
         .plyr__control--rotate-indicator {
             position: relative;
             transition: all 0.3s ease;
@@ -85,17 +112,28 @@
         
         /* মোবাইল ফ্রেন্ডলি */
         @media (max-width: 768px) {
-            #player { max-width: 100%; }
-            .plyr__controls { padding: 10px 5px; }
-            .plyr__control { padding: 8px; }
+            #player-container { max-width: 100%; }
+            .plyr__controls { padding: 10px 5px; flex-wrap: wrap; }
+            .plyr__control { padding: 8px; min-width: 36px; }
+            .plyr__progress { min-width: 60px; }
+        }
+        
+        /* পোর্ট্রেট মোডে অ্যাডজাস্ট */
+        @media (orientation: portrait) {
+            .plyr--fullscreen #player-container.rotated-90,
+            .plyr--fullscreen #player-container.rotated-270 {
+                transform: rotate(90deg) scale(1.8);
+            }
         }
     </style>
 </head>
 <body>
 
-<video id="player" controls crossorigin playsinline autoplay>
-    <source type="application/vnd.apple.mpegurl" src="">
-</video>
+<div id="player-container">
+    <video id="player" controls crossorigin playsinline autoplay>
+        <source type="application/vnd.apple.mpegurl" src="">
+    </video>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
@@ -107,6 +145,7 @@
     
     const video = document.getElementById('player');
     const source = video.querySelector('source');
+    const container = document.getElementById('player-container');
     
     if (videoSrc) {
         source.src = videoSrc;
@@ -147,7 +186,7 @@
         const fullscreenBtn = document.querySelector('[data-plyr="fullscreen"]');
         
         if (fullscreenBtn) {
-            // ফুলস্ক্রিন বাটনে ক্লিক ইভেন্ট ওভাররাইড
+            // ফুলস্ক্রিন বাটনে ক্লিক ইভেন্ট
             fullscreenBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -158,36 +197,31 @@
                 // ফুলস্ক্রিন টগল
                 player.fullscreen.toggle();
                 
-                // অটোপ্লে নিশ্চিত করা
-                if (video.paused) {
-                    video.play().catch(function(error) {
-                        console.log('Play prevented:', error);
-                    });
-                }
+                // অটোপ্লে নিশ্চিত
+                setTimeout(() => {
+                    if (video.paused) {
+                        video.play().catch(function(error) {
+                            console.log('Play prevented:', error);
+                        });
+                    }
+                }, 100);
             });
         }
 
-        // রোটেশন টগল ফাংশন
+        // রোটেশন টগল ফাংশন - পুরো কন্টেইনার রোটেট হবে
         function toggleRotation() {
-            const plyrElement = player.elements.container;
-            
             // পুরানো রোটেশন ক্লাস সরান
-            plyrElement.classList.remove('plyr--rotated-90', 'plyr--rotated-180', 'plyr--rotated-270');
+            container.classList.remove('rotated-90', 'rotated-180', 'rotated-270');
             
             if (!isRotated) {
-                // রোটেট করুন (৯০ ডিগ্রি)
-                plyrElement.classList.add('plyr--rotated-90');
+                // ৯০ ডিগ্রি রোটেট
+                container.classList.add('rotated-90');
                 rotationAngle = 90;
                 isRotated = true;
                 
                 // ফুলস্ক্রিনে থাকলে পুরো স্ক্রিন কভার
                 if (document.fullscreenElement) {
-                    document.documentElement.style.transform = 'rotate(90deg)';
-                    document.documentElement.style.width = '100vh';
-                    document.documentElement.style.height = '100vw';
-                    document.documentElement.style.transformOrigin = 'center center';
                     document.documentElement.style.overflow = 'hidden';
-                    
                     // ভিডিও পুরো স্ক্রিন ফিট
                     video.style.objectFit = 'cover';
                     video.style.width = '100%';
@@ -198,19 +232,14 @@
                 isRotated = false;
                 rotationAngle = 0;
                 
-                // ভিউপোর্ট রিসেট
-                document.documentElement.style.transform = '';
-                document.documentElement.style.width = '';
-                document.documentElement.style.height = '';
-                document.documentElement.style.transformOrigin = '';
+                // রিসেট
                 document.documentElement.style.overflow = '';
-                
                 video.style.objectFit = '';
                 video.style.width = '';
                 video.style.height = '';
             }
             
-            // ফুলস্ক্রিন বাটনে ইন্ডিকেটর দেখান
+            // ফুলস্ক্রিন বাটনে ইন্ডিকেটর
             if (isRotated) {
                 fullscreenBtn.classList.add('active');
             } else {
@@ -222,40 +251,28 @@
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement) {
                 // ফুলস্ক্রিন থেকে বের হলে রিসেট
-                document.documentElement.style.transform = '';
-                document.documentElement.style.width = '';
-                document.documentElement.style.height = '';
-                document.documentElement.style.transformOrigin = '';
                 document.documentElement.style.overflow = '';
-                
                 video.style.objectFit = '';
                 video.style.width = '';
                 video.style.height = '';
                 
                 // রোটেশন অ্যাক্টিভ থাকলে সেটা রাখুন
                 if (isRotated) {
-                    const plyrElement = player.elements.container;
-                    plyrElement.classList.add('plyr--rotated-90');
+                    container.classList.add('rotated-90');
                 }
             } else if (isRotated) {
                 // ফুলস্ক্রিনে রোটেটেড থাকলে পুরো স্ক্রিন কভার
-                document.documentElement.style.transform = 'rotate(90deg)';
-                document.documentElement.style.width = '100vh';
-                document.documentElement.style.height = '100vw';
-                document.documentElement.style.transformOrigin = 'center center';
                 document.documentElement.style.overflow = 'hidden';
-                
                 video.style.objectFit = 'cover';
                 video.style.width = '100%';
                 video.style.height = '100%';
             }
         });
 
-        // অটোপ্লে চেষ্টা
+        // অটোপ্লে
         video.addEventListener('loadedmetadata', function() {
             video.play().catch(function(error) {
                 console.log('Auto-play was prevented:', error);
-                // ইউজার ইন্টারঅ্যাকশনের জন্য অপেক্ষা
                 document.addEventListener('click', function playOnClick() {
                     video.play();
                     document.removeEventListener('click', playOnClick);
@@ -263,7 +280,7 @@
             });
         });
 
-        // কিবোর্ড শর্টকাট: F কী প্রেস করলে রোটেট+ফুলস্ক্রিন হবে
+        // কিবোর্ড শর্টকাট: F
         document.addEventListener('keydown', (e) => {
             if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
@@ -273,7 +290,16 @@
             }
         });
 
-        console.log('🎬 প্লেয়ার লোড হয়েছে! ফুলস্ক্রিন বাটনে ক্লিক করলে রোটেট + অটোপ্লে হবে।');
+        // উইন্ডো রিসাইজে অ্যাডজাস্ট
+        window.addEventListener('resize', () => {
+            if (document.fullscreenElement && isRotated) {
+                video.style.objectFit = 'cover';
+                video.style.width = '100%';
+                video.style.height = '100%';
+            }
+        });
+
+        console.log('🎬 প্লেয়ার লোড হয়েছে! ফুলস্ক্রিনে ক্লিক করলে পুরো প্লেয়ার রোটেট হবে।');
     });
 </script>
 
