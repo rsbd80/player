@@ -1,139 +1,280 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>RS Player Pro - Compact Loader</title>
-
-    <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
-    <script>
-        jwplayer.key="Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
-    </script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+    <title>Dynamic Player with Rotation & Auto Play</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family: 'Segoe UI', sans-serif; position: fixed; }
-        
-        #player-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
-        #player { width:100% !important; height:100% !important; position: absolute; top:0; left:0; }
-
-        /* --- কন্ট্রোলার কাস্টমাইজেশন --- */
-        .jw-skin-glow .jw-display-icon-container { 
-            background: rgba(255, 255, 255, 0.1) !important; 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            backdrop-filter: none !important; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .jw-skin-glow .jw-button-color { color: #ffffff !important; }
-        .jw-skin-glow .jw-controlbar { 
-            background: transparent !important; 
-            backdrop-filter: none !important; 
+        body { 
+            background: #000; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden;
         }
-
-        /* --- লোডার ডিজাইন (সাইজ ছোট করা হয়েছে) --- */
-        #loader {
-            position: absolute; top:0; left:0; width:100%; height:100%;
-            background: #000; display:flex; justify-content:center; align-items:center;
-            z-index:99; flex-direction: column; transition: opacity 0.4s ease;
-        }
-
-        .loader-container {
-            position: relative; 
-            width: 100px; /* ১৫০ থেকে কমিয়ে ১০০ করা হয়েছে */
-            height: 100px; /* ১৫০ থেকে কমিয়ে ১০০ করা হয়েছে */
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        .loader-brand { text-align: center; z-index: 10; }
-        .tv-icon { font-size: 24px; color: #00c3ff; text-shadow: 0 0 10px #00c3ff; } /* আইকন সাইজ কিছুটা কমানো হয়েছে */
-        .brand-name { font-size: 10px; font-weight: 700; color: #fff; text-transform: uppercase; margin-top: 5px; letter-spacing: 1px; }
-        .brand-name span { color: #00c3ff; }
-
-        .neon-ring {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; border: 2px solid transparent;
-            animation: rotate-vortex 1.5s linear infinite;
-        }
-        .neon-ring:nth-child(1) { border-top: 2px solid #00c3ff; border-right: 2px solid #00c3ff; box-shadow: 0 0 10px #00c3ff; }
-        .neon-ring:nth-child(2) { border-bottom: 2px solid #ff007f; border-left: 2px solid #ff007f; animation-direction: reverse; animation-duration: 2s; box-shadow: 0 0 10px #ff007f; }
-
-        @keyframes rotate-vortex { 100% { transform: rotate(360deg); } }
-
-        .loading-text { color: rgba(255, 255, 255, 0.6); font-size: 10px; margin-top: 15px; letter-spacing: 2px; text-transform: uppercase; }
-
-        /* --- ভিডিও সাইড কাটা ফিক্স --- */
-        .jw-video.jw-reset { 
-            object-fit: fill !important; 
+        #player { 
+            width: 100%; 
+            max-width: 800px; 
         }
         
-        .hide-now { opacity: 0 !important; visibility: hidden !important; }
-
-        /* এরর মেসেজ */
-        .error-content { text-align: center; color: #fff; z-index: 100; }
-        .error-content i { font-size: 40px; color: #ff4d4d; margin-bottom: 15px; }
+        /* রোটেশন স্টাইল */
+        .plyr--video.plyr--rotated-90 .plyr__video-wrapper {
+            transform: rotate(90deg) scale(1.2);
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .plyr--video.plyr--rotated-180 .plyr__video-wrapper {
+            transform: rotate(180deg);
+        }
+        .plyr--video.plyr--rotated-270 .plyr__video-wrapper {
+            transform: rotate(270deg) scale(1.2);
+        }
+        
+        /* ফুলস্ক্রিনে রোটেশন অ্যাডজাস্ট - পুরো স্ক্রিন ফিট */
+        .plyr--fullscreen.plyr--rotated-90 .plyr__video-wrapper,
+        .plyr--fullscreen.plyr--rotated-270 .plyr__video-wrapper {
+            transform: rotate(90deg) scale(1.8);
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+        
+        .plyr--fullscreen.plyr--rotated-180 .plyr__video-wrapper {
+            transform: rotate(180deg) scale(1.2);
+        }
+        
+        /* ফুলস্ক্রিনে ভিডিও ফিট */
+        .plyr--fullscreen .plyr__video-wrapper video {
+            object-fit: contain !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* রোটেশন ইনডিকেটর */
+        .plyr__control--rotate-indicator {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .plyr__control--rotate-indicator.active {
+            color: #00b3ff !important;
+            background: rgba(0, 179, 255, 0.2) !important;
+            border-radius: 50%;
+        }
+        .plyr__control--rotate-indicator.active::after {
+            content: '↻';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 12px;
+            color: #00b3ff;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* মোবাইল ফ্রেন্ডলি */
+        @media (max-width: 768px) {
+            #player { max-width: 100%; }
+            .plyr__controls { padding: 10px 5px; }
+            .plyr__control { padding: 8px; }
+        }
     </style>
 </head>
 <body>
 
-<div id="player-wrapper">
-    <div id="loader">
-        <div class="loader-container">
-            <div class="neon-ring"></div>
-            <div class="neon-ring"></div>
-            <div class="loader-brand">
-                <i class="fas fa-tv tv-icon"></i>
-                <div class="brand-name">RS LIVE <span>TV</span></div>
-            </div>
-        </div>
-        <div class="loading-text">BUFFERING...</div>
-    </div>
-    <div id="player"></div>
-</div>
+<video id="player" controls crossorigin playsinline autoplay>
+    <source type="application/vnd.apple.mpegurl" src="">
+</video>
+
+<script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
 
 <script>
+    // URL থেকে url প্যারামিটারটি নেওয়া
     const urlParams = new URLSearchParams(window.location.search);
-    const streamSource = urlParams.get('url');
-
-    if (streamSource) {
-        const player = jwplayer("player").setup({
-            playlist: [{ file: streamSource, type: "hls" }],
-            width: "100%",
-            height: "100%",
-            autostart: true,
-            stretching: "exactfit",
-            skin: { name: "glow" },
-            displaytitle: false
-        });
-
-        player.on("ready", () => {
-            player.setMute(false);
-            player.setVolume(100);
-        });
-
-        player.on("play", () => {
-            document.getElementById("loader").classList.add("hide-now");
-        });
-
-        player.on("buffer", () => {
-            document.getElementById("loader").classList.remove("hide-now");
-        });
-
-        player.on("error", () => {
-            const loader = document.getElementById("loader");
-            loader.classList.remove("hide-now"); 
-            loader.innerHTML = `
-                <div class="error-content">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Stream Offline!</p>
-                    <div class="brand-name">RS LIVE <span>TV</span></div>
-                </div>
-            `;
-        });
-
-    } else {
-        document.getElementById("loader").innerHTML = '<div class="brand-name">No Stream URL Found</div>';
+    const videoSrc = urlParams.get('url');
+    
+    const video = document.getElementById('player');
+    const source = video.querySelector('source');
+    
+    if (videoSrc) {
+        source.src = videoSrc;
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Plyr প্লেয়ার ইনিশিয়ালাইজ
+        const player = new Plyr(video, {
+            autoplay: true,
+            controls: [
+                'play-large', 'play', 'progress', 'current-time', 'mute', 
+                'volume', 'captions', 'settings', 'pip', 'airplay', 
+                'fullscreen'
+            ]
+        });
+
+        let isRotated = false;
+        let rotationAngle = 0;
+
+        // HLS সাপোর্ট
+        if (Hls.isSupported() && videoSrc) {
+            const hls = new Hls({
+                enableWorker: true,
+                lowLatencyMode: true,
+                backbufferLength: 30
+            });
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(function(error) {
+                    console.log('Auto-play was prevented:', error);
+                });
+            });
+        }
+
+        // ফুলস্ক্রিন বাটন খুঁজে বের করা
+        const fullscreenBtn = document.querySelector('[data-plyr="fullscreen"]');
+        
+        if (fullscreenBtn) {
+            // ফুলস্ক্রিন বাটনে ক্লিক ইভেন্ট ওভাররাইড
+            fullscreenBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                // রোটেশন টগল
+                toggleRotation();
+                
+                // ফুলস্ক্রিন টগল
+                player.fullscreen.toggle();
+                
+                // অটোপ্লে নিশ্চিত করা
+                if (video.paused) {
+                    video.play().catch(function(error) {
+                        console.log('Play prevented:', error);
+                    });
+                }
+            });
+        }
+
+        // রোটেশন টগল ফাংশন
+        function toggleRotation() {
+            const plyrElement = player.elements.container;
+            
+            // পুরানো রোটেশন ক্লাস সরান
+            plyrElement.classList.remove('plyr--rotated-90', 'plyr--rotated-180', 'plyr--rotated-270');
+            
+            if (!isRotated) {
+                // রোটেট করুন (৯০ ডিগ্রি)
+                plyrElement.classList.add('plyr--rotated-90');
+                rotationAngle = 90;
+                isRotated = true;
+                
+                // ফুলস্ক্রিনে থাকলে পুরো স্ক্রিন কভার
+                if (document.fullscreenElement) {
+                    document.documentElement.style.transform = 'rotate(90deg)';
+                    document.documentElement.style.width = '100vh';
+                    document.documentElement.style.height = '100vw';
+                    document.documentElement.style.transformOrigin = 'center center';
+                    document.documentElement.style.overflow = 'hidden';
+                    
+                    // ভিডিও পুরো স্ক্রিন ফিট
+                    video.style.objectFit = 'cover';
+                    video.style.width = '100%';
+                    video.style.height = '100%';
+                }
+            } else {
+                // নরমালে ফিরে যান
+                isRotated = false;
+                rotationAngle = 0;
+                
+                // ভিউপোর্ট রিসেট
+                document.documentElement.style.transform = '';
+                document.documentElement.style.width = '';
+                document.documentElement.style.height = '';
+                document.documentElement.style.transformOrigin = '';
+                document.documentElement.style.overflow = '';
+                
+                video.style.objectFit = '';
+                video.style.width = '';
+                video.style.height = '';
+            }
+            
+            // ফুলস্ক্রিন বাটনে ইন্ডিকেটর দেখান
+            if (isRotated) {
+                fullscreenBtn.classList.add('active');
+            } else {
+                fullscreenBtn.classList.remove('active');
+            }
+        }
+
+        // ফুলস্ক্রিন চেঞ্জ ইভেন্ট
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                // ফুলস্ক্রিন থেকে বের হলে রিসেট
+                document.documentElement.style.transform = '';
+                document.documentElement.style.width = '';
+                document.documentElement.style.height = '';
+                document.documentElement.style.transformOrigin = '';
+                document.documentElement.style.overflow = '';
+                
+                video.style.objectFit = '';
+                video.style.width = '';
+                video.style.height = '';
+                
+                // রোটেশন অ্যাক্টিভ থাকলে সেটা রাখুন
+                if (isRotated) {
+                    const plyrElement = player.elements.container;
+                    plyrElement.classList.add('plyr--rotated-90');
+                }
+            } else if (isRotated) {
+                // ফুলস্ক্রিনে রোটেটেড থাকলে পুরো স্ক্রিন কভার
+                document.documentElement.style.transform = 'rotate(90deg)';
+                document.documentElement.style.width = '100vh';
+                document.documentElement.style.height = '100vw';
+                document.documentElement.style.transformOrigin = 'center center';
+                document.documentElement.style.overflow = 'hidden';
+                
+                video.style.objectFit = 'cover';
+                video.style.width = '100%';
+                video.style.height = '100%';
+            }
+        });
+
+        // অটোপ্লে চেষ্টা
+        video.addEventListener('loadedmetadata', function() {
+            video.play().catch(function(error) {
+                console.log('Auto-play was prevented:', error);
+                // ইউজার ইন্টারঅ্যাকশনের জন্য অপেক্ষা
+                document.addEventListener('click', function playOnClick() {
+                    video.play();
+                    document.removeEventListener('click', playOnClick);
+                }, { once: true });
+            });
+        });
+
+        // কিবোর্ড শর্টকাট: F কী প্রেস করলে রোটেট+ফুলস্ক্রিন হবে
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                if (fullscreenBtn) {
+                    fullscreenBtn.click();
+                }
+            }
+        });
+
+        console.log('🎬 প্লেয়ার লোড হয়েছে! ফুলস্ক্রিন বাটনে ক্লিক করলে রোটেট + অটোপ্লে হবে।');
+    });
 </script>
 
 </body>
