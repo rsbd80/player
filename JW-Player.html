@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-    <title>RS Player - All Device</title>
+    <title>RS Player - Full Screen</title>
 
     <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
     <script>
@@ -15,9 +15,7 @@
         html,body { width:100%; height:100%; background:#000; overflow:hidden; position:fixed; }
         #player { width:100%; height:100%; position:absolute; top:0; left:0; }
         
-        /* ভিডিও পুরো স্ক্রিনে ফিট - কাটবে না */
         .jw-video.jw-reset {
-            object-fit: contain !important;
             width: 100% !important;
             height: 100% !important;
         }
@@ -33,7 +31,6 @@
         }
         
         .jwplayer.jw-flag-fullscreen .jw-media video {
-            object-fit: contain !important;
             width: 100% !important;
             height: 100% !important;
         }
@@ -44,7 +41,6 @@
             }
         }
         
-        /* লোডার */
         #loader {
             position:fixed; top:0; left:0; width:100%; height:100%;
             background:#000; display:flex; justify-content:center; align-items:center;
@@ -69,6 +65,9 @@
 
 <div id="player"></div>
 
+<!-- HLS.js for Desktop -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@0.14.17/dist/hls.min.js"></script>
+
 <script>
     function getStreamUrl() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -78,90 +77,84 @@
     const streamSource = getStreamUrl();
 
     if (streamSource) {
-        const player = jwplayer("player");
+        // ============================================================
+        // ডেস্কটপ ডিটেক্ট
+        // ============================================================
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isDesktop = !isMobile;
+        
+        console.log('Device:', isMobile ? 'Mobile' : 'Desktop');
 
         // ============================================================
-        // ইউনিভার্সাল সেটআপ - সব ডিভাইসে কাজ করবে
+        // JW Player Setup
         // ============================================================
+        const player = jwplayer("player");
+
         player.setup({
-            playlist: [{
-                file: streamSource,
-                type: "hls"
-            }],
+            playlist: [{ file: streamSource, type: "hls" }],
             width: "100%",
             height: "100%",
             autostart: true,
             mute: false,
-            stretching: "uniform",      // ভিডিও কাটবে না
+            stretching: "exactfit",
             controls: true,
             preload: "auto",
             playbackRateControls: [0.5, 0.75, 1, 1.25, 1.5, 2],
             defaultPlaybackRate: 1,
-            primary: "html5",           // HTML5 প্রাথমিক
-            hlshtml: true,              // HLS সাপোর্ট অন
-            androidhls: true,           // অ্যান্ড্রয়েড HLS
-            file: streamSource,
-            type: "hls",
-            // মোবাইল ও ডেস্কটপ উভয়ের জন্য
-            sources: [{
-                file: streamSource,
-                type: "hls"
-            }],
-            // ফুলস্ক্রিনে পোর্ট্রেট সাপোর্ট
-            fullscreen: {
-                allow: true,
-                on: false,
-                orientation: "auto"
-            }
+            fullscreen: { allow: true, on: false, orientation: "auto" },
+            displaytitle: false,
+            displaydescription: false,
+            // ডেস্কটপে HLS ফallback
+            primary: isDesktop ? "html5" : "html5",
+            hlshtml: true
         });
 
         // ============================================================
-        // ডিভাইস ডিটেক্ট ও অ্যাডজাস্ট
+        // ডেস্কটপে HLS.js দিয়ে ভিডিও লোড (Error 232403 সলভ)
         // ============================================================
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const isDesktop = !isMobile;
+        if (isDesktop && Hls.isSupported()) {
+            let hlsInstance = null;
+            let videoElement = null;
 
-        if (isDesktop) {
-            // ডেস্কটপে HLS নেটিভ সাপোর্ট নেই - HLS.js ব্যবহার
-            console.log('Desktop detected - using HLS.js fallback');
-            
-            // HLS.js লোড করুন
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/hls.js@0.14.17/dist/hls.min.js';
-            script.onload = function() {
-                if (Hls.isSupported()) {
-                    const hls = new Hls({
-                        enableWorker: true,
-                        lowLatencyMode: true,
-                        backbufferLength: 30
-                    });
-                    
-                    // ভিডিও এলিমেন্ট খুঁজুন
-                    const videoElement = document.querySelector('.jw-video');
+            // JW Player রেডি হলে ভিডিও এলিমেন্ট খুঁজে HLS.js অ্যাটাচ
+            player.on("ready", function() {
+                setTimeout(() => {
+                    videoElement = document.querySelector('.jw-video');
                     if (videoElement) {
-                        hls.loadSource(streamSource);
-                        hls.attachMedia(videoElement);
-                        
-                        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        // HLS.js ইনিশিয়ালাইজ
+                        hlsInstance = new Hls({
+                            enableWorker: true,
+                            lowLatencyMode: true,
+                            backbufferLength: 30,
+                            xhrSetup: function(xhr, url) {
+                                // CORS ইস্যু ফিক্স
+                                xhr.withCredentials = false;
+                            }
+                        });
+
+                        hlsInstance.loadSource(streamSource);
+                        hlsInstance.attachMedia(videoElement);
+
+                        hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
                             videoElement.play().catch(function(e) {
-                                console.log('Play prevented:', e);
+                                console.log('HLS Play prevented:', e);
                             });
                         });
-                        
-                        hls.on(Hls.Events.ERROR, function(event, data) {
+
+                        hlsInstance.on(Hls.Events.ERROR, function(event, data) {
                             if (data.fatal) {
-                                console.log('HLS Error - trying native playback');
-                                // নেটিভ প্লেব্যাক চেষ্টা
-                                videoElement.src = streamSource;
-                                videoElement.play().catch(function(e) {
-                                    console.log('Native play failed:', e);
-                                });
+                                console.log('HLS Fatal Error - trying reload');
+                                // রিলোড চেষ্টা
+                                try {
+                                    hlsInstance.loadSource(streamSource);
+                                } catch(e) {
+                                    console.log('HLS reload failed:', e);
+                                }
                             }
                         });
                     }
-                }
-            };
-            document.head.appendChild(script);
+                }, 500);
+            });
         }
 
         // ============================================================
@@ -183,16 +176,6 @@
             hideLoader();
             player.setMute(false);
             player.setVolume(100);
-            
-            // ভিডিও ফিট ফোর্স
-            setTimeout(() => {
-                const videoElement = document.querySelector('.jw-video');
-                if (videoElement) {
-                    videoElement.style.objectFit = 'contain';
-                    videoElement.style.width = '100%';
-                    videoElement.style.height = '100%';
-                }
-            }, 200);
         });
 
         player.on("play", function() {
@@ -202,31 +185,30 @@
             }
         });
 
-        player.on("fullscreen", function() {
-            setTimeout(() => {
-                const videoElement = document.querySelector('.jw-video');
-                if (videoElement) {
-                    videoElement.style.objectFit = 'contain';
-                    videoElement.style.width = '100%';
-                    videoElement.style.height = '100%';
-                }
-            }, 200);
-        });
-
         player.on("error", function(error) {
             console.log("JW Player Error:", error);
             
-            // যদি স্ট্রিম ফেইল করে, রিলোড চেষ্টা
-            setTimeout(() => {
-                try {
-                    player.load([{
-                        file: streamSource,
-                        type: "hls"
-                    }]);
-                } catch(e) {
-                    document.getElementById("status-text").innerText = "Stream Failed!";
-                }
-            }, 2000);
+            // ডেস্কটপে Error 232403 হলে HLS.js রিলোড
+            if (isDesktop && error.message && error.message.includes('232403')) {
+                document.getElementById("status-text").innerText = "Retrying with HLS.js...";
+                
+                setTimeout(() => {
+                    const videoElement = document.querySelector('.jw-video');
+                    if (videoElement && Hls.isSupported()) {
+                        const hlsReload = new Hls({
+                            enableWorker: true,
+                            lowLatencyMode: true,
+                            xhrSetup: function(xhr, url) {
+                                xhr.withCredentials = false;
+                            }
+                        });
+                        hlsReload.loadSource(streamSource);
+                        hlsReload.attachMedia(videoElement);
+                    }
+                }, 1000);
+            } else {
+                document.getElementById("status-text").innerText = "Stream Failed!";
+            }
         });
 
         // ============================================================
@@ -247,8 +229,7 @@
             }
         });
 
-        console.log('RS Player Loaded - All Device Support');
-        console.log('Device:', isMobile ? 'Mobile' : 'Desktop');
+        console.log('RS Player Loaded! (Desktop HLS.js fallback added)');
 
     } else {
         document.getElementById("status-text").innerText = "No URL Provided!";
