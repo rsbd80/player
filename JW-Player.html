@@ -3,167 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>PWlr Player - JW Style</title>
-    
-    <!-- Plyr CSS -->
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-    
-    <!-- Font Awesome -->
+    <title>JW Player - Fullscreen</title>
+
+    <!-- JW Player Library -->
+    <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
+    <script>
+        // JW Player API Key
+        jwplayer.key="Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
+    </script>
+
+    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
             width: 100%;
             height: 100%;
             background: #000;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             position: fixed;
         }
-        
         #player-wrapper {
             position: relative;
             width: 100%;
             height: 100%;
-            background: #000;
             overflow: hidden;
+            background: #000;
         }
-        
         #player {
             width: 100% !important;
             height: 100% !important;
-            background: #000;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
-        
-        /* ============================================================
-           JW Player স্টাইল - Plyr-কে JW-এর মতো দেখানো
-           ============================================================ */
-        
-        /* ১. প্লেয়ার কন্টেইনার */
-        .plyr {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: none !important;
-            border-radius: 0 !important;
-            background: #000 !important;
-            font-family: inherit !important;
-        }
-        
-        /* ২. ভিডিও পুরো স্ক্রিন ফিট */
-        .plyr__video-wrapper {
-            width: 100% !important;
-            height: 100% !important;
-            background: #000 !important;
-        }
-        
-        .plyr__video-wrapper video {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: fill !important;
-            background: #000 !important;
-        }
-        
-        /* ৩. ফুলস্ক্রিন মোডে ফিট */
-        .plyr--fullscreen .plyr__video-wrapper video {
-            object-fit: fill !important;
-            width: 100% !important;
-            height: 100% !important;
-        }
-        
-        .plyr--fullscreen {
-            background: #000 !important;
-        }
-        
-        /* ৪. কন্ট্রোল বার - JW স্টাইল (ট্রান্সপারেন্ট) */
-        .plyr__controls {
-            background: linear-gradient(transparent, rgba(0, 0, 0, 0.85)) !important;
-            padding: 20px 15px 15px 15px !important;
-            gap: 5px !important;
-            border: none !important;
-        }
-        
-        .plyr__controls .plyr__control {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-radius: 6px !important;
-            padding: 8px 12px !important;
-            transition: all 0.2s ease !important;
-            color: #fff !important;
-        }
-        
-        .plyr__controls .plyr__control:hover {
-            background: rgba(255, 255, 255, 0.2) !important;
-        }
-        
-        .plyr__controls .plyr__control svg {
-            fill: #fff !important;
-        }
-        
-        /* ৫. প্রগ্রেস বার - JW স্টাইল */
-        .plyr__progress {
-            height: 5px !important;
-            background: rgba(255, 255, 255, 0.2) !important;
-            border-radius: 10px !important;
-        }
-        
-        .plyr__progress__played {
-            background: linear-gradient(90deg, #00c3ff, #0099ff) !important;
-            border-radius: 10px !important;
-        }
-        
-        .plyr__progress__buffer {
+
+        /* JW Player Fullscreen Default Behavior */
+        .jw-skin-glow .jw-display-icon-container {
             background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
-        /* ৬. ভলিউম স্লাইডার */
-        .plyr__volume input[type="range"] {
-            background: rgba(255, 255, 255, 0.2) !important;
+        .jw-skin-glow .jw-button-color { color: #ffffff !important; }
+        .jw-skin-glow .jw-controlbar {
+            background: transparent !important;
         }
-        
-        .plyr__volume input[type="range"]::-webkit-slider-thumb {
-            background: #00c3ff !important;
+
+        /* Video Fit - Fullscreen */
+        .jw-video.jw-reset {
+            object-fit: contain !important;
+            width: 100% !important;
+            height: 100% !important;
         }
-        
-        /* ৭. বড় প্লে বাটন - JW স্টাইল */
-        .plyr__control--overlaid {
-            background: rgba(0, 195, 255, 0.8) !important;
-            border: 2px solid rgba(255, 255, 255, 0.3) !important;
-            backdrop-filter: blur(10px) !important;
-        }
-        
-        .plyr__control--overlaid:hover {
-            background: rgba(0, 195, 255, 1) !important;
-        }
-        
-        /* ৮. টাইম ডিসপ্লে */
-        .plyr__time {
-            color: rgba(255, 255, 255, 0.8) !important;
-            font-size: 13px !important;
-            font-weight: 400 !important;
-        }
-        
-        /* ৯. সেটিংস মেনু - JW স্টাইল */
-        .plyr__menu__container {
-            background: rgba(0, 0, 0, 0.9) !important;
-            backdrop-filter: blur(20px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 8px !important;
-        }
-        
-        .plyr__menu__container .plyr__control {
-            color: #fff !important;
-        }
-        
-        .plyr__menu__container .plyr__control:hover {
-            background: rgba(255, 255, 255, 0.1) !important;
-        }
-        
-        /* ১০. লোডার - আপনার দেওয়া স্টাইল */
+
+        /* Loader Style */
         #loader {
             position: absolute;
             top: 0;
@@ -178,7 +72,6 @@
             flex-direction: column;
             transition: opacity 0.4s ease;
         }
-        
         .loader-container {
             position: relative;
             width: 100px;
@@ -187,31 +80,11 @@
             justify-content: center;
             align-items: center;
         }
-        
-        .loader-brand {
-            text-align: center;
-            z-index: 10;
-        }
-        
-        .tv-icon {
-            font-size: 24px;
-            color: #00c3ff;
-            text-shadow: 0 0 10px #00c3ff;
-        }
-        
-        .brand-name {
-            font-size: 10px;
-            font-weight: 700;
-            color: #fff;
-            text-transform: uppercase;
-            margin-top: 5px;
-            letter-spacing: 1px;
-        }
-        
-        .brand-name span {
-            color: #00c3ff;
-        }
-        
+        .loader-brand { text-align: center; z-index: 10; }
+        .tv-icon { font-size: 24px; color: #00c3ff; text-shadow: 0 0 10px #00c3ff; }
+        .brand-name { font-size: 10px; font-weight: 700; color: #fff; text-transform: uppercase; margin-top: 5px; letter-spacing: 1px; }
+        .brand-name span { color: #00c3ff; }
+
         .neon-ring {
             position: absolute;
             width: 100%;
@@ -220,74 +93,19 @@
             border: 2px solid transparent;
             animation: rotate-vortex 1.5s linear infinite;
         }
-        
-        .neon-ring:nth-child(1) {
-            border-top: 2px solid #00c3ff;
-            border-right: 2px solid #00c3ff;
-            box-shadow: 0 0 10px #00c3ff;
-        }
-        
-        .neon-ring:nth-child(2) {
-            border-bottom: 2px solid #ff007f;
-            border-left: 2px solid #ff007f;
-            animation-direction: reverse;
-            animation-duration: 2s;
-            box-shadow: 0 0 10px #ff007f;
-        }
-        
-        @keyframes rotate-vortex {
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loading-text {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 10px;
-            margin-top: 15px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        
-        .hide-now {
-            opacity: 0 !important;
-            visibility: hidden !important;
-        }
-        
-        /* এরর মেসেজ */
-        .error-content {
-            text-align: center;
-            color: #fff;
-            z-index: 100;
-        }
-        
-        .error-content i {
-            font-size: 40px;
-            color: #ff4d4d;
-            margin-bottom: 15px;
-        }
-        
-        /* মোবাইল ফ্রেন্ডলি */
-        @media (max-width: 768px) {
-            .plyr__controls {
-                padding: 12px 8px 8px 8px !important;
-                gap: 3px !important;
-            }
-            .plyr__controls .plyr__control {
-                padding: 5px 6px !important;
-                min-width: 30px !important;
-            }
-            .plyr__time {
-                font-size: 11px !important;
-            }
-            .plyr__progress {
-                min-width: 50px !important;
-            }
-        }
+        .neon-ring:nth-child(1) { border-top: 2px solid #00c3ff; border-right: 2px solid #00c3ff; box-shadow: 0 0 10px #00c3ff; }
+        .neon-ring:nth-child(2) { border-bottom: 2px solid #ff007f; border-left: 2px solid #ff007f; animation-direction: reverse; animation-duration: 2s; box-shadow: 0 0 10px #ff007f; }
+        @keyframes rotate-vortex { 100% { transform: rotate(360deg); } }
+        .loading-text { color: rgba(255, 255, 255, 0.6); font-size: 10px; margin-top: 15px; letter-spacing: 2px; text-transform: uppercase; }
+        .hide-now { opacity: 0 !important; visibility: hidden !important; }
+        .error-content { text-align: center; color: #fff; z-index: 100; }
+        .error-content i { font-size: 40px; color: #ff4d4d; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
 <div id="player-wrapper">
-    <!-- লোডার -->
+    <!-- Loader -->
     <div id="loader">
         <div class="loader-container">
             <div class="neon-ring"></div>
@@ -299,133 +117,72 @@
         </div>
         <div class="loading-text">BUFFERING...</div>
     </div>
-    
-    <!-- প্লেয়ার -->
-    <video id="player" playsinline crossorigin>
-        <source src="" type="application/vnd.apple.mpegurl" />
-    </video>
+    <!-- JW Player -->
+    <div id="player"></div>
 </div>
-
-<!-- Plyr JS -->
-<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
-
-<!-- HLS.js -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@0.14.17/dist/hls.min.js"></script>
 
 <script>
     (function() {
         const urlParams = new URLSearchParams(window.location.search);
-        const videoSrc = urlParams.get('url');
-        
-        const video = document.getElementById('player');
+        const streamSource = urlParams.get('url');
         const loader = document.getElementById('loader');
-        
-        if (!videoSrc) {
+
+        if (!streamSource) {
             loader.innerHTML = '<div class="brand-name">No Stream URL Found</div>';
             return;
         }
-        
-        // ভিডিও সোর্স সেট
-        const source = video.querySelector('source');
-        source.src = videoSrc;
-        video.load();
-        
-        // Plyr প্লেয়ার ইনিশিয়ালাইজ (JW স্টাইলে)
-        const player = new Plyr(video, {
-            controls: [
-                'play-large',
-                'play',
-                'progress',
-                'current-time',
-                'mute',
-                'volume',
-                'captions',
-                'settings',
-                'pip',
-                'airplay',
-                'fullscreen'
-            ],
-            settings: ['quality', 'speed'],
-            speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
-            autoplay: true,
-            muted: false
-        });
-        
-        // HLS সাপোর্ট
-        if (Hls.isSupported()) {
-            const hls = new Hls({
-                enableWorker: true,
-                lowLatencyMode: true,
-                backbufferLength: 30
-            });
-            hls.loadSource(videoSrc);
-            hls.attachMedia(video);
-            
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play().catch(function(error) {
-                    console.log('Auto-play prevented:', error);
-                });
-            });
-            
-            hls.on(Hls.Events.ERROR, function(event, data) {
-                if (data.fatal) {
-                    loader.classList.remove('hide-now');
-                    loader.innerHTML = `
-                        <div class="error-content">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <p>Stream Offline!</p>
-                            <div class="brand-name">RS LIVE <span>TV</span></div>
-                        </div>
-                    `;
-                }
-            });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Safari native HLS
-            video.src = videoSrc;
-            video.addEventListener('loadedmetadata', function() {
-                video.play().catch(function(error) {
-                    console.log('Auto-play prevented:', error);
-                });
-            });
-        }
-        
-        // লোডার লুকানো
-        video.addEventListener('playing', function() {
-            loader.classList.add('hide-now');
-        });
-        
-        video.addEventListener('waiting', function() {
-            loader.classList.remove('hide-now');
-        });
-        
-        video.addEventListener('canplay', function() {
-            loader.classList.add('hide-now');
-        });
-        
-        // অটোপ্লে ফলের
-        video.addEventListener('loadedmetadata', function() {
-            video.play().catch(function(error) {
-                console.log('Auto-play prevented:', error);
-                document.addEventListener('click', function playOnClick() {
-                    video.play();
-                    document.removeEventListener('click', playOnClick);
-                }, { once: true });
-            });
-        });
-        
-        // কিবোর্ড শর্টকাট
-        document.addEventListener('keydown', function(e) {
-            if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
-                e.preventDefault();
-                player.fullscreen.toggle();
-            }
-            if (e.key === ' ' && e.target === document.body) {
-                e.preventDefault();
-                player.togglePlay();
+
+        // JW Player Setup
+        const player = jwplayer("player").setup({
+            playlist: [{ file: streamSource, type: "hls" }],
+            width: "100%",
+            height: "100%",
+            autostart: true,
+            stretching: "exactfit",   // Video will fill the screen
+            skin: { name: "glow" },
+            displaytitle: false,
+            controls: true,
+            fullscreen: {
+                allow: true,          // Fullscreen button enabled
+                on: true              // Start fullscreen if possible
             }
         });
-        
-        console.log('🎬 PWlr প্লেয়ার লোড হয়েছে! (JW স্টাইল)');
+
+        // Events
+        player.on("ready", function() {
+            player.setMute(false);
+            player.setVolume(100);
+        });
+
+        player.on("play", function() {
+            loader.classList.add("hide-now");
+        });
+
+        player.on("buffer", function() {
+            loader.classList.remove("hide-now");
+        });
+
+        // Fullscreen event - JW Player handles orientation and UI automatically
+        player.on("fullscreen", function(event) {
+            console.log("Fullscreen State:", event.fullscreen);
+            // JW Player automatically handles:
+            // 1. Screen orientation change to landscape
+            // 2. System UI hiding (status bar, navigation)
+            // 3. Video resizing
+        });
+
+        player.on("error", function() {
+            loader.classList.remove("hide-now");
+            loader.innerHTML = `
+                <div class="error-content">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Stream Offline!</p>
+                    <div class="brand-name">RS LIVE <span>TV</span></div>
+                </div>
+            `;
+        });
+
+        console.log("🎬 JW Player loaded! Fullscreen works as expected.");
     })();
 </script>
 
