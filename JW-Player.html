@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-    <title>RS Player - Fullscreen Portrait</title>
+    <title>RS Player</title>
 
     <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
     <script>
@@ -31,13 +31,9 @@
             left:0; 
         }
         
-        /* ============================================================
-           পোর্ট্রেট ফুলস্ক্রিন - ক্যামেরা কাটআউট সহ
-           ============================================================ */
-        
-        /* ১. ভিডিও পুরো স্ক্রিন ফিট */
+        /* ভিডিও পুরো স্ক্রিন ফিট - কাটা যাবে না */
         .jw-video.jw-reset {
-            object-fit: cover !important;
+            object-fit: contain !important;
             width: 100% !important;
             height: 100% !important;
         }
@@ -47,14 +43,13 @@
             height: 100% !important;
         }
         
-        /* ২. ফুলস্ক্রিনে পোর্ট্রেট সাপোর্ট */
         .jwplayer.jw-flag-fullscreen {
             width: 100vw !important;
             height: 100vh !important;
         }
         
         .jwplayer.jw-flag-fullscreen .jw-media video {
-            object-fit: cover !important;
+            object-fit: contain !important;
             width: 100% !important;
             height: 100% !important;
         }
@@ -64,39 +59,14 @@
             height: 100% !important;
         }
         
-        /* ৩. ক্যামেরা কাটআউট (নচ/পাঞ্চহোল) সাপোর্ট */
+        /* সেফ এরিয়া */
         @supports (padding: env(safe-area-inset-top)) {
             .jwplayer.jw-flag-fullscreen {
                 padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) !important;
             }
         }
         
-        /* ৪. অ্যান্ড্রয়েড নচ সাপোর্ট */
-        @supports (padding: max(env(safe-area-inset-top))) {
-            .jwplayer.jw-flag-fullscreen {
-                padding: max(env(safe-area-inset-top), 0px) max(env(safe-area-inset-right), 0px) max(env(safe-area-inset-bottom), 0px) max(env(safe-area-inset-left), 0px) !important;
-            }
-        }
-        
-        /* ৫. আইফোন নচ/ডাইনামিক আইল্যান্ড সাপোর্ট */
-        @supports (padding: constant(safe-area-inset-top)) {
-            .jwplayer.jw-flag-fullscreen {
-                padding: constant(safe-area-inset-top) constant(safe-area-inset-right) constant(safe-area-inset-bottom) constant(safe-area-inset-left) !important;
-            }
-        }
-        
-        /* ৬. ভিডিও কন্টেইনার পূর্ণ স্ক্রিন */
-        .jwplayer.jw-flag-fullscreen .jw-wrapper {
-            width: 100% !important;
-            height: 100% !important;
-        }
-        
-        /* ৭. কন্ট্রোল বার পজিশন ঠিক করা */
-        .jwplayer.jw-flag-fullscreen .jw-controlbar {
-            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
-        }
-        
-        /* ৮. লোডার */
+        /* লোডার */
         #loader {
             position:fixed; 
             top:0; 
@@ -130,51 +100,16 @@
             font-family: sans-serif; 
             font-size:14px; 
         }
-        
-        /* ৯. মোবাইলে স্ক্রীন ঘোরানোর নির্দেশনা */
-        .rotate-hint {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: rgba(255,255,255,0.5);
-            font-size: 12px;
-            font-family: sans-serif;
-            text-align: center;
-            z-index: 100;
-            display: none;
-            background: rgba(0,0,0,0.5);
-            padding: 8px 16px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-        }
-        .rotate-hint i {
-            margin-right: 8px;
-        }
-        
-        @media (max-width: 768px) {
-            .rotate-hint {
-                display: block;
-            }
-        }
     </style>
 </head>
 <body>
 
 <div id="loader">
     <div class="spinner"></div>
-    <p id="status-text">Loading Stream...</p>
-</div>
-
-<!-- রোটেট হিন্ট -->
-<div class="rotate-hint">
-    <i class="fas fa-rotate"></i> ফুলস্ক্রিনে ভিডিও পুরো স্ক্রিনে দেখুন
+    <p id="status-text">Loading...</p>
 </div>
 
 <div id="player"></div>
-
-<!-- ফন্ট অ্যাওসাম (আইকনের জন্য) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
 <script>
     function getStreamUrl() {
@@ -196,18 +131,19 @@
             height: "100%",
             autostart: true,
             mute: false,
-            stretching: "exactfit",
+            stretching: "uniform",
             controls: true,
             preload: "auto",
             playbackRateControls: [0.5, 0.75, 1, 1.25, 1.5, 2],
             defaultPlaybackRate: 1,
-            // পোর্ট্রেট ফুলস্ক্রিনের জন্য সেটিংস
             aspectratio: "16:9",
             fullscreen: {
                 allow: true,
                 on: false,
-                orientation: "auto"  // অটো ওরিয়েন্টেশন
-            }
+                orientation: "auto"
+            },
+            displaytitle: false,
+            displaydescription: false
         });
 
         let loaderHidden = false;
@@ -228,11 +164,10 @@
             player.setMute(false);
             player.setVolume(100);
             
-            // ভিডিও ফিট ফোর্স
             setTimeout(() => {
                 const videoElement = document.querySelector('.jw-video');
                 if (videoElement) {
-                    videoElement.style.objectFit = 'cover';
+                    videoElement.style.objectFit = 'contain';
                     videoElement.style.width = '100%';
                     videoElement.style.height = '100%';
                 }
@@ -246,31 +181,20 @@
             }
         });
 
-        // ফুলস্ক্রিন ইভেন্ট - পোর্ট্রেট সাপোর্ট
         player.on("fullscreen", function(event) {
             setTimeout(() => {
                 const videoElement = document.querySelector('.jw-video');
                 if (videoElement) {
-                    videoElement.style.objectFit = 'cover';
+                    videoElement.style.objectFit = 'contain';
                     videoElement.style.width = '100%';
                     videoElement.style.height = '100%';
                 }
                 
-                // সব মিডিয়া এলিমেন্ট ফুল স্ক্রিন
                 const mediaElements = document.querySelectorAll('.jw-media, .jw-media video');
                 mediaElements.forEach(el => {
                     el.style.width = '100%';
                     el.style.height = '100%';
                 });
-                
-                // ক্যামেরা কাটআউট অ্যাডজাস্ট
-                if (event.fullscreen) {
-                    document.documentElement.style.setProperty('--safe-area-inset-top', 'env(safe-area-inset-top, 0px)');
-                    document.documentElement.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom, 0px)');
-                }
-                
-                // হিন্ট লুকান
-                document.querySelector('.rotate-hint').style.display = 'none';
             }, 100);
         });
 
@@ -305,20 +229,7 @@
             }
         });
 
-        // স্ক্রিন ওরিয়েন্টেশন চেঞ্জ
-        window.addEventListener('orientationchange', function() {
-            setTimeout(() => {
-                const videoElement = document.querySelector('.jw-video');
-                if (videoElement) {
-                    videoElement.style.objectFit = 'cover';
-                    videoElement.style.width = '100%';
-                    videoElement.style.height = '100%';
-                }
-            }, 300);
-        });
-
-        console.log('🎬 RS Player লোড হয়েছে! (পোর্ট্রেট ফুলস্ক্রিন সাপোর্ট)');
-        console.log('📱 F=ফুলস্ক্রিন, Space=প্লে/পজ');
+        console.log('RS Player Loaded!');
 
     } else {
         document.getElementById("status-text").innerText = "No URL Provided!";
