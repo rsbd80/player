@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Fullscreen Cover Player</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.6.2/dist/plyr.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <title>PWlr Player - JW Style</title>
+    
+    <!-- Plyr CSS -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    
     <style>
         * {
             margin: 0;
@@ -12,163 +19,340 @@
         }
         
         html, body {
-            background: #000;
             width: 100%;
             height: 100%;
+            background: #000;
             overflow: hidden;
-            margin: 0;
-            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            position: fixed;
         }
         
-        #player-container {
-            width: 100%;
-            height: 100vh;
+        #player-wrapper {
             position: relative;
+            width: 100%;
+            height: 100%;
             background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow: hidden;
         }
         
         #player {
-            width: 100%;
-            height: 100%;
-            display: block;
+            width: 100% !important;
+            height: 100% !important;
             background: #000;
-            object-fit: contain;
         }
         
-        /* Plyr ওভাররাইড - পুরো স্ক্রিন কভার */
+        /* ============================================================
+           JW Player স্টাইল - Plyr-কে JW-এর মতো দেখানো
+           ============================================================ */
+        
+        /* ১. প্লেয়ার কন্টেইনার */
         .plyr {
             width: 100% !important;
             height: 100% !important;
             max-width: none !important;
             border-radius: 0 !important;
             background: #000 !important;
+            font-family: inherit !important;
         }
         
+        /* ২. ভিডিও পুরো স্ক্রিন ফিট */
         .plyr__video-wrapper {
             width: 100% !important;
             height: 100% !important;
             background: #000 !important;
-            position: relative !important;
         }
         
         .plyr__video-wrapper video {
             width: 100% !important;
             height: 100% !important;
-            object-fit: cover !important;
+            object-fit: fill !important;
             background: #000 !important;
         }
         
-        /* ফুলস্ক্রিন মোড - পুরো স্ক্রিন কভার */
+        /* ৩. ফুলস্ক্রিন মোডে ফিট */
+        .plyr--fullscreen .plyr__video-wrapper video {
+            object-fit: fill !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
         .plyr--fullscreen {
             background: #000 !important;
         }
         
-        .plyr--fullscreen .plyr__video-wrapper {
-            width: 100vw !important;
-            height: 100vh !important;
-        }
-        
-        .plyr--fullscreen .plyr__video-wrapper video {
-            object-fit: cover !important;
-            width: 100vw !important;
-            height: 100vh !important;
-        }
-        
-        /* কন্ট্রোল স্টাইল */
+        /* ৪. কন্ট্রোল বার - JW স্টাইল (ট্রান্সপারেন্ট) */
         .plyr__controls {
-            background: linear-gradient(transparent, rgba(0,0,0,0.8)) !important;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.85)) !important;
             padding: 20px 15px 15px 15px !important;
+            gap: 5px !important;
+            border: none !important;
         }
         
-        .plyr__control {
-            background: rgba(255,255,255,0.1) !important;
+        .plyr__controls .plyr__control {
+            background: rgba(255, 255, 255, 0.08) !important;
             border-radius: 6px !important;
             padding: 8px 12px !important;
+            transition: all 0.2s ease !important;
+            color: #fff !important;
         }
         
-        .plyr__control:hover {
-            background: rgba(255,255,255,0.2) !important;
+        .plyr__controls .plyr__control:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
         }
         
+        .plyr__controls .plyr__control svg {
+            fill: #fff !important;
+        }
+        
+        /* ৫. প্রগ্রেস বার - JW স্টাইল */
         .plyr__progress {
-            height: 6px !important;
-            background: rgba(255,255,255,0.2) !important;
+            height: 5px !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+            border-radius: 10px !important;
         }
         
         .plyr__progress__played {
-            background: linear-gradient(90deg, #00b3ff, #0099ff) !important;
+            background: linear-gradient(90deg, #00c3ff, #0099ff) !important;
+            border-radius: 10px !important;
+        }
+        
+        .plyr__progress__buffer {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        /* ৬. ভলিউম স্লাইডার */
+        .plyr__volume input[type="range"] {
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        .plyr__volume input[type="range"]::-webkit-slider-thumb {
+            background: #00c3ff !important;
+        }
+        
+        /* ৭. বড় প্লে বাটন - JW স্টাইল */
+        .plyr__control--overlaid {
+            background: rgba(0, 195, 255, 0.8) !important;
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
+            backdrop-filter: blur(10px) !important;
+        }
+        
+        .plyr__control--overlaid:hover {
+            background: rgba(0, 195, 255, 1) !important;
+        }
+        
+        /* ৮. টাইম ডিসপ্লে */
+        .plyr__time {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-size: 13px !important;
+            font-weight: 400 !important;
+        }
+        
+        /* ৯. সেটিংস মেনু - JW স্টাইল */
+        .plyr__menu__container {
+            background: rgba(0, 0, 0, 0.9) !important;
+            backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 8px !important;
+        }
+        
+        .plyr__menu__container .plyr__control {
+            color: #fff !important;
+        }
+        
+        .plyr__menu__container .plyr__control:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        /* ১০. লোডার - আপনার দেওয়া স্টাইল */
+        #loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99;
+            flex-direction: column;
+            transition: opacity 0.4s ease;
+        }
+        
+        .loader-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loader-brand {
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .tv-icon {
+            font-size: 24px;
+            color: #00c3ff;
+            text-shadow: 0 0 10px #00c3ff;
+        }
+        
+        .brand-name {
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+        
+        .brand-name span {
+            color: #00c3ff;
+        }
+        
+        .neon-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            animation: rotate-vortex 1.5s linear infinite;
+        }
+        
+        .neon-ring:nth-child(1) {
+            border-top: 2px solid #00c3ff;
+            border-right: 2px solid #00c3ff;
+            box-shadow: 0 0 10px #00c3ff;
+        }
+        
+        .neon-ring:nth-child(2) {
+            border-bottom: 2px solid #ff007f;
+            border-left: 2px solid #ff007f;
+            animation-direction: reverse;
+            animation-duration: 2s;
+            box-shadow: 0 0 10px #ff007f;
+        }
+        
+        @keyframes rotate-vortex {
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 10px;
+            margin-top: 15px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .hide-now {
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+        
+        /* এরর মেসেজ */
+        .error-content {
+            text-align: center;
+            color: #fff;
+            z-index: 100;
+        }
+        
+        .error-content i {
+            font-size: 40px;
+            color: #ff4d4d;
+            margin-bottom: 15px;
         }
         
         /* মোবাইল ফ্রেন্ডলি */
         @media (max-width: 768px) {
             .plyr__controls {
-                padding: 15px 8px 10px 8px !important;
+                padding: 12px 8px 8px 8px !important;
                 gap: 3px !important;
             }
-            .plyr__control {
-                padding: 6px 8px !important;
-                min-width: 32px !important;
+            .plyr__controls .plyr__control {
+                padding: 5px 6px !important;
+                min-width: 30px !important;
+            }
+            .plyr__time {
+                font-size: 11px !important;
             }
             .plyr__progress {
                 min-width: 50px !important;
-            }
-        }
-        
-        /* ল্যান্ডস্কেপ মোডে */
-        @media (orientation: landscape) {
-            .plyr--fullscreen .plyr__video-wrapper video {
-                object-fit: cover !important;
-            }
-        }
-        
-        /* পোর্ট্রেট মোডে */
-        @media (orientation: portrait) {
-            .plyr--fullscreen .plyr__video-wrapper video {
-                object-fit: cover !important;
             }
         }
     </style>
 </head>
 <body>
 
-<div id="player-container">
-    <video id="player" controls crossorigin playsinline autoplay>
-        <source type="application/vnd.apple.mpegurl" src="">
+<div id="player-wrapper">
+    <!-- লোডার -->
+    <div id="loader">
+        <div class="loader-container">
+            <div class="neon-ring"></div>
+            <div class="neon-ring"></div>
+            <div class="loader-brand">
+                <i class="fas fa-tv tv-icon"></i>
+                <div class="brand-name">RS LIVE <span>TV</span></div>
+            </div>
+        </div>
+        <div class="loading-text">BUFFERING...</div>
+    </div>
+    
+    <!-- প্লেয়ার -->
+    <video id="player" playsinline crossorigin>
+        <source src="" type="application/vnd.apple.mpegurl" />
     </video>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/plyr@3.6.12/dist/plyr.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.1.4/dist/hls.min.js"></script>
+<!-- Plyr JS -->
+<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+
+<!-- HLS.js -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@0.14.17/dist/hls.min.js"></script>
 
 <script>
-    // URL থেকে url প্যারামিটার
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoSrc = urlParams.get('url');
-    
-    const video = document.getElementById('player');
-    const source = video.querySelector('source');
-    const container = document.getElementById('player-container');
-    
-    if (videoSrc) {
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoSrc = urlParams.get('url');
+        
+        const video = document.getElementById('player');
+        const loader = document.getElementById('loader');
+        
+        if (!videoSrc) {
+            loader.innerHTML = '<div class="brand-name">No Stream URL Found</div>';
+            return;
+        }
+        
+        // ভিডিও সোর্স সেট
+        const source = video.querySelector('source');
         source.src = videoSrc;
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        // প্লেয়ার ইনিশিয়ালাইজ
+        video.load();
+        
+        // Plyr প্লেয়ার ইনিশিয়ালাইজ (JW স্টাইলে)
         const player = new Plyr(video, {
-            autoplay: true,
             controls: [
-                'play-large', 'play', 'progress', 'current-time', 'mute', 
-                'volume', 'captions', 'settings', 'pip', 'airplay', 
+                'play-large',
+                'play',
+                'progress',
+                'current-time',
+                'mute',
+                'volume',
+                'captions',
+                'settings',
+                'pip',
+                'airplay',
                 'fullscreen'
-            ]
+            ],
+            settings: ['quality', 'speed'],
+            speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+            autoplay: true,
+            muted: false
         });
-
+        
         // HLS সাপোর্ট
-        if (Hls.isSupported() && videoSrc) {
+        if (Hls.isSupported()) {
             const hls = new Hls({
                 enableWorker: true,
                 lowLatencyMode: true,
@@ -182,56 +366,43 @@
                     console.log('Auto-play prevented:', error);
                 });
             });
-        }
-
-        // ফুলস্ক্রিন ইভেন্ট - পুরো স্ক্রিন কভার নিশ্চিত
-        player.on('fullscreen', () => {
-            if (player.fullscreen.active) {
-                // ফুলস্ক্রিনে গেলে
-                document.documentElement.style.overflow = 'hidden';
-                document.body.style.overflow = 'hidden';
-                
-                // ভিডিও পুরো স্ক্রিন কভার
-                video.style.objectFit = 'cover';
-                video.style.width = '100vw';
-                video.style.height = '100vh';
-                
-                // Plyr কন্টেইনার পুরো স্ক্রিন
-                const plyrContainer = document.querySelector('.plyr');
-                if (plyrContainer) {
-                    plyrContainer.style.width = '100vw';
-                    plyrContainer.style.height = '100vh';
-                    plyrContainer.style.maxWidth = 'none';
-                    plyrContainer.style.borderRadius = '0';
-                }
-            } else {
-                // ফুলস্ক্রিন থেকে বের হলে
-                document.documentElement.style.overflow = '';
-                document.body.style.overflow = '';
-                
-                video.style.objectFit = 'contain';
-                video.style.width = '100%';
-                video.style.height = '100%';
-            }
-        });
-
-        // স্ক্রিন রোটেশন ডিটেক্ট
-        let lastOrientation = window.orientation || 0;
-        window.addEventListener('orientationchange', () => {
-            const newOrientation = window.orientation || 0;
             
-            // ফুলস্ক্রিনে থাকলে ভিডিও কভার রেখে
-            if (player.fullscreen.active) {
-                setTimeout(() => {
-                    video.style.objectFit = 'cover';
-                    video.style.width = '100vw';
-                    video.style.height = '100vh';
-                }, 300);
-            }
-            lastOrientation = newOrientation;
+            hls.on(Hls.Events.ERROR, function(event, data) {
+                if (data.fatal) {
+                    loader.classList.remove('hide-now');
+                    loader.innerHTML = `
+                        <div class="error-content">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Stream Offline!</p>
+                            <div class="brand-name">RS LIVE <span>TV</span></div>
+                        </div>
+                    `;
+                }
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Safari native HLS
+            video.src = videoSrc;
+            video.addEventListener('loadedmetadata', function() {
+                video.play().catch(function(error) {
+                    console.log('Auto-play prevented:', error);
+                });
+            });
+        }
+        
+        // লোডার লুকানো
+        video.addEventListener('playing', function() {
+            loader.classList.add('hide-now');
         });
-
-        // অটোপ্লে
+        
+        video.addEventListener('waiting', function() {
+            loader.classList.remove('hide-now');
+        });
+        
+        video.addEventListener('canplay', function() {
+            loader.classList.add('hide-now');
+        });
+        
+        // অটোপ্লে ফলের
         video.addEventListener('loadedmetadata', function() {
             video.play().catch(function(error) {
                 console.log('Auto-play prevented:', error);
@@ -241,9 +412,9 @@
                 }, { once: true });
             });
         });
-
+        
         // কিবোর্ড শর্টকাট
-        document.addEventListener('keydown', (e) => {
+        document.addEventListener('keydown', function(e) {
             if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
                 player.fullscreen.toggle();
@@ -253,9 +424,9 @@
                 player.togglePlay();
             }
         });
-
-        console.log('🎬 ফুলস্ক্রিন কভার প্লেয়ার লোড হয়েছে!');
-    });
+        
+        console.log('🎬 PWlr প্লেয়ার লোড হয়েছে! (JW স্টাইল)');
+    })();
 </script>
 
 </body>
