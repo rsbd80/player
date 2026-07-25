@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-    <title>RS Player</title>
+    <title>RS Player - Full Cover</title>
 
     <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
     <script>
@@ -31,9 +31,11 @@
             left:0; 
         }
         
-        /* ভিডিও পুরো স্ক্রিন ফিট - কাটা যাবে না */
+        /* ============================================================
+           ভিডিও পুরো স্ক্রিন কাভার - কোনো ফাঁকা জায়গা থাকবে না
+           ============================================================ */
         .jw-video.jw-reset {
-            object-fit: contain !important;
+            object-fit: cover !important;
             width: 100% !important;
             height: 100% !important;
         }
@@ -49,7 +51,7 @@
         }
         
         .jwplayer.jw-flag-fullscreen .jw-media video {
-            object-fit: contain !important;
+            object-fit: cover !important;
             width: 100% !important;
             height: 100% !important;
         }
@@ -59,7 +61,7 @@
             height: 100% !important;
         }
         
-        /* সেফ এরিয়া */
+        /* ক্যামেরা কাটআউট */
         @supports (padding: env(safe-area-inset-top)) {
             .jwplayer.jw-flag-fullscreen {
                 padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) !important;
@@ -131,7 +133,7 @@
             height: "100%",
             autostart: true,
             mute: false,
-            stretching: "uniform",
+            stretching: "exactfit",  // exactfit = পুরো স্ক্রিন কাভার
             controls: true,
             preload: "auto",
             playbackRateControls: [0.5, 0.75, 1, 1.25, 1.5, 2],
@@ -164,10 +166,11 @@
             player.setMute(false);
             player.setVolume(100);
             
+            // ভিডিও পুরো স্ক্রিন কাভার ফোর্স
             setTimeout(() => {
                 const videoElement = document.querySelector('.jw-video');
                 if (videoElement) {
-                    videoElement.style.objectFit = 'contain';
+                    videoElement.style.objectFit = 'cover';
                     videoElement.style.width = '100%';
                     videoElement.style.height = '100%';
                 }
@@ -181,11 +184,12 @@
             }
         });
 
+        // ফুলস্ক্রিনে পুরো স্ক্রিন কাভার নিশ্চিত
         player.on("fullscreen", function(event) {
             setTimeout(() => {
                 const videoElement = document.querySelector('.jw-video');
                 if (videoElement) {
-                    videoElement.style.objectFit = 'contain';
+                    videoElement.style.objectFit = 'cover';
                     videoElement.style.width = '100%';
                     videoElement.style.height = '100%';
                 }
@@ -229,7 +233,7 @@
             }
         });
 
-        console.log('RS Player Loaded!');
+        console.log('RS Player Loaded - Full Cover Mode');
 
     } else {
         document.getElementById("status-text").innerText = "No URL Provided!";
