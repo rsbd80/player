@@ -1,211 +1,205 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-    <title>RS Player - Full Screen</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<title>RS Live TV - Player</title>
 
-    <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
-    <script>
-        jwplayer.key="Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
-    </script>
+<!-- JW Player Script + DIVA Skin -->
+<script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
+<link rel="stylesheet" href="https://cdn.jwplayer.com/skins/diva/v1/skin.css" />
 
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        html,body { width:100%; height:100%; background:#000; overflow:hidden; position:fixed; }
-        #player { width:100%; height:100%; position:absolute; top:0; left:0; }
-        
-        .jw-video.jw-reset {
-            width: 100% !important;
-            height: 100% !important;
-        }
-        
-        .jw-media, .jw-media video, .jw-preview {
-            width: 100% !important;
-            height: 100% !important;
-        }
-        
-        .jwplayer.jw-flag-fullscreen {
-            width: 100vw !important;
-            height: 100vh !important;
-        }
-        
-        .jwplayer.jw-flag-fullscreen .jw-media video {
-            width: 100% !important;
-            height: 100% !important;
-        }
-        
-        @supports (padding: env(safe-area-inset-top)) {
-            .jwplayer.jw-flag-fullscreen {
-                padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) !important;
-            }
-        }
-        
-        #loader {
-            position:fixed; top:0; left:0; width:100%; height:100%;
-            background:#000; display:flex; justify-content:center; align-items:center;
-            z-index:9999; flex-direction:column; transition: opacity 0.3s ease;
-        }
-        #loader.hide { opacity:0; pointer-events:none; }
-        .spinner {
-            width:50px; height:50px; border:4px solid rgba(255,255,255,.1);
-            border-top:4px solid #00c3ff; border-radius:50%;
-            animation:spin 1s linear infinite;
-        }
-        @keyframes spin { 100% { transform:rotate(360deg); } }
-        #loader p { margin-top:15px; color:#fff; font-family:sans-serif; font-size:14px; }
-    </style>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { 
+    width:100%; height:100%; background:#0a0a0a; overflow:hidden; 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#player {
+    width: 100vw !important;
+    height: 100vh !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.jwplayer {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* DIVA থিমের জন্য ফুলস্ক্রিন ফিক্স */
+.jwplayer.jw-skin-diva .jw-display {
+    background: #0a0a0a !important;
+}
+
+.jw-video {
+    object-fit: contain !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* লোডার - DIVA স্টাইল */
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(255,255,255,0.08);
+    border-radius: 50%;
+    border-top-color: #00f0ff;
+    animation: spin 0.8s linear infinite;
+    box-shadow: 0 0 30px rgba(0,240,255,0.15);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#loader p {
+    color: #888;
+    font-size: 13px;
+    margin-top: 18px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 400;
+}
+
+/* ফুলস্ক্রিনে এক্সট্রা সিকিউরিটি */
+:-webkit-full-screen { width: 100% !important; height: 100% !important; }
+:fullscreen { width: 100% !important; height: 100% !important; }
+</style>
 </head>
 <body>
 
 <div id="loader">
     <div class="spinner"></div>
-    <p id="status-text">Loading...</p>
+    <p id="loader-text">Loading Stream</p>
 </div>
 
 <div id="player"></div>
 
-<!-- HLS.js for Desktop -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@0.14.17/dist/hls.min.js"></script>
-
 <script>
-    function getStreamUrl() {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('url');
+function getStreamUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('url');
+}
+
+const streamUrl = getStreamUrl();
+const player = jwplayer("player");
+
+// ডিফল্ট স্ট্রিম (যদি URL না থাকে)
+const defaultStream = "https://bestiptv.bestiptv-pro.workers.dev/?url=http://alvetv.com/moviebanglatv/8080/index.m3u8";
+const finalStream = streamUrl ? streamUrl : defaultStream;
+
+player.setup({
+    playlist: [{
+        title: "RS Live TV",
+        sources: [{
+            file: finalStream,
+            type: "hls",
+            label: "HD"
+        }]
+    }],
+    width: "100%",
+    height: "100%",
+    aspectratio: "16:9",
+    autostart: true,
+    mute: false,
+    primary: "html5",
+    stretching: "uniform", // DIVA থিমের জন্য uniform ভালো
+    
+    // 🎨 DIVA থিম কনফিগার
+    skin: {
+        name: "diva",
+        active: "#00f0ff",
+        inactive: "#ffffff",
+        background: "#0a0a0a"
+    },
+    
+    controls: true,
+    
+    // আধুনিক কন্ট্রোল বার
+    controlBar: {
+        volumeSlider: true,
+        fullscreen: true,
+        play: true,
+        pause: true,
+        progress: true,
+        currentTime: true,
+        duration: true,
+        next: false,
+        prev: false,
+        cast: false,
+        quality: true, // HLS অ্যাডাপটিভ বিটরেট
+        pip: true // পিকচার-ইন-পিকচার
     }
+});
 
-    const streamSource = getStreamUrl();
-
-    if (streamSource) {
-        const player = jwplayer("player");
-
-        // ============================================================
-        // মূল JW Player সেটআপ - অপরিবর্তিত
-        // ============================================================
-        player.setup({
-            playlist: [{ file: streamSource, type: "hls" }],
-            width: "100%",
-            height: "100%",
-            autostart: true,
-            mute: false,
-            stretching: "exactfit",
-            controls: true,
-            preload: "auto",
-            playbackRateControls: [0.5, 0.75, 1, 1.25, 1.5, 2],
-            defaultPlaybackRate: 1,
-            fullscreen: { allow: true, on: false, orientation: "auto" },
-            displaytitle: false,
-            displaydescription: false
-        });
-
-        let loaderHidden = false;
+// ========== ফুলস্ক্রিন কাস্টম লজিক ==========
+player.on("fullscreen", function(event) {
+    if (event.fullscreen) {
+        // মোবাইলে ল্যান্ডস্কেপ লক (ঐচ্ছিক)
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock("landscape").catch(() => {});
+        }
         
-        function hideLoader() {
-            if (!loaderHidden) {
-                document.getElementById('loader').classList.add('hide');
-                loaderHidden = true;
-                setTimeout(() => {
-                    document.getElementById('loader').style.display = 'none';
-                }, 400);
-            }
-        }
-
-        // ============================================================
-        // ডেস্কটপ ডিটেক্ট
-        // ============================================================
-        const isMobile = /Android|iPhone|iPad|iPod|Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isDesktop = !isMobile;
-
-        // ============================================================
-        // ডেস্কটপে HLS.js ফallback
-        // ============================================================
-        if (isDesktop && Hls.isSupported()) {
-            let hlsInstance = null;
-
-            player.on("ready", function() {
-                setTimeout(() => {
-                    const videoElement = document.querySelector('.jw-video');
-                    if (videoElement) {
-                        try {
-                            hlsInstance = new Hls({
-                                enableWorker: true,
-                                lowLatencyMode: true,
-                                xhrSetup: function(xhr, url) {
-                                    xhr.withCredentials = false;
-                                }
-                            });
-                            hlsInstance.loadSource(streamSource);
-                            hlsInstance.attachMedia(videoElement);
-
-                            hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
-                                videoElement.play().catch(function(e) {
-                                    console.log('HLS play prevented:', e);
-                                });
-                            });
-
-                            hlsInstance.on(Hls.Events.ERROR, function(event, data) {
-                                if (data.fatal) {
-                                    console.log('HLS fatal error, reloading...');
-                                    try {
-                                        hlsInstance.loadSource(streamSource);
-                                    } catch(e) {
-                                        console.log('Reload failed:', e);
-                                    }
-                                }
-                            });
-                        } catch(e) {
-                            console.log('HLS setup failed:', e);
-                        }
-                    }
-                }, 500);
-            });
-        }
-
-        // ============================================================
-        // JW Player ইভেন্ট
-        // ============================================================
-        player.on("ready", function() {
-            hideLoader();
-            player.setMute(false);
-            player.setVolume(100);
+        // ফুলস্ক্রিনে ভিডিও পুরো স্ক্রিন কভার করবে
+        document.body.style.overflow = "hidden";
+        
+        // সাইটের অন্যান্য এলিমেন্ট লুকাও (যদি থাকে)
+        document.querySelectorAll('header, footer, .sidebar, .navbar, .menu, .top-bar-wrapper, .marquee-container, .footer-premium').forEach(el => {
+            if (el) el.style.display = 'none';
         });
-
-        player.on("play", function() {
-            hideLoader();
-            if(player.getMute()) {
-                player.setMute(false);
-            }
-        });
-
-        player.on("error", function(error) {
-            console.log("JW Player Error:", error);
-            document.getElementById("status-text").innerText = "Stream Failed!";
-        });
-
-        // ============================================================
-        // কিবোর্ড শর্টকাট
-        // ============================================================
-        document.addEventListener('keydown', function(e) {
-            if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
-                e.preventDefault();
-                player.setFullscreen(true);
-            }
-            if (e.key === ' ' && e.target === document.body) {
-                e.preventDefault();
-                if (player.getState() === 'playing') {
-                    player.pause();
-                } else {
-                    player.play();
-                }
-            }
-        });
-
-        console.log('RS Player Loaded - Desktop HLS.js fallback added');
-        console.log('Device:', isMobile ? 'Mobile' : 'Desktop');
-
     } else {
-        document.getElementById("status-text").innerText = "No URL Provided!";
+        // ফুলস্ক্রিন থেকে ফিরে এলে সব দেখাও
+        document.body.style.overflow = "auto";
+        document.querySelectorAll('header, footer, .sidebar, .navbar, .menu, .top-bar-wrapper, .marquee-container, .footer-premium').forEach(el => {
+            if (el) el.style.display = '';
+        });
     }
+});
+
+// ========== লোডার কন্ট্রোল ==========
+function hideLoader() {
+    const loader = document.getElementById('loader');
+    loader.style.opacity = '0';
+    setTimeout(() => { loader.style.display = 'none'; }, 500);
+}
+
+player.on("ready", hideLoader);
+player.on("play", hideLoader);
+
+player.on("error", function() {
+    document.getElementById('loader-text').innerHTML = '<span style="color:#ff4444;">⚠️ Stream Failed</span>';
+    document.getElementById('loader').style.display = 'flex';
+    document.getElementById('loader').style.opacity = '1';
+});
+
+player.on("buffer", function() {
+    document.getElementById('loader').style.display = 'flex';
+    document.getElementById('loader').style.opacity = '1';
+    document.getElementById('loader-text').innerText = 'Buffering...';
+});
+
+// প্লেয়ার রেডি হলে কনসোল
+player.on("ready", function() {
+    console.log("✅ JW Player DIVA থিম লোড হয়েছে!");
+});
 </script>
 
 </body>
