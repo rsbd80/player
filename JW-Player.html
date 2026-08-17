@@ -82,21 +82,14 @@ video{
 }
 
 
-/* Fit */
-
+/* Fit - kept for reference but not used */
 video.mode-fit{
   object-fit:contain;
 }
 
-
-/* Fill */
-
 video.mode-fill{
   object-fit:fill;
 }
-
-
-/* Zoom */
 
 video.mode-zoom{
   object-fit:cover;
@@ -296,7 +289,7 @@ button{
 .shaka-fullscreen-button{
 
   color:#fff!important;
-  display: flex !important; /* Fullscreen button visible */
+  display: flex !important;
 
 }
 
@@ -305,7 +298,7 @@ button{
 .shaka-overflow-menu-button{
 
   color:#fff!important;
-  display: flex !important; /* Settings button visible */
+  display: flex !important;
 
 }
 
@@ -374,20 +367,72 @@ button{
   opacity: 1 !important;
 }
 
-/* Hide quality and pip from overflow menu */
-.shaka-overflow-menu button[data-shaka-item="quality"],
+/* ============================================
+   REMOVE THE RED LINE ABOVE CONTROLS (SEEK BAR)
+   ============================================ */
+
+/* Hide the seek bar completely */
+.shaka-seek-bar {
+  display: none !important;
+}
+
+/* Also hide any container that might have the seek bar */
+.shaka-controls-container .shaka-seek-bar-container {
+  display: none !important;
+}
+
+/* If there's a progress bar or any red line above controls, hide it */
+.shaka-controls-container .shaka-progress-container,
+.shaka-controls-container .shaka-video-progress {
+  display: none !important;
+}
+
+/* Hide any bottom bar or seek bar wrapper */
+.shaka-controls-container .shaka-bottom-controls {
+  padding-top: 0 !important;
+}
+
+/* ============================================
+   OVERFLOW MENU - KEEP ALL FEATURES INCLUDING QUALITY
+   ============================================ */
+
+/* Show all overflow menu items */
+.shaka-overflow-menu button {
+  display: flex !important;
+}
+
+/* Only hide picture_in_picture from overflow (keep quality) */
 .shaka-overflow-menu button[data-shaka-item="picture_in_picture"] {
   display: none !important;
 }
 
-/* Hide quality from main controls */
-.shaka-quality-button {
-  display: none !important;
+/* Keep quality visible */
+.shaka-overflow-menu button[data-shaka-item="quality"] {
+  display: flex !important;
 }
 
 /* Hide PiP from main controls */
 .shaka-pip-button {
   display: none !important;
+}
+
+/* Keep quality visible in main controls if it appears */
+.shaka-quality-button {
+  display: flex !important;
+}
+
+/* ============================================
+   CONTROL PANEL SPACING
+   ============================================ */
+
+.shaka-controls-button-panel {
+  padding: 8px 12px !important;
+  gap: 4px !important;
+}
+
+/* Make controls more minimal */
+.shaka-controls-container .shaka-controls {
+  background: linear-gradient(transparent, rgba(0,0,0,0.7)) !important;
 }
 
 </style>
@@ -570,7 +615,7 @@ function hideLoading(){
     if (controls) {
       controls.classList.add('visible');
     }
-  }, 100);
+  }, 50);
 
 }
 
@@ -651,7 +696,7 @@ async function startShaka(url){
 
 
   /* -------------------------
-     UI - KEEP BOTH BUTTONS
+     UI - KEEP BOTH BUTTONS + QUALITY IN SETTINGS
   ------------------------- */
 
   // Create overlay
@@ -675,7 +720,7 @@ async function startShaka(url){
 
       "spacer",
 
-      "overflow_menu",     // Settings button
+      "overflow_menu",     // Settings button - ALL features inside
 
       "fullscreen"         // Fullscreen button
 
@@ -684,9 +729,13 @@ async function startShaka(url){
 
     overflowMenuButtons:[
 
+      "quality",           // Quality option in settings
+
       "loop",
 
       "playback_rate"
+
+      // picture_in_picture is hidden via CSS
 
     ],
 
@@ -711,38 +760,38 @@ async function startShaka(url){
 
 
   /* -------------------------
-     Config
+     Config - OPTIMIZED FOR SPEED
   ------------------------- */
 
   player.configure({
 
     streaming:{
 
-      lowLatencyMode:false,
+      lowLatencyMode:true,
 
-      bufferingGoal:10,
+      bufferingGoal:5,
 
-      rebufferingGoal:2,
+      rebufferingGoal:1,
 
-      bufferBehind:30,
+      bufferBehind:20,
 
-      safeSeekOffset:4,
+      safeSeekOffset:2,
 
       stallEnabled:true,
 
-      stallThreshold:2,
+      stallThreshold:1.5,
 
       retryParameters:{
 
-        maxAttempts:5,
+        maxAttempts:3,
 
-        baseDelay:500,
+        baseDelay:200,
 
-        backoffFactor:2,
+        backoffFactor:1.5,
 
-        fuzzFactor:.5,
+        fuzzFactor:.3,
 
-        timeout:30000
+        timeout:15000
 
       }
 
@@ -755,15 +804,15 @@ async function startShaka(url){
 
       retryParameters:{
 
-        maxAttempts:5,
+        maxAttempts:3,
 
-        baseDelay:500,
+        baseDelay:200,
 
-        backoffFactor:2,
+        backoffFactor:1.5,
 
-        fuzzFactor:.5,
+        fuzzFactor:.3,
 
-        timeout:30000
+        timeout:15000
 
       }
 
@@ -774,9 +823,9 @@ async function startShaka(url){
 
       enabled:true,
 
-      defaultBandwidthEstimate:2000000,
+      defaultBandwidthEstimate:3000000,
 
-      switchInterval:4
+      switchInterval:2
 
     }
 
@@ -801,39 +850,51 @@ async function startShaka(url){
 
 
   /* -------------------------
-     LOAD
+     LOAD - FASTER
   ------------------------- */
 
-  await player.load(
-    url
-  );
+  const loadPromise = player.load(url);
+
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Load timeout')), 10000);
+  });
+
+  await Promise.race([loadPromise, timeoutPromise]);
 
 
   // Hide loading and show video
   hideLoading();
 
 
-  // Force autoplay after load
+  // Force autoplay after load - immediate
   try {
     await video.play();
   } catch (e) {
     console.warn("Autoplay blocked, waiting for user interaction");
   }
 
-  // Show controls after video starts playing
+  // Show controls immediately after video starts playing
   video.addEventListener('playing', function onPlaying() {
     const controls = document.querySelector('.shaka-controls-container');
     if (controls) {
       controls.classList.add('visible');
     }
     video.removeEventListener('playing', onPlaying);
-  });
+  }, {once: true});
+
+  // Also show controls if video is already playing
+  if (!video.paused) {
+    const controls = document.querySelector('.shaka-controls-container');
+    if (controls) {
+      controls.classList.add('visible');
+    }
+  }
 
 }
 
 
 /* =========================
-   NATIVE HLS
+   NATIVE HLS - FAST
 ========================= */
 
 async function startNativeHLS(url){
@@ -1158,7 +1219,6 @@ video.addEventListener(
       "Buffering..."
     );
 
-    // Show loading indicator while buffering
     showLoading("Buffering...");
 
   }
@@ -1200,7 +1260,7 @@ document.addEventListener(
           }
 
         },
-        500
+        300
       );
 
     }
@@ -1210,17 +1270,16 @@ document.addEventListener(
 
 
 /* =========================
-   START
+   START - IMMEDIATE
 ========================= */
 
-document.addEventListener(
-  "DOMContentLoaded",
-  function(){
-
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function(){
     startPlayer();
-
-  }
-);
+  });
+} else {
+  startPlayer();
+}
 
 
 })();
