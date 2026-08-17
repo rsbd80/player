@@ -246,125 +246,25 @@ video.mode-zoom{
 
 
 /* =========================
-   CUSTOM FIT BUTTON
+   FIT BUTTON - REMOVED
 ========================= */
 
-.sp-fit-btn{
-
-  background:transparent!important;
-
-  border:none!important;
-
-  color:#fff!important;
-
-  cursor:pointer!important;
-
-  padding:0 7px!important;
-
-  margin:0!important;
-
-  height:100%;
-
-  min-width:48px;
-
-  display:flex;
-
-  align-items:center;
-
-  justify-content:center;
-
-  gap:4px;
-
-  opacity:.85;
-
-  transition:
-    opacity .15s,
-    transform .15s;
-
-  -webkit-tap-highlight-color:
-    transparent;
-
-}
-
-
-.sp-fit-btn:hover{
-
-  opacity:1;
-
-}
-
-
-.sp-fit-btn:active{
-
-  opacity:1;
-
-  transform:scale(.92);
-
-}
-
-
-.sp-fit-btn:focus-visible{
-
-  outline:
-    2px solid #ef4444;
-
-  outline-offset:2px;
-
-  border-radius:5px;
-
-}
-
-
-.fit-icon{
-
-  width:18px;
-  height:18px;
-
-  display:flex;
-
-  align-items:center;
-  justify-content:center;
-
-}
-
-
-.fit-icon svg{
-
-  width:18px;
-  height:18px;
-
-  display:block;
-
-}
-
-
-.fit-ratio{
-
-  color:#fff;
-
-  font-size:10px;
-
-  font-weight:600;
-
-  line-height:1;
-
-  white-space:nowrap;
-
+.sp-fit-btn {
+  display: none !important;
 }
 
 
 /* =========================
-   CUSTOM PIP BUTTON - REMOVED
+   PIP BUTTON - REMOVED
 ========================= */
 
-/* PiP button completely removed */
 .sp-pip-btn {
   display: none !important;
 }
 
 
 /* =========================
-   SHAKA
+   SHAKA - KEEP BOTH BUTTONS
 ========================= */
 
 .shaka-controls-container
@@ -396,6 +296,7 @@ button{
 .shaka-fullscreen-button{
 
   color:#fff!important;
+  display: flex !important; /* Fullscreen button visible */
 
 }
 
@@ -404,6 +305,7 @@ button{
 .shaka-overflow-menu-button{
 
   color:#fff!important;
+  display: flex !important; /* Settings button visible */
 
 }
 
@@ -472,19 +374,19 @@ button{
   opacity: 1 !important;
 }
 
-/* Hide overflow menu buttons we don't want */
+/* Hide quality and pip from overflow menu */
 .shaka-overflow-menu button[data-shaka-item="quality"],
 .shaka-overflow-menu button[data-shaka-item="picture_in_picture"] {
   display: none !important;
 }
 
-/* Also hide PiP from main controls */
-.shaka-pip-button {
+/* Hide quality from main controls */
+.shaka-quality-button {
   display: none !important;
 }
 
-/* Hide quality button from main controls */
-.shaka-quality-button {
+/* Hide PiP from main controls */
+.shaka-pip-button {
   display: none !important;
 }
 
@@ -599,11 +501,7 @@ let player = null;
 
 let streamURL = null;
 
-let fitIndex = 1; // Start with Fill mode (full screen like)
-
 let reconnectTimer = null;
-
-let controlsVisible = false;
 
 
 /* =========================
@@ -719,412 +617,6 @@ function isMPD(url){
 
 
 /* =========================
-   RATIO
-========================= */
-
-function getRatio(){
-
-  const width =
-    video.videoWidth;
-
-  const height =
-    video.videoHeight;
-
-  if(!width || !height){
-
-    return "";
-
-  }
-
-
-  const ratio =
-    width / height;
-
-
-  if(
-    Math.abs(
-      ratio - (16/9)
-    ) < .03
-  ){
-
-    return "16:9";
-
-  }
-
-
-  if(
-    Math.abs(
-      ratio - (4/3)
-    ) < .03
-  ){
-
-    return "4:3";
-
-  }
-
-
-  if(
-    Math.abs(
-      ratio - (21/9)
-    ) < .04
-  ){
-
-    return "21:9";
-
-  }
-
-
-  if(
-    Math.abs(
-      ratio - 1
-    ) < .03
-  ){
-
-    return "1:1";
-
-  }
-
-
-  return ratio.toFixed(2)+":1";
-
-}
-
-
-/* =========================
-   FIT ICONS
-========================= */
-
-const FIT_ICONS = {
-
-  fit:`
-
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round">
-
-    <rect
-      x="2"
-      y="3"
-      width="20"
-      height="14"
-      rx="2"/>
-
-    <line
-      x1="2"
-      y1="21"
-      x2="22"
-      y2="21"/>
-
-  </svg>
-
-  `,
-
-
-  fill:`
-
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round">
-
-    <rect
-      x="3"
-      y="3"
-      width="18"
-      height="18"
-      rx="2"/>
-
-    <path d="M3 9h18"/>
-    <path d="M3 15h18"/>
-    <path d="M9 3v18"/>
-    <path d="M15 3v18"/>
-
-  </svg>
-
-  `,
-
-
-  zoom:`
-
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round">
-
-    <rect
-      x="2"
-      y="3"
-      width="20"
-      height="14"
-      rx="2"/>
-
-    <path d="M6 7l3 3"/>
-    <path d="M9 10H7"/>
-    <path d="M9 10V8"/>
-
-    <path d="M18 7l-3 3"/>
-    <path d="M15 10h2"/>
-    <path d="M15 10V8"/>
-
-    <path d="M6 13l3-3"/>
-    <path d="M9 10H7"/>
-    <path d="M9 10v2"/>
-
-    <path d="M18 13l-3-3"/>
-    <path d="M15 10h2"/>
-    <path d="M15 10v2"/>
-
-  </svg>
-
-  `
-
-};
-
-
-/* =========================
-   FIT MODES
-========================= */
-
-const FIT_MODES = [
-
-  {
-    name:"Fit",
-    css:"mode-fit",
-    icon:FIT_ICONS.fit
-  },
-
-  {
-    name:"Fill",
-    css:"mode-fill",
-    icon:FIT_ICONS.fill
-  },
-
-  {
-    name:"Zoom",
-    css:"mode-zoom",
-    icon:FIT_ICONS.zoom
-  }
-
-];
-
-
-/* =========================
-   ADD FIT BUTTON
-========================= */
-
-function addFitButton(){
-
-  const panel =
-    playerContainer.querySelector(
-      ".shaka-controls-button-panel"
-    );
-
-
-  if(!panel){
-
-    console.warn(
-      "Shaka control panel not found"
-    );
-
-    return;
-
-  }
-
-
-  if(
-    panel.querySelector(
-      ".sp-fit-btn"
-    )
-  ){
-
-    return;
-
-  }
-
-
-  const fullscreen =
-    panel.querySelector(
-      ".shaka-fullscreen-button"
-    );
-
-
-  const button =
-    document.createElement(
-      "button"
-    );
-
-
-  button.className =
-    "sp-fit-btn";
-
-
-  button.type =
-    "button";
-
-
-  button.title =
-    "Video Fit: Fill";
-
-
-  button.innerHTML = `
-
-    <span class="fit-icon">
-      ${FIT_ICONS.fill}
-    </span>
-
-    <span class="fit-ratio">
-      --
-    </span>
-
-  `;
-
-
-  if(fullscreen){
-
-    panel.insertBefore(
-      button,
-      fullscreen
-    );
-
-  }else{
-
-    panel.appendChild(
-      button
-    );
-
-  }
-
-
-  function applyFit(){
-
-    const mode =
-      FIT_MODES[fitIndex];
-
-
-    video.classList.remove(
-      "mode-fit",
-      "mode-fill",
-      "mode-zoom"
-    );
-
-
-    video.classList.add(
-      mode.css
-    );
-
-
-    const icon =
-      button.querySelector(
-        ".fit-icon"
-      );
-
-
-    const ratio =
-      button.querySelector(
-        ".fit-ratio"
-      );
-
-
-    if(icon){
-
-      icon.innerHTML =
-        mode.icon;
-
-    }
-
-
-    if(ratio){
-
-      const r =
-        getRatio();
-
-      ratio.textContent =
-        r || "--";
-
-    }
-
-
-    button.title =
-      "Video Fit: " +
-      mode.name;
-
-  }
-
-
-  button.addEventListener(
-    "click",
-    function(event){
-
-      event.preventDefault();
-
-      event.stopPropagation();
-
-
-      fitIndex++;
-
-      if(
-        fitIndex >=
-        FIT_MODES.length
-      ){
-
-        fitIndex = 0;
-
-      }
-
-
-      applyFit();
-
-    }
-  );
-
-
-  function updateRatio(){
-
-    const ratio =
-      button.querySelector(
-        ".fit-ratio"
-      );
-
-
-    if(ratio){
-
-      ratio.textContent =
-        getRatio() || "--";
-
-    }
-
-  }
-
-
-  video.addEventListener(
-    "loadedmetadata",
-    updateRatio
-  );
-
-
-  video.addEventListener(
-    "resize",
-    updateRatio
-  );
-
-
-  // Apply initial fill mode
-  applyFit();
-
-}
-
-
-/* =========================
    SHAKA PLAYER
 ========================= */
 
@@ -1159,10 +651,10 @@ async function startShaka(url){
 
 
   /* -------------------------
-     UI
+     UI - KEEP BOTH BUTTONS
   ------------------------- */
 
-  // Create overlay but keep controls hidden initially
+  // Create overlay
   const overlay = new shaka.ui.Overlay(
     player,
     playerContainer,
@@ -1183,9 +675,9 @@ async function startShaka(url){
 
       "spacer",
 
-      "fullscreen",
+      "overflow_menu",     // Settings button
 
-      "overflow_menu"
+      "fullscreen"         // Fullscreen button
 
     ],
 
@@ -1216,20 +708,6 @@ async function startShaka(url){
   if (controls) {
     controls.classList.remove('visible');
   }
-
-
-  /*
-   * Wait for Shaka controls
-   */
-
-  setTimeout(
-    function(){
-
-      addFitButton();
-
-    },
-    500
-  );
 
 
   /* -------------------------
