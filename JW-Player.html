@@ -74,7 +74,7 @@ video{
   width:100%;
   height:100%;
 
-  object-fit:fill; /* Default fill for full screen like */
+  object-fit:fill;
 
   background:#000;
 
@@ -82,7 +82,7 @@ video{
 }
 
 
-/* Fit - kept for reference but not used */
+/* Fit modes */
 video.mode-fit{
   object-fit:contain;
 }
@@ -97,7 +97,7 @@ video.mode-zoom{
 
 
 /* =========================
-   LOADING - CLEAN VERSION
+   LOADING
 ========================= */
 
 #loading{
@@ -118,7 +118,6 @@ video.mode-zoom{
   background:#000;
 }
 
-/* Simple dot loader */
 .dot-loader {
   display: flex;
   gap: 8px;
@@ -248,16 +247,46 @@ video.mode-zoom{
 
 
 /* =========================
-   PIP BUTTON - REMOVED
+   PIP BUTTON - CUSTOM
 ========================= */
 
 .sp-pip-btn {
-  display: none !important;
+  background:transparent!important;
+  border:none!important;
+  color:#fff!important;
+  cursor:pointer!important;
+  padding:0 7px!important;
+  margin:0!important;
+  height:100%;
+  min-width:40px;
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+  opacity:.85;
+  transition: opacity .15s, transform .15s;
+}
+
+.sp-pip-btn:hover {
+  opacity:1;
+}
+
+.sp-pip-btn:active {
+  transform:scale(.92);
+}
+
+.sp-pip-btn.active {
+  color:#ef4444!important;
+  opacity:1;
+}
+
+.sp-pip-btn svg {
+  width:18px;
+  height:18px;
 }
 
 
 /* =========================
-   SHAKA - KEEP BOTH BUTTONS
+   SHAKA - CONTROL PANEL
 ========================= */
 
 .shaka-controls-container
@@ -334,19 +363,9 @@ button{
 
 @media(max-width:500px){
 
-  .fit-ratio{
-
-    font-size:9px;
-
-  }
-
-  .sp-fit-btn{
-
-    padding:
-      0 5px!important;
-
-    min-width:42px;
-
+  .sp-pip-btn {
+    padding: 0 5px!important;
+    min-width:36px;
   }
 
 }
@@ -371,47 +390,43 @@ button{
    REMOVE THE RED LINE ABOVE CONTROLS (SEEK BAR)
    ============================================ */
 
-/* Hide the seek bar completely */
 .shaka-seek-bar {
   display: none !important;
 }
 
-/* Also hide any container that might have the seek bar */
 .shaka-controls-container .shaka-seek-bar-container {
   display: none !important;
 }
 
-/* If there's a progress bar or any red line above controls, hide it */
 .shaka-controls-container .shaka-progress-container,
 .shaka-controls-container .shaka-video-progress {
   display: none !important;
 }
 
-/* Hide any bottom bar or seek bar wrapper */
 .shaka-controls-container .shaka-bottom-controls {
   padding-top: 0 !important;
 }
 
 /* ============================================
-   OVERFLOW MENU - KEEP ALL FEATURES INCLUDING QUALITY
+   OVERFLOW MENU - LOOP REMOVED, PIP ADDED
    ============================================ */
 
-/* Show all overflow menu items */
-.shaka-overflow-menu button {
-  display: flex !important;
-}
-
-/* Only hide picture_in_picture from overflow (keep quality) */
-.shaka-overflow-menu button[data-shaka-item="picture_in_picture"] {
+/* Hide loop from overflow */
+.shaka-overflow-menu button[data-shaka-item="loop"] {
   display: none !important;
 }
 
-/* Keep quality visible */
+/* Show pip in overflow */
+.shaka-overflow-menu button[data-shaka-item="picture_in_picture"] {
+  display: flex !important;
+}
+
+/* Show quality in overflow */
 .shaka-overflow-menu button[data-shaka-item="quality"] {
   display: flex !important;
 }
 
-/* Hide PiP from main controls */
+/* Hide PiP from main controls (we use custom one) */
 .shaka-pip-button {
   display: none !important;
 }
@@ -430,7 +445,6 @@ button{
   gap: 4px !important;
 }
 
-/* Make controls more minimal */
 .shaka-controls-container .shaka-controls {
   background: linear-gradient(transparent, rgba(0,0,0,0.7)) !important;
 }
@@ -444,7 +458,7 @@ button{
 
 
 <!-- =========================
-     LOADING - CLEAN
+     LOADING
 ========================= -->
 
 <div id="loading">
@@ -595,7 +609,6 @@ function showLoading(text){
   errorBox.style.display =
     "none";
 
-  // Hide controls when loading
   const controls = document.querySelector('.shaka-controls-container');
   if (controls) {
     controls.classList.remove('visible');
@@ -609,7 +622,6 @@ function hideLoading(){
   loading.style.display =
     "none";
 
-  // Show controls after loading with slight delay
   setTimeout(() => {
     const controls = document.querySelector('.shaka-controls-container');
     if (controls) {
@@ -662,44 +674,110 @@ function isMPD(url){
 
 
 /* =========================
+   ADD CUSTOM PIP BUTTON
+========================= */
+
+function addPipButton(){
+
+  const panel =
+    playerContainer.querySelector(
+      ".shaka-controls-button-panel"
+    );
+
+  if(!panel) return;
+
+  if(panel.querySelector(".sp-pip-btn")) return;
+
+  const supported = !!(
+    document.pictureInPictureEnabled ||
+    (video.webkitSupportsPresentationMode &&
+     typeof video.webkitSetPresentationMode === "function")
+  );
+
+  if(!supported) return;
+
+  const overflowBtn =
+    panel.querySelector(".shaka-overflow-menu-button");
+
+  const button = document.createElement("button");
+  button.className = "sp-pip-btn";
+  button.type = "button";
+  button.title = "Picture in Picture";
+
+  button.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="5" width="18" height="14" rx="2"/>
+      <rect x="12" y="12" width="7" height="5" rx="1" fill="currentColor" stroke="none"/>
+    </svg>
+  `;
+
+  if(overflowBtn){
+    panel.insertBefore(button, overflowBtn);
+  }else{
+    panel.appendChild(button);
+  }
+
+  function setActive(active){
+    button.classList.toggle("active", active);
+    button.title = active ? "Exit Picture in Picture" : "Picture in Picture";
+  }
+
+  button.addEventListener("click", async function(event){
+    event.preventDefault();
+    event.stopPropagation();
+
+    try{
+      if(document.pictureInPictureEnabled){
+        if(document.pictureInPictureElement){
+          await document.exitPictureInPicture();
+        }else{
+          await video.requestPictureInPicture();
+        }
+      }else if(video.webkitSupportsPresentationMode){
+        video.webkitSetPresentationMode(
+          video.webkitPresentationMode === "picture-in-picture"
+          ? "inline"
+          : "picture-in-picture"
+        );
+      }
+    }catch(error){
+      console.warn("PiP unavailable:", error);
+    }
+  });
+
+  video.addEventListener("enterpictureinpicture", function(){
+    setActive(true);
+  });
+
+  video.addEventListener("leavepictureinpicture", function(){
+    setActive(false);
+  });
+
+}
+
+
+/* =========================
    SHAKA PLAYER
 ========================= */
 
 async function startShaka(url){
 
-  showLoading(
-    "Loading..."
-  );
-
+  showLoading("Loading...");
 
   shaka.polyfill.installAll();
 
-
-  if(
-    !shaka.Player.isBrowserSupported()
-  ){
-
-    throw new Error(
-      "Shaka Player is not supported by this browser."
-    );
-
+  if(!shaka.Player.isBrowserSupported()){
+    throw new Error("Shaka Player is not supported by this browser.");
   }
 
+  player = new shaka.Player();
 
-  player =
-    new shaka.Player();
-
-
-  await player.attach(
-    video
-  );
-
+  await player.attach(video);
 
   /* -------------------------
-     UI - KEEP BOTH BUTTONS + QUALITY IN SETTINGS
+     UI
   ------------------------- */
 
-  // Create overlay
   const overlay = new shaka.ui.Overlay(
     player,
     playerContainer,
@@ -720,22 +798,20 @@ async function startShaka(url){
 
       "spacer",
 
-      "overflow_menu",     // Settings button - ALL features inside
+      "overflow_menu",
 
-      "fullscreen"         // Fullscreen button
+      "fullscreen"
 
     ],
 
 
     overflowMenuButtons:[
 
-      "quality",           // Quality option in settings
+      "quality",
 
-      "loop",
+      "picture_in_picture"
 
-      "playback_rate"
-
-      // picture_in_picture is hidden via CSS
+      // loop removed
 
     ],
 
@@ -752,7 +828,6 @@ async function startShaka(url){
 
   });
 
-  // Hide controls initially
   const controls = document.querySelector('.shaka-controls-container');
   if (controls) {
     controls.classList.remove('visible');
@@ -760,7 +835,7 @@ async function startShaka(url){
 
 
   /* -------------------------
-     Config - OPTIMIZED FOR SPEED
+     Config
   ------------------------- */
 
   player.configure({
@@ -833,24 +908,16 @@ async function startShaka(url){
 
 
   /* -------------------------
-     Shaka Errors
+     Errors
   ------------------------- */
 
-  player.addEventListener(
-    "error",
-    function(event){
-
-      console.error(
-        "Shaka error:",
-        event.detail
-      );
-
-    }
-  );
+  player.addEventListener("error", function(event){
+    console.error("Shaka error:", event.detail);
+  });
 
 
   /* -------------------------
-     LOAD - FASTER
+     LOAD
   ------------------------- */
 
   const loadPromise = player.load(url);
@@ -861,19 +928,17 @@ async function startShaka(url){
 
   await Promise.race([loadPromise, timeoutPromise]);
 
-
-  // Hide loading and show video
   hideLoading();
 
-
-  // Force autoplay after load - immediate
   try {
     await video.play();
   } catch (e) {
     console.warn("Autoplay blocked, waiting for user interaction");
   }
 
-  // Show controls immediately after video starts playing
+  // Add custom PiP button after controls are ready
+  setTimeout(addPipButton, 300);
+
   video.addEventListener('playing', function onPlaying() {
     const controls = document.querySelector('.shaka-controls-container');
     if (controls) {
@@ -882,7 +947,6 @@ async function startShaka(url){
     video.removeEventListener('playing', onPlaying);
   }, {once: true});
 
-  // Also show controls if video is already playing
   if (!video.paused) {
     const controls = document.querySelector('.shaka-controls-container');
     if (controls) {
@@ -894,66 +958,32 @@ async function startShaka(url){
 
 
 /* =========================
-   NATIVE HLS - FAST
+   NATIVE HLS
 ========================= */
 
 async function startNativeHLS(url){
 
-  showLoading(
-    "Loading..."
-  );
+  showLoading("Loading...");
 
+  video.controls = true;
+  video.src = url;
 
-  video.controls =
-    true;
+  return new Promise(function(resolve,reject){
 
-
-  video.src =
-    url;
-
-
-  return new Promise(
-    function(resolve,reject){
-
-      function success(){
-
-        hideLoading();
-
-        video.play().catch(
-          function(){}
-        );
-
-        resolve();
-
-      }
-
-
-      function failed(){
-
-        reject(
-          new Error(
-            "Native HLS playback failed."
-          )
-        );
-
-      }
-
-
-      video.addEventListener(
-        "loadedmetadata",
-        success,
-        {once:true}
-      );
-
-
-      video.addEventListener(
-        "error",
-        failed,
-        {once:true}
-      );
-
+    function success(){
+      hideLoading();
+      video.play().catch(function(){});
+      resolve();
     }
-  );
+
+    function failed(){
+      reject(new Error("Native HLS playback failed."));
+    }
+
+    video.addEventListener("loadedmetadata", success, {once:true});
+    video.addEventListener("error", failed, {once:true});
+
+  });
 
 }
 
@@ -965,39 +995,21 @@ async function startNativeHLS(url){
 async function destroyPlayer(){
 
   if(player){
-
     try{
-
       await player.destroy();
-
     }catch(error){
-
-      console.warn(
-        error
-      );
-
+      console.warn(error);
     }
-
-    player =
-      null;
-
+    player = null;
   }
 
-
   video.pause();
-
-  video.removeAttribute(
-    "src"
-  );
-
+  video.removeAttribute("src");
 
   try{
-
     video.load();
-
   }catch(error){}
 
-  // Reset controls visibility
   const controls = document.querySelector('.shaka-controls-container');
   if (controls) {
     controls.classList.remove('visible');
@@ -1013,99 +1025,40 @@ async function destroyPlayer(){
 async function startPlayer(){
 
   hideError();
+  showLoading("Loading...");
 
-  showLoading(
-    "Loading..."
-  );
-
-
-  const url =
-    getStreamURL();
-
+  const url = getStreamURL();
 
   if(!url){
-
     showError(
       "No stream URL was provided.\n\n" +
       "Example:\n" +
       "?url=https://example.com/live/index.m3u8"
     );
-
     return;
-
   }
 
-
-  streamURL =
-    url;
-
-
-  console.log(
-    "Stream:",
-    streamURL
-  );
-
+  streamURL = url;
+  console.log("Stream:", streamURL);
 
   await destroyPlayer();
 
-
-  /*
-   * M3U8
-   */
-
   if(isM3U8(url)){
-
     try{
-
-      /*
-       * First Shaka
-       */
-
-      await startShaka(
-        url
-      );
-
+      await startShaka(url);
       return;
-
     }catch(error){
-
-      console.warn(
-        "Shaka HLS failed:",
-        error
-      );
-
-
+      console.warn("Shaka HLS failed:", error);
       await destroyPlayer();
 
-
-      /*
-       * Native HLS fallback
-       */
-
-      if(
-        video.canPlayType(
-          "application/vnd.apple.mpegurl"
-        )
-      ){
-
+      if(video.canPlayType("application/vnd.apple.mpegurl")){
         try{
-
-          await startNativeHLS(
-            url
-          );
-
+          await startNativeHLS(url);
           return;
-
         }catch(nativeError){
-
-          console.warn(
-            nativeError
-          );
-
+          console.warn(nativeError);
         }
-
       }
-
 
       showError(
         "M3U8 stream could not be played.\n\n" +
@@ -1115,79 +1068,26 @@ async function startPlayer(){
         "• Authentication/token required\n" +
         "• Playlist or segments unavailable"
       );
-
-
       return;
-
     }
-
   }
-
-
-  /*
-   * MPD
-   */
 
   if(isMPD(url)){
-
     try{
-
-      await startShaka(
-        url
-      );
-
+      await startShaka(url);
       return;
-
     }catch(error){
-
-      console.error(
-        error
-      );
-
-
-      showError(
-        "MPD/DASH playback failed.\n\n" +
-        (
-          error.message
-          ||
-          "Unknown error"
-        )
-      );
-
-
+      console.error(error);
+      showError("MPD/DASH playback failed.\n\n" + (error.message || "Unknown error"));
       return;
-
     }
-
   }
 
-
-  /*
-   * Unknown format
-   */
-
   try{
-
-    await startShaka(
-      url
-    );
-
+    await startShaka(url);
   }catch(error){
-
-    console.error(
-      error
-    );
-
-
-    showError(
-      "Unable to play this stream.\n\n" +
-      (
-        error.message
-        ||
-        "Unknown error"
-      )
-    );
-
+    console.error(error);
+    showError("Unable to play this stream.\n\n" + (error.message || "Unknown error"));
   }
 
 }
@@ -1197,80 +1097,42 @@ async function startPlayer(){
    RETRY
 ========================= */
 
-retryButton.addEventListener(
-  "click",
-  function(){
-
-    startPlayer();
-
-  }
-);
+retryButton.addEventListener("click", function(){
+  startPlayer();
+});
 
 
 /* =========================
    BUFFER RECOVERY
 ========================= */
 
-video.addEventListener(
-  "waiting",
-  function(){
+video.addEventListener("waiting", function(){
+  console.log("Buffering...");
+  showLoading("Buffering...");
+});
 
-    console.log(
-      "Buffering..."
-    );
-
-    showLoading("Buffering...");
-
-  }
-);
-
-
-video.addEventListener(
-  "playing",
-  function(){
-
-    hideLoading();
-
-  }
-);
+video.addEventListener("playing", function(){
+  hideLoading();
+});
 
 
 /* =========================
    VISIBILITY
 ========================= */
 
-document.addEventListener(
-  "visibilitychange",
-  function(){
-
-    if(!document.hidden){
-
-      setTimeout(
-        function(){
-
-          if(
-            video.paused &&
-            streamURL
-          ){
-
-            video.play().catch(
-              function(){}
-            );
-
-          }
-
-        },
-        300
-      );
-
-    }
-
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden){
+    setTimeout(function(){
+      if(video.paused && streamURL){
+        video.play().catch(function(){});
+      }
+    }, 300);
   }
-);
+});
 
 
 /* =========================
-   START - IMMEDIATE
+   START
 ========================= */
 
 if (document.readyState === 'loading') {
