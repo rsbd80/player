@@ -1,276 +1,1238 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>RS Player Pro - Compact Loader</title>
 
-    <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
-    <script>
-        jwplayer.key = "Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
-    </script>
+<meta charset="UTF-8">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1,
+               maximum-scale=1,
+               user-scalable=no,
+               viewport-fit=cover">
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            background: #000;
-            overflow: hidden;
-            font-family: 'Segoe UI', sans-serif;
-            position: fixed;
-        }
+<meta name="referrer" content="no-referrer">
 
-        #player-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        #player {
-            width: 100% !important;
-            height: 100% !important;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
+<title>RS Live TV</title>
 
-        /* --- কন্ট্রোলার কাস্টমাইজেশন --- */
-        .jw-skin-glow .jw-display-icon-container {
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: none !important;
-        }
-        .jw-skin-glow .jw-button-color {
-            color: #ffffff !important;
-        }
-        .jw-skin-glow .jw-controlbar {
-            background: transparent !important;
-            backdrop-filter: none !important;
-        }
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/controls.css">
 
-        /* --- লোডার ডিজাইন (সাইজ ছোট করা হয়েছে) --- */
-        #loader {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 99;
-            flex-direction: column;
-            transition: opacity 0.4s ease;
-        }
 
-        .loader-container {
-            position: relative;
-            width: 100px;
-            /* ১৫০ থেকে কমিয়ে ১০০ করা হয়েছে */
-            height: 100px;
-            /* ১৫০ থেকে কমিয়ে ১০০ করা হয়েছে */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+<style>
 
-        .loader-brand {
-            text-align: center;
-            z-index: 10;
-        }
-        .tv-icon {
-            font-size: 24px;
-            color: #00c3ff;
-            text-shadow: 0 0 10px #00c3ff;
-        }
-        /* আইকন সাইজ কিছুটা কমানো হয়েছে */
-        .brand-name {
-            font-size: 10px;
-            font-weight: 700;
-            color: #fff;
-            text-transform: uppercase;
-            margin-top: 5px;
-            letter-spacing: 1px;
-        }
-        .brand-name span {
-            color: #00c3ff;
-        }
+/* =========================
+   RESET
+========================= */
 
-        .neon-ring {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            animation: rotate-vortex 1.5s linear infinite;
-        }
-        .neon-ring:nth-child(1) {
-            border-top: 2px solid #00c3ff;
-            border-right: 2px solid #00c3ff;
-            box-shadow: 0 0 10px #00c3ff;
-        }
-        .neon-ring:nth-child(2) {
-            border-bottom: 2px solid #ff007f;
-            border-left: 2px solid #ff007f;
-            animation-direction: reverse;
-            animation-duration: 2s;
-            box-shadow: 0 0 10px #ff007f;
-        }
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
-        @keyframes rotate-vortex {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
+html,
+body{
+  width:100%;
+  height:100%;
+  background:#000;
+  overflow:hidden;
 
-        .loading-text {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 10px;
-            margin-top: 15px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
+  font-family:
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
 
-        /* --- ভিডিও সাইড কাটা ফিক্স --- */
-        .jw-video.jw-reset {
-            object-fit: fill !important;
-        }
+  -webkit-user-select:none;
+  user-select:none;
 
-        .hide-now {
-            opacity: 0 !important;
-            visibility: hidden !important;
-        }
+  -webkit-touch-callout:none;
+}
 
-        /* এরর মেসেজ */
-        .error-content {
-            text-align: center;
-            color: #fff;
-            z-index: 100;
-        }
-        .error-content i {
-            font-size: 40px;
-            color: #ff4d4d;
-            margin-bottom: 15px;
-        }
-        
-        /* ডেস্কটপে স্ট্রিম না চললে মেসেজ */
-        .desktop-error {
-            color: #ff6b6b;
-            text-align: center;
-            padding: 20px;
-        }
-        .desktop-error i {
-            font-size: 30px;
-            margin-bottom: 10px;
-            display: block;
-        }
-        .desktop-error .small-text {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-top: 8px;
-        }
-    </style>
+
+/* =========================
+   PLAYER
+========================= */
+
+#player{
+  position:fixed;
+  inset:0;
+
+  width:100%;
+  height:100%;
+
+  background:#000;
+
+  touch-action:manipulation;
+}
+
+
+video{
+  width:100%;
+  height:100%;
+
+  object-fit:fill;
+
+  background:#000;
+
+  will-change:transform;
+}
+
+
+/* =========================
+   LOADING - RS LIVE TV PREMIUM
+========================= */
+
+#loading{
+  position:fixed;
+  inset:0;
+
+  z-index:9999;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  flex-direction:column;
+
+  gap:20px;
+
+  background: radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%);
+}
+
+/* RS Live TV Logo Text */
+.loading-brand {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #ef4444, #dc2626, #ef4444);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 2s ease-in-out infinite;
+  text-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Premium Loading Spinner */
+.premium-loader {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.premium-loader .ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  animation: spin-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.premium-loader .ring:nth-child(1) {
+  border-top-color: #ef4444;
+  animation-delay: 0s;
+}
+
+.premium-loader .ring:nth-child(2) {
+  border-right-color: #f87171;
+  animation-delay: 0.2s;
+  width: 80%;
+  height: 80%;
+  top: 10%;
+  left: 10%;
+}
+
+.premium-loader .ring:nth-child(3) {
+  border-bottom-color: #dc2626;
+  animation-delay: 0.4s;
+  width: 60%;
+  height: 60%;
+  top: 20%;
+  left: 20%;
+}
+
+.premium-loader .center-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes spin-ring {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+}
+
+.loading-sub {
+  color: #666;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-weight: 300;
+}
+
+.loading-progress {
+  width: 120px;
+  height: 2px;
+  background: #222;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.loading-progress .bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  border-radius: 2px;
+  animation: progress-bar 2.5s ease-in-out infinite;
+}
+
+@keyframes progress-bar {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
+
+/* =========================
+   ERROR
+========================= */
+
+#error{
+
+  position:fixed;
+
+  inset:0;
+
+  z-index:10000;
+
+  display:none;
+
+  align-items:center;
+
+  justify-content:center;
+
+  flex-direction:column;
+
+  gap:12px;
+
+  padding:25px;
+
+  background:#080808;
+
+  color:#fff;
+
+  text-align:center;
+
+}
+
+
+#error h2{
+
+  font-size:18px;
+
+  font-weight:600;
+
+}
+
+
+#error p{
+
+  max-width:600px;
+
+  color:#999;
+
+  font-size:13px;
+
+  line-height:1.6;
+
+  word-break:break-word;
+
+}
+
+
+#retry{
+
+  margin-top:8px;
+
+  padding:10px 22px;
+
+  border:0;
+
+  border-radius:7px;
+
+  background:#ef4444;
+
+  color:#fff;
+
+  font-size:13px;
+
+  cursor:pointer;
+
+}
+
+
+/* =========================
+   PIP BUTTON - CUSTOM
+========================= */
+
+.sp-pip-btn {
+  background:transparent!important;
+  border:none!important;
+  color:#fff!important;
+  cursor:pointer!important;
+  padding:0 7px!important;
+  margin:0!important;
+  height:100%;
+  min-width:40px;
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+  opacity:.85;
+  transition: opacity .15s, transform .15s;
+}
+
+.sp-pip-btn:hover {
+  opacity:1;
+}
+
+.sp-pip-btn:active {
+  transform:scale(.92);
+}
+
+.sp-pip-btn.active {
+  color:#ef4444!important;
+  opacity:1;
+}
+
+.sp-pip-btn svg {
+  width:18px;
+  height:18px;
+}
+
+
+/* =========================
+   SHAKA - CONTROL PANEL - PREMIUM STYLING
+========================= */
+
+.shaka-controls-container
+.shaka-controls-button-panel {
+  gap: 2px !important;
+}
+
+.shaka-controls-container
+.shaka-controls-button-panel
+button {
+
+  color:#fff!important;
+  min-width: 36px !important;
+  height: 100% !important;
+  padding: 0 5px !important;
+  opacity: 0.85 !important;
+  transition: opacity 0.2s, transform 0.2s !important;
+}
+
+.shaka-controls-container
+.shaka-controls-button-panel
+button:hover {
+  opacity: 1 !important;
+}
+
+.shaka-controls-container
+.shaka-controls-button-panel
+button:active {
+  transform: scale(0.92) !important;
+}
+
+
+.shaka-controls-container
+.shaka-play-button{
+
+  color:#ef4444!important;
+
+}
+
+
+.shaka-controls-container
+.shaka-mute-button{
+
+  color:#ef4444!important;
+
+}
+
+
+.shaka-controls-container
+.shaka-fullscreen-button{
+
+  color:#fff!important;
+  display: flex !important;
+  order: 10 !important;
+
+}
+
+
+.shaka-controls-container
+.shaka-overflow-menu-button{
+
+  color:#fff!important;
+  display: flex !important;
+  order: 9 !important;
+
+}
+
+
+.shaka-controls-container
+.shaka-seek-bar
+.shaka-seek-bar-played{
+
+  background:#ef4444!important;
+
+}
+
+
+.shaka-controls-container
+.shaka-seek-bar
+.shaka-seek-bar-buffered{
+
+  background:#7f1d1d!important;
+
+}
+
+
+.shaka-video-container{
+
+  background:#000!important;
+
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:500px){
+
+  .sp-pip-btn {
+    padding: 0 5px!important;
+    min-width:32px!important;
+  }
+
+  .shaka-controls-container
+  .shaka-controls-button-panel
+  button {
+    min-width: 30px !important;
+    padding: 0 3px !important;
+  }
+
+  .loading-brand {
+    font-size: 22px;
+  }
+
+}
+
+
+/* Hide Shaka loading spinner */
+.shaka-loading-spinner {
+  display: none !important;
+}
+
+/* Hide Shaka controls initially */
+.shaka-controls-container {
+  opacity: 0 !important;
+  transition: opacity 0.4s ease;
+}
+
+.shaka-controls-container.visible {
+  opacity: 1 !important;
+}
+
+/* ============================================
+   REMOVE SEEK BAR (RED LINE)
+   ============================================ */
+
+.shaka-seek-bar {
+  display: none !important;
+}
+
+.shaka-controls-container .shaka-seek-bar-container {
+  display: none !important;
+}
+
+.shaka-controls-container .shaka-progress-container,
+.shaka-controls-container .shaka-video-progress {
+  display: none !important;
+}
+
+.shaka-controls-container .shaka-bottom-controls {
+  padding-top: 0 !important;
+}
+
+/* ============================================
+   OVERFLOW MENU - LOOP REMOVED, PIP ADDED
+   ============================================ */
+
+.shaka-overflow-menu button[data-shaka-item="loop"] {
+  display: none !important;
+}
+
+.shaka-overflow-menu button[data-shaka-item="picture_in_picture"] {
+  display: flex !important;
+}
+
+.shaka-overflow-menu button[data-shaka-item="quality"] {
+  display: flex !important;
+}
+
+.shaka-pip-button {
+  display: none !important;
+}
+
+.shaka-quality-button {
+  display: flex !important;
+}
+
+/* ============================================
+   PREMIUM CONTROL PANEL STYLING
+   ============================================ */
+
+.shaka-controls-container .shaka-controls {
+  background: linear-gradient(transparent, rgba(0,0,0,0.8) 80%) !important;
+  padding-bottom: 6px !important;
+}
+
+.shaka-controls-container .shaka-controls-button-panel {
+  padding: 6px 12px !important;
+}
+
+/* Time and duration styling */
+.shaka-controls-container .shaka-time-and-duration {
+  color: #ccc !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.3px !important;
+  padding: 0 4px !important;
+}
+
+</style>
+
 </head>
+
+
 <body>
 
-    <div id="player-wrapper">
-        <div id="loader">
-            <div class="loader-container">
-                <div class="neon-ring"></div>
-                <div class="neon-ring"></div>
-                <div class="loader-brand">
-                    <i class="fas fa-tv tv-icon"></i>
-                    <div class="brand-name">RS LIVE <span>TV</span></div>
-                </div>
-            </div>
-            <div class="loading-text">BUFFERING...</div>
-        </div>
-        <div id="player"></div>
-    </div>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const streamSource = urlParams.get('url');
+<!-- =========================
+     LOADING - RS LIVE TV PREMIUM
+========================= -->
 
-        if (streamSource) {
-            // ডেস্কটপ ব্রাউজার চেক
-            const isDesktop = !/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-            
-            // ডেস্কটপে ইউজার-এজেন্ট চেক করে মেসেজ দেখানো
-            if (isDesktop) {
-                console.log('🖥️ Desktop detected - trying to load stream with HLS');
-                // JW Player ডেস্কটপে HLS সমর্থন করে, তাই চেষ্টা করতে পারে
-            }
+<div id="loading">
 
-            const player = jwplayer("player").setup({
-                playlist: [{
-                    file: streamSource,
-                    type: "hls"
-                }],
-                width: "100%",
-                height: "100%",
-                autostart: true,
-                stretching: "exactfit",
-                skin: { name: "glow" },
-                displaytitle: false
-            });
+  <div class="loading-brand">RS LIVE TV</div>
 
-            player.on("ready", () => {
-                player.setMute(false);
-                player.setVolume(100);
-                console.log('✅ Player ready');
-            });
+  <div class="premium-loader">
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="center-dot"></div>
+  </div>
 
-            player.on("play", () => {
-                document.getElementById("loader").classList.add("hide-now");
-                console.log('▶️ Playing');
-            });
+  <div class="loading-sub">Loading Stream</div>
 
-            player.on("buffer", () => {
-                document.getElementById("loader").classList.remove("hide-now");
-                console.log('⏳ Buffering...');
-            });
+  <div class="loading-progress">
+    <div class="bar"></div>
+  </div>
 
-            player.on("error", (error) => {
-                const loader = document.getElementById("loader");
-                loader.classList.remove("hide-now");
-                
-                // ডেস্কটপে এরর হলে বিশেষ মেসেজ
-                if (isDesktop) {
-                    loader.innerHTML = `
-                        <div class="error-content desktop-error">
-                            <i class="fas fa-desktop"></i>
-                            <p>⚠️ Stream may not be available on desktop.</p>
-                            <p style="font-size:14px;color:#94a3b8;margin-top:5px;">Please try on mobile device.</p>
-                            <div class="brand-name" style="margin-top:15px;">RS LIVE <span>TV</span></div>
-                            <p style="font-size:11px;color:#64748b;margin-top:10px;">Error: ${error.message || 'Unknown error'}</p>
-                        </div>
-                    `;
-                } else {
-                    loader.innerHTML = `
-                        <div class="error-content">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <p>Stream Offline!</p>
-                            <div class="brand-name">RS LIVE <span>TV</span></div>
-                        </div>
-                    `;
-                }
-                console.error('❌ Player error:', error);
-            });
+</div>
 
-        } else {
-            document.getElementById("loader").innerHTML = '<div class="brand-name">No Stream URL Found</div>';
+
+<!-- =========================
+     ERROR
+========================= -->
+
+<div id="error">
+
+  <h2>
+    Unable to play stream
+  </h2>
+
+  <p id="errorText"></p>
+
+  <button id="retry">
+    Retry
+  </button>
+
+</div>
+
+
+<!-- =========================
+     PLAYER
+========================= -->
+
+<div id="player">
+
+  <video
+    id="video"
+    playsinline
+    webkit-playsinline
+    preload="auto"
+    autoplay>
+  </video>
+
+</div>
+
+
+<!-- =========================
+     SHAKA
+========================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/shaka-player.compiled.js">
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/shaka-player.ui.min.js">
+</script>
+
+
+<script>
+
+(function(){
+
+"use strict";
+
+
+/* =========================
+   ELEMENTS
+========================= */
+
+const video =
+  document.getElementById("video");
+
+const playerContainer =
+  document.getElementById("player");
+
+const loading =
+  document.getElementById("loading");
+
+const loadingText =
+  document.getElementById("loadingText");
+
+const errorBox =
+  document.getElementById("error");
+
+const errorText =
+  document.getElementById("errorText");
+
+const retryButton =
+  document.getElementById("retry");
+
+
+let player = null;
+
+let streamURL = null;
+
+let reconnectTimer = null;
+
+
+/* =========================
+   GET URL
+========================= */
+
+function getStreamURL(){
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  let url =
+    params.get("url");
+
+  if(!url){
+    return null;
+  }
+
+  try{
+
+    return decodeURIComponent(url);
+
+  }catch(e){
+
+    return url;
+
+  }
+
+}
+
+
+/* =========================
+   UI
+========================= */
+
+function showLoading(text){
+
+  loading.style.display =
+    "flex";
+
+  errorBox.style.display =
+    "none";
+
+  const controls = document.querySelector('.shaka-controls-container');
+  if (controls) {
+    controls.classList.remove('visible');
+  }
+
+}
+
+
+function hideLoading(){
+
+  loading.style.display =
+    "none";
+
+  setTimeout(() => {
+    const controls = document.querySelector('.shaka-controls-container');
+    if (controls) {
+      controls.classList.add('visible');
+    }
+  }, 50);
+
+}
+
+
+function showError(message){
+
+  hideLoading();
+
+  errorText.textContent =
+    message;
+
+  errorBox.style.display =
+    "flex";
+
+}
+
+
+function hideError(){
+
+  errorBox.style.display =
+    "none";
+
+}
+
+
+/* =========================
+   STREAM TYPE
+========================= */
+
+function isM3U8(url){
+
+  return /\.m3u8($|[?#])/i
+    .test(url);
+
+}
+
+
+function isMPD(url){
+
+  return /\.mpd($|[?#])/i
+    .test(url);
+
+}
+
+
+/* =========================
+   ADD CUSTOM PIP BUTTON
+========================= */
+
+function addPipButton(){
+
+  const panel =
+    playerContainer.querySelector(
+      ".shaka-controls-button-panel"
+    );
+
+  if(!panel) return;
+
+  if(panel.querySelector(".sp-pip-btn")) return;
+
+  const supported = !!(
+    document.pictureInPictureEnabled ||
+    (video.webkitSupportsPresentationMode &&
+     typeof video.webkitSetPresentationMode === "function")
+  );
+
+  if(!supported) return;
+
+  const overflowBtn =
+    panel.querySelector(".shaka-overflow-menu-button");
+
+  const button = document.createElement("button");
+  button.className = "sp-pip-btn";
+  button.type = "button";
+  button.title = "Picture in Picture";
+
+  button.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="5" width="18" height="14" rx="2"/>
+      <rect x="12" y="12" width="7" height="5" rx="1" fill="currentColor" stroke="none"/>
+    </svg>
+  `;
+
+  // Insert before overflow (settings) button
+  if(overflowBtn){
+    panel.insertBefore(button, overflowBtn);
+  }else{
+    panel.appendChild(button);
+  }
+
+  function setActive(active){
+    button.classList.toggle("active", active);
+    button.title = active ? "Exit Picture in Picture" : "Picture in Picture";
+  }
+
+  button.addEventListener("click", async function(event){
+    event.preventDefault();
+    event.stopPropagation();
+
+    try{
+      if(document.pictureInPictureEnabled){
+        if(document.pictureInPictureElement){
+          await document.exitPictureInPicture();
+        }else{
+          await video.requestPictureInPicture();
         }
-    </script>
+      }else if(video.webkitSupportsPresentationMode){
+        video.webkitSetPresentationMode(
+          video.webkitPresentationMode === "picture-in-picture"
+          ? "inline"
+          : "picture-in-picture"
+        );
+      }
+    }catch(error){
+      console.warn("PiP unavailable:", error);
+    }
+  });
+
+  video.addEventListener("enterpictureinpicture", function(){
+    setActive(true);
+  });
+
+  video.addEventListener("leavepictureinpicture", function(){
+    setActive(false);
+  });
+
+}
+
+
+/* =========================
+   SHAKA PLAYER
+========================= */
+
+async function startShaka(url){
+
+  showLoading();
+
+  shaka.polyfill.installAll();
+
+  if(!shaka.Player.isBrowserSupported()){
+    throw new Error("Shaka Player is not supported by this browser.");
+  }
+
+  player = new shaka.Player();
+
+  await player.attach(video);
+
+  /* -------------------------
+     UI
+  ------------------------- */
+
+  const overlay = new shaka.ui.Overlay(
+    player,
+    playerContainer,
+    video
+  );
+
+  overlay.configure({
+
+    controlPanelElements:[
+
+      "play_pause",
+
+      "mute",
+
+      "volume",
+
+      "time_and_duration",
+
+      "spacer",
+
+      "overflow_menu",
+
+      "fullscreen"
+
+    ],
+
+
+    overflowMenuButtons:[
+
+      "quality",
+
+      "picture_in_picture"
+
+    ],
+
+
+    seekBarColors:{
+
+      base:"#777",
+
+      buffered:"#7f1d1d",
+
+      played:"#ef4444"
+
+    }
+
+  });
+
+  const controls = document.querySelector('.shaka-controls-container');
+  if (controls) {
+    controls.classList.remove('visible');
+  }
+
+
+  /* -------------------------
+     Config - FAST & PREMIUM
+  ------------------------- */
+
+  player.configure({
+
+    streaming:{
+
+      lowLatencyMode:true,
+
+      bufferingGoal:3,
+
+      rebufferingGoal:1,
+
+      bufferBehind:15,
+
+      safeSeekOffset:2,
+
+      stallEnabled:true,
+
+      stallThreshold:1.5,
+
+      retryParameters:{
+
+        maxAttempts:3,
+
+        baseDelay:150,
+
+        backoffFactor:1.5,
+
+        fuzzFactor:.3,
+
+        timeout:12000
+
+      }
+
+    },
+
+
+    manifest:{
+
+      ignoreTextStreamFailures:true,
+
+      retryParameters:{
+
+        maxAttempts:3,
+
+        baseDelay:150,
+
+        backoffFactor:1.5,
+
+        fuzzFactor:.3,
+
+        timeout:12000
+
+      }
+
+    },
+
+
+    abr:{
+
+      enabled:true,
+
+      defaultBandwidthEstimate:4000000,
+
+      switchInterval:1.5
+
+    }
+
+  });
+
+
+  /* -------------------------
+     Errors
+  ------------------------- */
+
+  player.addEventListener("error", function(event){
+    console.error("Shaka error:", event.detail);
+  });
+
+
+  /* -------------------------
+     LOAD - FAST
+  ------------------------- */
+
+  const loadPromise = player.load(url);
+
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Load timeout')), 8000);
+  });
+
+  await Promise.race([loadPromise, timeoutPromise]);
+
+  hideLoading();
+
+  try {
+    await video.play();
+  } catch (e) {
+    console.warn("Autoplay blocked, waiting for user interaction");
+  }
+
+  // Add custom PiP button after controls are ready
+  setTimeout(addPipButton, 200);
+
+  video.addEventListener('playing', function onPlaying() {
+    const controls = document.querySelector('.shaka-controls-container');
+    if (controls) {
+      controls.classList.add('visible');
+    }
+    video.removeEventListener('playing', onPlaying);
+  }, {once: true});
+
+  if (!video.paused) {
+    const controls = document.querySelector('.shaka-controls-container');
+    if (controls) {
+      controls.classList.add('visible');
+    }
+  }
+
+}
+
+
+/* =========================
+   NATIVE HLS
+========================= */
+
+async function startNativeHLS(url){
+
+  showLoading();
+
+  video.controls = true;
+  video.src = url;
+
+  return new Promise(function(resolve,reject){
+
+    function success(){
+      hideLoading();
+      video.play().catch(function(){});
+      resolve();
+    }
+
+    function failed(){
+      reject(new Error("Native HLS playback failed."));
+    }
+
+    video.addEventListener("loadedmetadata", success, {once:true});
+    video.addEventListener("error", failed, {once:true});
+
+  });
+
+}
+
+
+/* =========================
+   DESTROY
+========================= */
+
+async function destroyPlayer(){
+
+  if(player){
+    try{
+      await player.destroy();
+    }catch(error){
+      console.warn(error);
+    }
+    player = null;
+  }
+
+  video.pause();
+  video.removeAttribute("src");
+
+  try{
+    video.load();
+  }catch(error){}
+
+  const controls = document.querySelector('.shaka-controls-container');
+  if (controls) {
+    controls.classList.remove('visible');
+  }
+
+}
+
+
+/* =========================
+   START PLAYER
+========================= */
+
+async function startPlayer(){
+
+  hideError();
+  showLoading();
+
+  const url = getStreamURL();
+
+  if(!url){
+    showError(
+      "No stream URL was provided.\n\n" +
+      "Example:\n" +
+      "?url=https://example.com/live/index.m3u8"
+    );
+    return;
+  }
+
+  streamURL = url;
+  console.log("Stream:", streamURL);
+
+  await destroyPlayer();
+
+  if(isM3U8(url)){
+    try{
+      await startShaka(url);
+      return;
+    }catch(error){
+      console.warn("Shaka HLS failed:", error);
+      await destroyPlayer();
+
+      if(video.canPlayType("application/vnd.apple.mpegurl")){
+        try{
+          await startNativeHLS(url);
+          return;
+        }catch(nativeError){
+          console.warn(nativeError);
+        }
+      }
+
+      showError(
+        "M3U8 stream could not be played.\n\n" +
+        "Possible reasons:\n" +
+        "• CORS restriction\n" +
+        "• Stream is offline\n" +
+        "• Authentication/token required\n" +
+        "• Playlist or segments unavailable"
+      );
+      return;
+    }
+  }
+
+  if(isMPD(url)){
+    try{
+      await startShaka(url);
+      return;
+    }catch(error){
+      console.error(error);
+      showError("MPD/DASH playback failed.\n\n" + (error.message || "Unknown error"));
+      return;
+    }
+  }
+
+  try{
+    await startShaka(url);
+  }catch(error){
+    console.error(error);
+    showError("Unable to play this stream.\n\n" + (error.message || "Unknown error"));
+  }
+
+}
+
+
+/* =========================
+   RETRY
+========================= */
+
+retryButton.addEventListener("click", function(){
+  startPlayer();
+});
+
+
+/* =========================
+   BUFFER RECOVERY
+========================= */
+
+video.addEventListener("waiting", function(){
+  console.log("Buffering...");
+});
+
+video.addEventListener("playing", function(){
+  hideLoading();
+});
+
+
+/* =========================
+   VISIBILITY
+========================= */
+
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden){
+    setTimeout(function(){
+      if(video.paused && streamURL){
+        video.play().catch(function(){});
+      }
+    }, 300);
+  }
+});
+
+
+/* =========================
+   START - IMMEDIATE
+========================= */
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function(){
+    startPlayer();
+  });
+} else {
+  startPlayer();
+}
+
+
+})();
+
+</script>
 
 </body>
 </html>
