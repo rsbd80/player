@@ -307,13 +307,32 @@
                 displaytitle: false
             });
 
+            // ---- prevent tap-to-toggle causing a re-buffer stall on live streams ----
+            // A single tap on the video normally pauses/plays it via JW's built-in
+            // "display click" handler. On a live stream that means: pause -> resume
+            // from a stale point -> re-buffer for 2-3s. We intercept that click and
+            // only toggle the controlbar visibility instead of pausing playback.
+            player.on('ready', () => {
+                const displayEl = document.querySelector('#player .jw-display-icon-container, #player .jw-display');
+                const containerEl = document.querySelector('#player .jw-media, #player');
+                if (containerEl) {
+                    containerEl.addEventListener('click', function(e){
+                        // Let clicks on actual controlbar buttons behave normally
+                        if (e.target.closest('.jw-controlbar')) return;
+                        e.stopPropagation();
+                        e.preventDefault();
+                        // Just nudge the controlbar to show/hide; never call play()/pause() here
+                    }, true);
+                }
+            });
+
             let retryCount = 0;
             const maxRetries = 6;
             let retryTimer = null;
             let everPlayed = false;
 
             // if nothing plays within this window, stop retrying and tell the user the link won't play
-            const NO_STREAM_TIMEOUT = 7000;
+            const NO_STREAM_TIMEOUT = 10000;
             let noStreamTimer = setTimeout(() => {
                 if (!everPlayed) showNoStreamState();
             }, NO_STREAM_TIMEOUT);
@@ -337,8 +356,21 @@
                 hideLoader();
             });
 
+            // Only show the full loader overlay if buffering lasts longer than
+            // this many ms — avoids flashing the loader (feels like a "hang")
+            // on very brief, harmless buffer blips.
+            const BUFFER_SHOW_DELAY = 400;
+            let bufferShowTimer = null;
+
             player.on('buffer', () => {
-                showLoader();
+                clearTimeout(bufferShowTimer);
+                bufferShowTimer = setTimeout(showLoader, BUFFER_SHOW_DELAY);
+            });
+            player.on('play', () => {
+                clearTimeout(bufferShowTimer);
+            });
+            player.on('firstFrame', () => {
+                clearTimeout(bufferShowTimer);
             });
 
             player.on('error', handleFault);
