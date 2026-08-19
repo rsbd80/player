@@ -158,34 +158,6 @@
 
         .hide-now{ opacity:0 !important; visibility:hidden !important; }
 
-        /* ---------- tap-to-toggle sound flash ---------- */
-        #sound-flash{
-            position:absolute;
-            top:50%; left:50%;
-            transform: translate(-50%,-50%) scale(0.85);
-            z-index:50;
-            width:64px; height:64px;
-            border-radius:50%;
-            background: rgba(10,10,18,0.68);
-            border:1px solid rgba(167,139,250,0.4);
-            display:flex; align-items:center; justify-content:center;
-            opacity:0;
-            pointer-events:none;
-            transition: opacity .18s ease, transform .18s ease;
-            backdrop-filter: blur(4px);
-        }
-        #sound-flash.show{
-            opacity:1;
-            transform: translate(-50%,-50%) scale(1);
-        }
-        #sound-flash svg{ width:26px; height:26px; }
-        #sound-flash .bar{
-            fill:none;
-            stroke: var(--grad-b);
-            stroke-width:2.4;
-            stroke-linecap:round;
-        }
-
         /* ---------- error / empty states ---------- */
         .state-content{
             text-align:center;
@@ -261,29 +233,16 @@
             </div>
         </div>
         <div id="player"></div>
-        <div id="sound-flash"></div>
     </div>
 
     <script>
         const urlParams   = new URLSearchParams(window.location.search);
         const streamSource = urlParams.get('url');
         const forcedType   = (urlParams.get('type') || '').toLowerCase();
-        const startMuted   = urlParams.get('mute') !== '0'; // muted-autostart by default = faster, reliable start
+        const startMuted   = urlParams.get('mute') === '1'; // plays with sound on by default now
 
         const loaderEl    = document.getElementById('loader');
         const statusEl    = document.getElementById('status-line');
-        const soundFlash  = document.getElementById('sound-flash');
-        const wrapperEl   = document.getElementById('player-wrapper');
-
-        const ICON_ON  = '<svg viewBox="0 0 24 24"><path class="bar" d="M4 9v6h4l5 4V5L8 9H4z"/><path class="bar" d="M16.5 8.5c1.2 1.2 1.2 5.8 0 7"/><path class="bar" d="M19 6c2.5 2.5 2.5 9.5 0 12"/></svg>';
-        const ICON_OFF = '<svg viewBox="0 0 24 24"><path class="bar" d="M4 9v6h4l5 4V5L8 9H4z"/><path class="bar" d="M16 9l5 6"/><path class="bar" d="M21 9l-5 6"/></svg>';
-
-        function flashSoundIcon(muted){
-            soundFlash.innerHTML = muted ? ICON_OFF : ICON_ON;
-            soundFlash.classList.add('show');
-            clearTimeout(flashSoundIcon._t);
-            flashSoundIcon._t = setTimeout(() => soundFlash.classList.remove('show'), 550);
-        }
 
         const statusMessages = ['LOADING', 'BUFFERING', 'CONNECTING'];
         let statusIdx = 0;
@@ -340,7 +299,7 @@
                 width: '100%',
                 height: '100%',
                 autostart: true,
-                mute: startMuted,          // muted autostart = browsers allow it instantly, video appears fastest
+                mute: startMuted,          // sound on by default now — plays audibly right away
                 preload: 'auto',
                 stretching: 'exactfit',    // keeps the frame filled edge-to-edge (matches source aspect handling)
                 liveTimeout: 0,            // never auto-stop a live feed on its own
@@ -351,7 +310,13 @@
             let retryCount = 0;
             const maxRetries = 6;
             let retryTimer = null;
-            let isMuted = startMuted;
+            let everPlayed = false;
+
+            // if nothing plays within this window, stop retrying and tell the user the link won't play
+            const NO_STREAM_TIMEOUT = 7000;
+            let noStreamTimer = setTimeout(() => {
+                if (!everPlayed) showNoStreamState();
+            }, NO_STREAM_TIMEOUT);
 
             player.on('ready', () => {
                 console.log('Player ready — source type:', streamType || 'auto-detected');
@@ -359,12 +324,16 @@
 
             player.on('firstFrame', () => {
                 clearInterval(statusTimer);
+                clearTimeout(noStreamTimer);
                 hideLoader();
+                everPlayed = true;
                 retryCount = 0;
                 console.log('First frame painted');
             });
 
             player.on('play', () => {
+                clearTimeout(noStreamTimer);
+                everPlayed = true;
                 hideLoader();
             });
 
@@ -377,6 +346,18 @@
 
             function handleFault(err){
                 console.error('Player error:', err);
+
+                if (!everPlayed) {
+                    // still inside the initial window — try again quickly, but never past NO_STREAM_TIMEOUT
+                    clearTimeout(retryTimer);
+                    retryTimer = setTimeout(() => {
+                        player.load([ playlistItem ]);
+                        player.play(true);
+                    }, 900);
+                    return;
+                }
+
+                // stream had already been playing (e.g. a live feed dropped) — retry with backoff
                 if (retryCount < maxRetries) {
                     retryCount++;
                     statusEl.textContent = 'RECONNECTING (' + retryCount + '/' + maxRetries + ')';
@@ -388,25 +369,23 @@
                     }, Math.min(1000 * retryCount, 4000));
                     return;
                 }
+
+                showNoStreamState(err);
+            }
+
+            function showNoStreamState(err){
+                clearTimeout(retryTimer);
+                clearTimeout(noStreamTimer);
                 showState(
                     '<div class="state-content">' +
                         '<div class="glyph"><i>&#10060;</i></div>' +
-                        '<p class="title">Stream offline</p>' +
+                        '<p class="title">No streaming — this link won\'t play</p>' +
                         '<p class="sub">' + ((err && err.message) ? err.message : 'The source could not be reached.') + '</p>' +
                         '<button class="retry-btn" onclick="location.reload()">Retry</button>' +
                         brandBlock() +
                     '</div>'
                 );
             }
-
-            // every tap on the video toggles sound on/off — no separate unmute button
-            wrapperEl.addEventListener('click', (e) => {
-                if (e.target.closest('.jw-controlbar')) return; // let volume/seek controls behave normally
-                isMuted = !isMuted;
-                player.setMute(isMuted);
-                if (!isMuted) player.setVolume(100);
-                flashSoundIcon(isMuted);
-            });
         }
     </script>
 
