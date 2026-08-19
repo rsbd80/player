@@ -14,22 +14,24 @@
 
     <style>
         :root{
-            --bg: #06090a;
-            --panel: #0c1412;
-            --signal: #6dffb0;
-            --signal-dim: #235c44;
+            --bg-1: #0a0a12;
+            --bg-2: #14101f;
+            --grad-a: #22d3ee;
+            --grad-b: #a78bfa;
+            --grad-c: #fb923c;
             --warn: #ffb84d;
             --alert: #ff5d5d;
-            --text: #d9f2e6;
-            --text-dim: #6d8a80;
-            --mono: 'JetBrains Mono','Space Mono','Courier New',monospace;
+            --text: #eef0f7;
+            --text-dim: #7a7a92;
+            --font: 'Poppins','Segoe UI',sans-serif;
+            --mono: 'JetBrains Mono','Courier New',monospace;
         }
         *{ margin:0; padding:0; box-sizing:border-box; }
         html,body{
             width:100%; height:100%;
-            background:var(--bg);
+            background:var(--bg-1);
             overflow:hidden;
-            font-family:var(--mono);
+            font-family:var(--font);
             position:fixed;
         }
 
@@ -48,8 +50,8 @@
 
         /* ---------- JW controlbar skin ---------- */
         .jw-skin-glow .jw-display-icon-container{
-            background: rgba(109,255,176,0.08) !important;
-            border: 1px solid rgba(109,255,176,0.35);
+            background: rgba(167,139,250,0.10) !important;
+            border: 1px solid rgba(167,139,250,0.4);
             backdrop-filter: none !important;
         }
         .jw-skin-glow .jw-button-color{ color:#ffffff !important; }
@@ -57,15 +59,15 @@
             background: linear-gradient(0deg, rgba(0,0,0,0.75), transparent) !important;
             backdrop-filter: none !important;
         }
-        .jw-skin-glow .jw-slider-time .jw-progress{ background: var(--signal) !important; }
-        .jw-skin-glow .jw-knob{ background: var(--signal) !important; }
+        .jw-skin-glow .jw-slider-time .jw-progress{ background: var(--grad-b) !important; }
+        .jw-skin-glow .jw-knob{ background: var(--grad-b) !important; }
 
         .jw-video.jw-reset{ object-fit: fill !important; }
 
         /* ================= LOADER ================= */
         #loader{
             position:absolute; inset:0;
-            background: var(--bg);
+            background: radial-gradient(80% 60% at 50% 40%, var(--bg-2) 0%, var(--bg-1) 70%);
             display:flex; justify-content:center; align-items:center;
             flex-direction:column;
             z-index:99;
@@ -75,79 +77,80 @@
         .tuner{
             display:flex; flex-direction:column;
             align-items:center;
-            gap:18px;
+            gap:20px;
         }
 
-        /* signature element — a simple retro TV icon with a soft pulsing screen glow */
-        .tv-icon{
-            width:64px; height:64px;
-            animation: tv-breathe 2.2s ease-in-out infinite;
+        /* signature element — TV set with a looping colour-bar screen, glowing frame */
+        .tv-wrap{
+            position:relative;
+            width:78px; height:78px;
+            display:flex; align-items:center; justify-content:center;
         }
+        .tv-glow{
+            position:absolute;
+            width:100%; height:100%;
+            border-radius:50%;
+            background: radial-gradient(circle, rgba(167,139,250,0.35), transparent 70%);
+            animation: glow-pulse 2.4s ease-in-out infinite;
+        }
+        @keyframes glow-pulse{
+            0%,100%{ transform:scale(0.85); opacity:.5; }
+            50%{ transform:scale(1.15); opacity:1; }
+        }
+        .tv-icon{ position:relative; width:60px; height:60px; }
         .tv-icon .tv-body{
             fill:none;
-            stroke: var(--signal);
+            stroke: var(--text);
             stroke-width:2;
             stroke-linecap:round;
             stroke-linejoin:round;
         }
-        .tv-icon .tv-screen{
-            fill: var(--signal);
-            opacity:0.16;
-            animation: screen-glow 2.2s ease-in-out infinite;
+        .tv-icon .screen-bars rect{
+            transform-origin: bottom;
+            animation: bar-flicker 1.6s ease-in-out infinite;
         }
-        @keyframes tv-breathe{
-            0%,100%{ filter: drop-shadow(0 0 2px rgba(109,255,176,0.25)); }
-            50%{ filter: drop-shadow(0 0 12px rgba(109,255,176,0.55)); }
-        }
-        @keyframes screen-glow{
-            0%,100%{ opacity:0.10; }
-            50%{ opacity:0.30; }
+        .tv-icon .screen-bars rect:nth-child(1){ fill:var(--grad-a); animation-delay:-1.2s; }
+        .tv-icon .screen-bars rect:nth-child(2){ fill:var(--grad-b); animation-delay:-0.9s; }
+        .tv-icon .screen-bars rect:nth-child(3){ fill:var(--grad-c); animation-delay:-0.6s; }
+        .tv-icon .screen-bars rect:nth-child(4){ fill:var(--grad-b); animation-delay:-0.3s; }
+        .tv-icon .screen-bars rect:nth-child(5){ fill:var(--grad-a); animation-delay:0s; }
+        @keyframes bar-flicker{
+            0%,100%{ transform: scaleY(0.45); opacity:.65; }
+            50%{ transform: scaleY(1); opacity:1; }
         }
 
-        .brand-row{
-            display:flex; align-items:baseline; gap:8px;
-            letter-spacing:2px;
-        }
         .brand-name{
-            font-size:13px; font-weight:700;
-            color:var(--text);
+            font-size:15px; font-weight:700;
+            letter-spacing:1px;
             text-transform:uppercase;
+            background: linear-gradient(90deg, var(--grad-a), var(--grad-b));
+            -webkit-background-clip:text;
+            background-clip:text;
+            color:transparent;
         }
-        .brand-name em{
-            color:var(--signal);
-            font-style:normal;
-        }
-        .chan-tag{
-            font-size:10px;
-            color:var(--text-dim);
-            border:1px solid var(--signal-dim);
-            border-radius:3px;
-            padding:1px 6px;
-        }
+        .brand-name b{ color:var(--text); -webkit-text-fill-color:var(--text); }
 
-        /* slim indeterminate loading bar */
-        .load-bar{
-            width:88px; height:2px;
-            border-radius:2px;
-            background: rgba(109,255,176,0.14);
-            overflow:hidden;
+        /* three softly pulsing dots — the only loading indicator, no cycling text */
+        .dots{
+            display:flex; gap:6px;
         }
-        .load-bar::after{
-            content:"";
-            display:block;
-            width:36%; height:100%;
-            background: var(--signal);
-            box-shadow: 0 0 6px var(--signal);
-            border-radius:2px;
-            animation: bar-sweep 1.3s ease-in-out infinite;
+        .dots span{
+            width:6px; height:6px;
+            border-radius:50%;
+            background: var(--grad-b);
+            animation: dot-pulse 1.2s ease-in-out infinite;
         }
-        @keyframes bar-sweep{
-            0%{ transform: translateX(-100%); }
-            100%{ transform: translateX(340%); }
+        .dots span:nth-child(1){ animation-delay:0s; }
+        .dots span:nth-child(2){ animation-delay:.2s; }
+        .dots span:nth-child(3){ animation-delay:.4s; }
+        @keyframes dot-pulse{
+            0%,80%,100%{ transform:scale(0.6); opacity:.35; }
+            40%{ transform:scale(1); opacity:1; }
         }
 
         .status-line{
-            font-size:10px;
+            font-family:var(--mono);
+            font-size:9.5px;
             letter-spacing:2.5px;
             color:var(--text-dim);
             text-transform:uppercase;
@@ -163,8 +166,8 @@
             z-index:50;
             width:64px; height:64px;
             border-radius:50%;
-            background: rgba(6,9,10,0.68);
-            border:1px solid rgba(109,255,176,0.4);
+            background: rgba(10,10,18,0.68);
+            border:1px solid rgba(167,139,250,0.4);
             display:flex; align-items:center; justify-content:center;
             opacity:0;
             pointer-events:none;
@@ -178,7 +181,7 @@
         #sound-flash svg{ width:26px; height:26px; }
         #sound-flash .bar{
             fill:none;
-            stroke: var(--signal);
+            stroke: var(--grad-b);
             stroke-width:2.4;
             stroke-linecap:round;
         }
@@ -189,6 +192,7 @@
             color: var(--text);
             z-index:100;
             padding: 0 24px;
+            font-family:var(--font);
         }
         .state-content .glyph{
             font-size:34px;
@@ -198,28 +202,29 @@
         }
         .state-content .glyph.warn{ color: var(--warn); }
         .state-content p.title{
-            font-size:12px;
-            letter-spacing:2px;
-            text-transform:uppercase;
+            font-size:13px;
+            letter-spacing:1px;
+            font-weight:600;
         }
         .state-content p.sub{
+            font-family:var(--mono);
             font-size:10.5px;
             color: var(--text-dim);
             margin-top:8px;
-            letter-spacing:1px;
+            letter-spacing:.5px;
             max-width:280px;
         }
-        .state-content .brand-row{ justify-content:center; margin-top:18px; }
+        .state-content .brand-name{ display:block; margin-top:18px; }
 
         .retry-btn{
             margin-top:16px;
-            padding:8px 18px;
-            font-family:var(--mono);
-            font-size:10.5px;
-            letter-spacing:1.5px;
-            text-transform:uppercase;
-            color:var(--bg);
-            background: var(--signal);
+            padding:8px 20px;
+            font-family:var(--font);
+            font-weight:600;
+            font-size:11px;
+            letter-spacing:.5px;
+            color:#0a0a12;
+            background: linear-gradient(90deg, var(--grad-a), var(--grad-b));
             border:none;
             border-radius:18px;
             cursor:pointer;
@@ -232,19 +237,26 @@
     <div id="player-wrapper">
         <div id="loader">
             <div class="tuner">
-                <svg class="tv-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                    <path class="tv-body" d="M22 14 32 22 42 14"/>
-                    <rect class="tv-screen" x="10" y="22" width="44" height="30" rx="4"/>
-                    <rect class="tv-body" x="10" y="22" width="44" height="30" rx="4"/>
-                    <line class="tv-body" x1="24" y1="52" x2="24" y2="56"/>
-                    <line class="tv-body" x1="40" y1="52" x2="40" y2="56"/>
-                    <line class="tv-body" x1="20" y1="56" x2="44" y2="56"/>
-                </svg>
-                <div class="brand-row">
-                    <span class="brand-name">RS LIVE <em>TV</em></span>
-                    <span class="chan-tag" id="chan-tag">SRC 01</span>
+                <div class="tv-wrap">
+                    <div class="tv-glow"></div>
+                    <svg class="tv-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                        <path class="tv-body" d="M22 12 32 20 42 12"/>
+                        <clipPath id="screenClip"><rect x="12" y="20" width="40" height="26" rx="4"/></clipPath>
+                        <g class="screen-bars" clip-path="url(#screenClip)">
+                            <rect x="12" y="20" width="8" height="26"/>
+                            <rect x="20" y="20" width="8" height="26"/>
+                            <rect x="28" y="20" width="8" height="26"/>
+                            <rect x="36" y="20" width="8" height="26"/>
+                            <rect x="44" y="20" width="8" height="26"/>
+                        </g>
+                        <rect class="tv-body" x="12" y="20" width="40" height="26" rx="4"/>
+                        <line class="tv-body" x1="24" y1="46" x2="24" y2="50"/>
+                        <line class="tv-body" x1="40" y1="46" x2="40" y2="50"/>
+                        <line class="tv-body" x1="20" y1="50" x2="44" y2="50"/>
+                    </svg>
                 </div>
-                <div class="load-bar"></div>
+                <div class="brand-name"><b>RS LIVE</b> TV</div>
+                <div class="dots"><span></span><span></span><span></span></div>
                 <div class="status-line" id="status-line">LOADING</div>
             </div>
         </div>
@@ -260,7 +272,6 @@
 
         const loaderEl    = document.getElementById('loader');
         const statusEl    = document.getElementById('status-line');
-        const chanTagEl   = document.getElementById('chan-tag');
         const soundFlash  = document.getElementById('sound-flash');
         const wrapperEl   = document.getElementById('player-wrapper');
 
@@ -291,7 +302,7 @@
         }
 
         function brandBlock(){
-            return '<div class="brand-row"><span class="brand-name">RS LIVE <em>TV</em></span></div>';
+            return '<div class="brand-name"><b>RS LIVE</b> TV</div>';
         }
 
         // ---- detect stream type from the URL so every common link works ----
@@ -320,7 +331,6 @@
             );
         } else {
             const streamType = detectType(streamSource);
-            chanTagEl.textContent = (streamType || 'auto').toUpperCase();
 
             const playlistItem = { file: streamSource };
             if (streamType) playlistItem.type = streamType;
