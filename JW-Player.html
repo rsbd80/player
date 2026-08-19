@@ -188,31 +188,32 @@
 
         .hide-now{ opacity:0 !important; visibility:hidden !important; }
 
-        /* ---------- unmute prompt ---------- */
-        #unmute-btn{
+        /* ---------- tap-to-toggle sound flash ---------- */
+        #sound-flash{
             position:absolute;
-            bottom:22px; right:16px;
+            top:50%; left:50%;
+            transform: translate(-50%,-50%) scale(0.85);
             z-index:50;
-            display:none;
-            align-items:center; gap:8px;
-            padding:9px 14px;
-            border-radius:20px;
+            width:64px; height:64px;
+            border-radius:50%;
+            background: rgba(6,9,10,0.68);
             border:1px solid rgba(109,255,176,0.4);
-            background: rgba(6,9,10,0.72);
-            color:var(--text);
-            font-family:var(--mono);
-            font-size:11px;
-            letter-spacing:1px;
-            text-transform:uppercase;
-            cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            opacity:0;
+            pointer-events:none;
+            transition: opacity .18s ease, transform .18s ease;
             backdrop-filter: blur(4px);
         }
-        #unmute-btn.show{ display:flex; }
-        #unmute-btn:active{ transform: scale(0.96); }
-        #unmute-btn .dot{
-            width:7px; height:7px; border-radius:50%;
-            background: var(--signal);
-            box-shadow: 0 0 6px var(--signal);
+        #sound-flash.show{
+            opacity:1;
+            transform: translate(-50%,-50%) scale(1);
+        }
+        #sound-flash svg{ width:26px; height:26px; }
+        #sound-flash .bar{
+            fill:none;
+            stroke: var(--signal);
+            stroke-width:2.4;
+            stroke-linecap:round;
         }
 
         /* ---------- error / empty states ---------- */
@@ -277,7 +278,7 @@
             </div>
         </div>
         <div id="player"></div>
-        <button id="unmute-btn"><span class="dot"></span><span>Tap for sound</span></button>
+        <div id="sound-flash"></div>
     </div>
 
     <script>
@@ -286,10 +287,21 @@
         const forcedType   = (urlParams.get('type') || '').toLowerCase();
         const startMuted   = urlParams.get('mute') !== '0'; // muted-autostart by default = faster, reliable start
 
-        const loaderEl   = document.getElementById('loader');
-        const statusEl   = document.getElementById('status-line');
-        const chanTagEl  = document.getElementById('chan-tag');
-        const unmuteBtn  = document.getElementById('unmute-btn');
+        const loaderEl    = document.getElementById('loader');
+        const statusEl    = document.getElementById('status-line');
+        const chanTagEl   = document.getElementById('chan-tag');
+        const soundFlash  = document.getElementById('sound-flash');
+        const wrapperEl   = document.getElementById('player-wrapper');
+
+        const ICON_ON  = '<svg viewBox="0 0 24 24"><path class="bar" d="M4 9v6h4l5 4V5L8 9H4z"/><path class="bar" d="M16.5 8.5c1.2 1.2 1.2 5.8 0 7"/><path class="bar" d="M19 6c2.5 2.5 2.5 9.5 0 12"/></svg>';
+        const ICON_OFF = '<svg viewBox="0 0 24 24"><path class="bar" d="M4 9v6h4l5 4V5L8 9H4z"/><path class="bar" d="M16 9l5 6"/><path class="bar" d="M21 9l-5 6"/></svg>';
+
+        function flashSoundIcon(muted){
+            soundFlash.innerHTML = muted ? ICON_OFF : ICON_ON;
+            soundFlash.classList.add('show');
+            clearTimeout(flashSoundIcon._t);
+            flashSoundIcon._t = setTimeout(() => soundFlash.classList.remove('show'), 550);
+        }
 
         const statusMessages = [
             'ACQUIRING SIGNAL',
@@ -363,6 +375,7 @@
             let retryCount = 0;
             const maxRetries = 6;
             let retryTimer = null;
+            let isMuted = startMuted;
 
             player.on('ready', () => {
                 console.log('Player ready — source type:', streamType || 'auto-detected');
@@ -372,7 +385,6 @@
                 clearInterval(statusTimer);
                 hideLoader();
                 retryCount = 0;
-                if (startMuted) unmuteBtn.classList.add('show');
                 console.log('First frame painted');
             });
 
@@ -411,10 +423,13 @@
                 );
             }
 
-            unmuteBtn.addEventListener('click', () => {
-                player.setMute(false);
-                player.setVolume(100);
-                unmuteBtn.classList.remove('show');
+            // every tap on the video toggles sound on/off — no separate unmute button
+            wrapperEl.addEventListener('click', (e) => {
+                if (e.target.closest('.jw-controlbar')) return; // let volume/seek controls behave normally
+                isMuted = !isMuted;
+                player.setMute(isMuted);
+                if (!isMuted) player.setVolume(100);
+                flashSoundIcon(isMuted);
             });
         }
     </script>
