@@ -46,6 +46,10 @@
             height:100% !important;
             position:absolute;
             top:0; left:0;
+            touch-action: manipulation; /* suppress native double-tap zoom/fullscreen gesture */
+        }
+        #player video{
+            touch-action: manipulation;
         }
 
         /* ---------- JW controlbar skin ---------- */
@@ -342,6 +346,16 @@
             // on very brief, harmless buffer blips.
             const BUFFER_SHOW_DELAY = 400;
             let bufferShowTimer = null;
+
+            player.on('ready', () => {
+                const videoEl = document.querySelector('#player video');
+                if (videoEl) {
+                    videoEl.addEventListener('dblclick', function(e){
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }, true);
+                }
+            });
 
             let inFullscreenTransition = false;
 
