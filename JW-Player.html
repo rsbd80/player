@@ -301,7 +301,7 @@
                 autostart: true,
                 mute: startMuted,          // sound on by default now — plays audibly right away
                 preload: 'auto',
-                stretching: 'exactfit',    // keeps the frame filled edge-to-edge (matches source aspect handling)
+                stretching: 'uniform',      // less GPU-heavy than exactfit; reduces resize hitches on fullscreen toggle
                 liveTimeout: 0,            // never auto-stop a live feed on its own
                 skin: { name: 'glow' },
                 displaytitle: false
@@ -343,7 +343,10 @@
             const BUFFER_SHOW_DELAY = 400;
             let bufferShowTimer = null;
 
+            let inFullscreenTransition = false;
+
             player.on('buffer', () => {
+                if (inFullscreenTransition) return; // skip loader flash caused by fullscreen resize
                 clearTimeout(bufferShowTimer);
                 bufferShowTimer = setTimeout(showLoader, BUFFER_SHOW_DELAY);
             });
@@ -352,6 +355,16 @@
             });
             player.on('firstFrame', () => {
                 clearTimeout(bufferShowTimer);
+            });
+
+            // JW fires 'fullscreen' with {fullscreen: true/false} right as the
+            // transition starts. Give the resize/reflow a short grace window
+            // where we won't pop the loader overlay for the expected hitch.
+            player.on('fullscreen', (evt) => {
+                inFullscreenTransition = true;
+                clearTimeout(bufferShowTimer);
+                hideLoader();
+                setTimeout(() => { inFullscreenTransition = false; }, 1200);
             });
 
             player.on('error', handleFault);
