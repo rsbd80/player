@@ -1,435 +1,173 @@
 <!DOCTYPE html><html lang="en">
 <head>
-<meta charset="UTF-8"><meta
-name="viewport"
-content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
-
-«»
-
-<title>RS Player Pro</title><script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script><script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"><title>RS Player Pro</title><script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script><script>
 jwplayer.key = "Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
 </script><link rel="preconnect" href="https://content.jwplatform.com"><style>
-
-/* =========================================================
-   ROOT
-========================================================= */
-
 :root{
     --bg-1:#0a0a12;
     --bg-2:#14101f;
-
     --grad-a:#22d3ee;
     --grad-b:#a78bfa;
     --grad-c:#fb923c;
-
     --warn:#ffb84d;
     --alert:#ff5d5d;
-
     --text:#eef0f7;
     --text-dim:#7a7a92;
-
     --font:'Poppins','Segoe UI',sans-serif;
     --mono:'JetBrains Mono','Courier New',monospace;
 }
-
-
-/* =========================================================
-   RESET
-========================================================= */
 
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
-
     -webkit-tap-highlight-color:transparent;
-    -webkit-touch-callout:none;
 }
 
 html,
 body{
     width:100%;
     height:100%;
-
-    margin:0;
-    padding:0;
-
     background:#000;
-
     overflow:hidden;
-
+    font-family:var(--font);
     position:fixed;
     inset:0;
-
-    font-family:var(--font);
-
     overscroll-behavior:none;
 }
 
-
-/* =========================================================
-   PLAYER WRAPPER
-========================================================= */
+body{
+    touch-action:pan-x pan-y;
+}
 
 #player-wrapper{
-
     position:fixed;
-
-    left:0;
-    top:0;
-
+    inset:0;
     width:100%;
     height:100%;
-
-    background:#000;
-
     overflow:hidden;
-
+    background:#000;
     contain:layout paint;
-
-    isolation:isolate;
 }
-
-
-/*
-    IMPORTANT:
-
-    Fullscreen is applied to THIS wrapper,
-    not JW Player's fullscreen system.
-*/
-
-#player-wrapper.rs-fullscreen{
-
-    position:fixed;
-
-    left:0;
-    top:0;
-
-    width:100vw;
-    height:100vh;
-
-    width:100dvw;
-    height:100dvh;
-
-    background:#000;
-
-    z-index:999999;
-
-    overflow:hidden;
-}
-
-
-/* =========================================================
-   JW PLAYER
-========================================================= */
 
 #player{
-
     position:absolute;
-
-    left:0;
-    top:0;
-
+    inset:0;
     width:100%!important;
     height:100%!important;
-
-    background:#000;
-
     touch-action:manipulation;
-
-    overflow:hidden;
 }
-
 
 /*
-    VERY IMPORTANT:
-
-    Don't apply transform/filter/backdrop-filter
-    to JW/video.
+ IMPORTANT:
+ Do not put transition/filter/backdrop-filter on the player.
+ These can cause Chrome Android video compositing lag.
 */
-
-#player,
-.jwplayer,
-.jw-media,
-.jw-video{
-    transform:none!important;
-    filter:none!important;
-
-    -webkit-filter:none!important;
-
-    backdrop-filter:none!important;
-    -webkit-backdrop-filter:none!important;
-}
-
-
-/* =========================================================
-   VIDEO
-========================================================= */
-
 #player video,
 .jw-video{
-
-    position:absolute!important;
-
-    left:0!important;
-    top:0!important;
-
     width:100%!important;
     height:100%!important;
-
-    /*
-       Keep your requested FILL mode.
-    */
     object-fit:fill!important;
-
     touch-action:manipulation!important;
-
-    background:#000;
-
     -webkit-user-select:none;
     user-select:none;
-
-    -webkit-touch-callout:none;
 }
 
-
-/*
-    Fullscreen video remains FILL.
-*/
-
-#player-wrapper.rs-fullscreen video,
-#player-wrapper.rs-fullscreen .jw-video{
-
-    width:100%!important;
-    height:100%!important;
-
-    object-fit:fill!important;
+/* Chrome fullscreen */
+video::-webkit-media-controls{
+    display:none!important;
 }
 
-
-/* =========================================================
-   JW SKIN
-========================================================= */
+/* ---------- JW SKIN ---------- */
 
 .jw-skin-glow .jw-display-icon-container{
-
     background:rgba(167,139,250,.10)!important;
-
     border:1px solid rgba(167,139,250,.4);
-
     backdrop-filter:none!important;
     -webkit-backdrop-filter:none!important;
 }
-
 
 .jw-skin-glow .jw-button-color{
     color:#fff!important;
 }
 
-
 .jw-skin-glow .jw-controlbar{
-
-    background:
-        linear-gradient(
-            0deg,
-            rgba(0,0,0,.78),
-            transparent
-        )!important;
+    background:linear-gradient(
+        0deg,
+        rgba(0,0,0,.75),
+        transparent
+    )!important;
 
     backdrop-filter:none!important;
     -webkit-backdrop-filter:none!important;
 }
 
-
 .jw-skin-glow .jw-slider-time .jw-progress{
     background:var(--grad-b)!important;
 }
-
 
 .jw-skin-glow .jw-knob{
     background:var(--grad-b)!important;
 }
 
-
-/*
-    HIDE JW NATIVE FULLSCREEN BUTTON.
-
-    We use our own button instead.
-*/
-
-.jw-icon-fullscreen{
-    display:none!important;
+/* Keep FILL mode */
+.jw-video.jw-reset{
+    object-fit:fill!important;
 }
 
-
-/* =========================================================
-   CUSTOM FULLSCREEN BUTTON
-========================================================= */
-
-#rs-fullscreen-button{
-
-    position:absolute;
-
-    right:12px;
-    bottom:58px;
-
-    width:42px;
-    height:42px;
-
-    border:0;
-    outline:none;
-
-    border-radius:50%;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    background:rgba(0,0,0,.55);
-
-    color:#fff;
-
-    font-size:20px;
-
-    z-index:99999;
-
-    cursor:pointer;
-
-    touch-action:manipulation;
-
-    opacity:.88;
-
-    transition:
-        opacity .15s ease,
-        transform .1s ease;
-}
-
-
-#rs-fullscreen-button:active{
-
-    transform:scale(.90);
-
-    opacity:1;
-}
-
-
-#rs-fullscreen-button svg{
-
-    width:21px;
-    height:21px;
-
-    fill:none;
-
-    stroke:#fff;
-
-    stroke-width:2;
-
-    stroke-linecap:round;
-
-    stroke-linejoin:round;
-}
-
-
-/*
-    When browser is fullscreen,
-    keep custom button above video.
-*/
-
-#player-wrapper.rs-fullscreen
-#rs-fullscreen-button{
-
-    z-index:2147483647;
-}
-
-
-/* =========================================================
-   LOADER
-========================================================= */
+/* ================= LOADER ================= */
 
 #loader{
-
     position:absolute;
-
     inset:0;
-
-    background:
-        radial-gradient(
-            80% 60% at 50% 40%,
-            var(--bg-2) 0%,
-            var(--bg-1) 70%
-        );
+    background:radial-gradient(
+        80% 60% at 50% 40%,
+        var(--bg-2) 0%,
+        var(--bg-1) 70%
+    );
 
     display:flex;
-
     justify-content:center;
     align-items:center;
-
     flex-direction:column;
 
-    z-index:999;
+    z-index:99;
 
     transition:
-        opacity .22s ease,
-        visibility .22s ease;
+        opacity .25s ease,
+        visibility .25s ease;
 
-    /*
-       IMPORTANT:
-
-       Loader NEVER catches touch.
-    */
     pointer-events:none;
 }
 
-
 #loader.hide-now{
-
     opacity:0!important;
-
     visibility:hidden!important;
-
     pointer-events:none!important;
 }
 
-
-/* =========================================================
-   LOADER TV
-========================================================= */
-
 .tuner{
-
     display:flex;
-
     flex-direction:column;
-
     align-items:center;
-
     gap:20px;
 }
 
-
 .tv-wrap{
-
     position:relative;
-
     width:78px;
     height:78px;
-
     display:flex;
-
     align-items:center;
     justify-content:center;
 }
 
-
 .tv-glow{
-
     position:absolute;
-
     width:100%;
     height:100%;
-
     border-radius:50%;
-
     background:
         radial-gradient(
             circle,
@@ -440,9 +178,7 @@ body{
     animation:glow-pulse 2.4s ease-in-out infinite;
 }
 
-
 @keyframes glow-pulse{
-
     0%,100%{
         transform:scale(.85);
         opacity:.5;
@@ -454,84 +190,51 @@ body{
     }
 }
 
-
 .tv-icon{
-
     position:relative;
-
     width:60px;
     height:60px;
 }
 
-
 .tv-icon .tv-body{
-
     fill:none;
-
     stroke:var(--text);
-
     stroke-width:2;
-
     stroke-linecap:round;
-
     stroke-linejoin:round;
 }
 
-
 .tv-icon .screen-bars rect{
-
     transform-origin:bottom;
-
-    animation:
-        bar-flicker
-        1.6s
-        ease-in-out
-        infinite;
+    animation:bar-flicker 1.6s ease-in-out infinite;
 }
 
-
 .tv-icon .screen-bars rect:nth-child(1){
-
     fill:var(--grad-a);
-
     animation-delay:-1.2s;
 }
 
-
 .tv-icon .screen-bars rect:nth-child(2){
-
     fill:var(--grad-b);
-
     animation-delay:-.9s;
 }
 
-
 .tv-icon .screen-bars rect:nth-child(3){
-
     fill:var(--grad-c);
-
     animation-delay:-.6s;
 }
 
-
 .tv-icon .screen-bars rect:nth-child(4){
-
     fill:var(--grad-b);
-
     animation-delay:-.3s;
 }
 
-
 .tv-icon .screen-bars rect:nth-child(5){
-
     fill:var(--grad-a);
-
     animation-delay:0s;
 }
 
-
 @keyframes bar-flicker{
-
     0%,100%{
         transform:scaleY(.45);
         opacity:.65;
@@ -543,19 +246,10 @@ body{
     }
 }
 
-
-/* =========================================================
-   BRAND
-========================================================= */
-
 .brand-name{
-
     font-size:15px;
-
     font-weight:700;
-
     letter-spacing:1px;
-
     text-transform:uppercase;
 
     background:
@@ -567,65 +261,40 @@ body{
 
     -webkit-background-clip:text;
     background-clip:text;
-
     color:transparent;
 }
 
-
 .brand-name b{
-
     color:var(--text);
-
     -webkit-text-fill-color:var(--text);
 }
 
-
-/* =========================================================
-   LOADING DOTS
-========================================================= */
-
 .dots{
-
     display:flex;
-
     gap:6px;
 }
 
-
 .dots span{
-
     width:6px;
     height:6px;
-
     border-radius:50%;
-
     background:var(--grad-b);
-
-    animation:
-        dot-pulse
-        1.2s
-        ease-in-out
-        infinite;
+    animation:dot-pulse 1.2s ease-in-out infinite;
 }
-
 
 .dots span:nth-child(1){
     animation-delay:0s;
 }
 
-
 .dots span:nth-child(2){
     animation-delay:.2s;
 }
-
 
 .dots span:nth-child(3){
     animation-delay:.4s;
 }
 
-
 @keyframes dot-pulse{
-
     0%,80%,100%{
         transform:scale(.6);
         opacity:.35;
@@ -637,110 +306,63 @@ body{
     }
 }
 
-
-/* =========================================================
-   STATUS
-========================================================= */
-
 .status-line{
-
     font-family:var(--mono);
-
     font-size:9.5px;
-
     letter-spacing:2.5px;
-
     color:var(--text-dim);
-
     text-transform:uppercase;
 }
 
-
-/* =========================================================
-   ERROR STATE
-========================================================= */
+/* ---------- ERROR ---------- */
 
 .state-content{
-
     text-align:center;
-
     color:var(--text);
-
     z-index:100;
-
     padding:0 24px;
-
     font-family:var(--font);
-
     pointer-events:auto;
 }
 
-
 .state-content .glyph{
-
     font-size:34px;
-
     color:var(--alert);
-
     margin-bottom:14px;
-
     line-height:1;
 }
-
 
 .state-content .glyph.warn{
     color:var(--warn);
 }
 
-
 .state-content p.title{
-
     font-size:13px;
-
     letter-spacing:1px;
-
     font-weight:600;
 }
 
-
 .state-content p.sub{
-
     font-family:var(--mono);
-
     font-size:10.5px;
-
     color:var(--text-dim);
-
     margin-top:8px;
-
     letter-spacing:.5px;
-
     max-width:280px;
 }
 
-
 .state-content .brand-name{
-
     display:block;
-
     margin-top:18px;
 }
 
-
 .retry-btn{
-
     margin-top:16px;
-
     padding:8px 20px;
-
     font-family:var(--font);
-
     font-weight:600;
-
     font-size:11px;
-
     letter-spacing:.5px;
-
     color:#0a0a12;
 
     background:
@@ -751,103 +373,46 @@ body{
         );
 
     border:none;
-
     border-radius:18px;
-
     cursor:pointer;
-
     touch-action:manipulation;
 }
-
 
 .retry-btn:active{
     transform:scale(.96);
 }
 
+/* ================= FULLSCREEN ================= */
 
-/* =========================================================
-   BROWSER FULLSCREEN
-========================================================= */
-
-:fullscreen #player-wrapper,
-:-webkit-full-screen #player-wrapper{
-
-    width:100vw!important;
-    height:100vh!important;
-
-    width:100dvw!important;
-    height:100dvh!important;
-
-    background:#000!important;
-
-    overflow:hidden!important;
-}
-
-
-/*
-    Prevent browser fullscreen from adding
-    unexpected player transitions.
-*/
-
-:fullscreen #player,
-:-webkit-full-screen #player{
-
+.jwplayer.jw-flag-fullscreen,
+.jwplayer.jw-flag-fullscreen .jw-media,
+.jwplayer.jw-flag-fullscreen video{
     width:100%!important;
     height:100%!important;
+}
 
+.jwplayer.jw-flag-fullscreen video{
+    object-fit:fill!important;
+}
+
+/*
+ Prevent Chrome from applying visual compositing effects
+ during touch/fullscreen.
+*/
+.jwplayer,
+.jw-media,
+.jw-video{
     transform:none!important;
-
     filter:none!important;
+    will-change:auto!important;
 }
-
-
-/* =========================================================
-   SMALL SCREEN
-========================================================= */
-
-@media (max-width:600px){
-
-    #rs-fullscreen-button{
-
-        right:10px;
-
-        bottom:55px;
-
-        width:40px;
-        height:40px;
-    }
-
-}
-
-
-/* =========================================================
-   LANDSCAPE
-========================================================= */
-
-@media screen and (orientation:landscape){
-
-    #rs-fullscreen-button{
-
-        right:12px;
-
-        bottom:58px;
-    }
-
-}
-
-</style></head><body><div id="player-wrapper"><!-- =====================================================
-     LOADER
-====================================================== -->
-
-<div id="loader">
+</style></head><body><div id="player-wrapper"><div id="loader">
 
     <div class="tuner">
-
 
         <div class="tv-wrap">
 
             <div class="tv-glow"></div>
-
 
             <svg
                 class="tv-icon"
@@ -860,9 +425,7 @@ body{
                     d="M22 12 32 20 42 12"
                 />
 
-
                 <clipPath id="screenClip">
-
                     <rect
                         x="12"
                         y="20"
@@ -870,52 +433,18 @@ body{
                         height="26"
                         rx="4"
                     />
-
                 </clipPath>
-
 
                 <g
                     class="screen-bars"
                     clip-path="url(#screenClip)"
                 >
-
-                    <rect
-                        x="12"
-                        y="20"
-                        width="8"
-                        height="26"
-                    />
-
-                    <rect
-                        x="20"
-                        y="20"
-                        width="8"
-                        height="26"
-                    />
-
-                    <rect
-                        x="28"
-                        y="20"
-                        width="8"
-                        height="26"
-                    />
-
-                    <rect
-                        x="36"
-                        y="20"
-                        width="8"
-                        height="26"
-                    />
-
-                    <rect
-                        x="44"
-                        y="20"
-                        width="8"
-                        height="26"
-                    />
-
+                    <rect x="12" y="20" width="8" height="26"/>
+                    <rect x="20" y="20" width="8" height="26"/>
+                    <rect x="28" y="20" width="8" height="26"/>
+                    <rect x="36" y="20" width="8" height="26"/>
+                    <rect x="44" y="20" width="8" height="26"/>
                 </g>
-
 
                 <rect
                     class="tv-body"
@@ -926,7 +455,6 @@ body{
                     rx="4"
                 />
 
-
                 <line
                     class="tv-body"
                     x1="24"
@@ -935,7 +463,6 @@ body{
                     y2="50"
                 />
 
-
                 <line
                     class="tv-body"
                     x1="40"
@@ -943,7 +470,6 @@ body{
                     x2="40"
                     y2="50"
                 />
-
 
                 <line
                     class="tv-body"
@@ -957,20 +483,15 @@ body{
 
         </div>
 
-
         <div class="brand-name">
             <b>RS LIVE</b> TV
         </div>
 
-
         <div class="dots">
-
             <span></span>
             <span></span>
             <span></span>
-
         </div>
-
 
         <div
             class="status-line"
@@ -979,175 +500,56 @@ body{
             LOADING
         </div>
 
-
     </div>
 
 </div>
 
-
-<!-- =====================================================
-     PLAYER
-====================================================== -->
-
 <div id="player"></div>
-
-
-<!-- =====================================================
-     CUSTOM FULLSCREEN BUTTON
-====================================================== -->
-
-<button
-    id="rs-fullscreen-button"
-    type="button"
-    aria-label="Fullscreen"
-    title="Fullscreen"
->
-
-    <!-- Enter fullscreen icon -->
-
-    <svg
-        id="fullscreen-enter-icon"
-        viewBox="0 0 24 24"
-    >
-
-        <path d="M8 3H3v5"></path>
-        <path d="M16 3h5v5"></path>
-        <path d="M21 16v5h-5"></path>
-        <path d="M3 16v5h5"></path>
-
-    </svg>
-
-
-    <!-- Exit fullscreen icon -->
-
-    <svg
-        id="fullscreen-exit-icon"
-        viewBox="0 0 24 24"
-        style="display:none"
-    >
-
-        <path d="M9 3v6H3"></path>
-        <path d="M15 3v6h6"></path>
-        <path d="M9 21v-6H3"></path>
-        <path d="M15 21v-6h6"></path>
-
-    </svg>
-
-</button>
 
 </div><script>
 
-/* =========================================================
-   URL PARAMETERS
-========================================================= */
-
 const urlParams =
-    new URLSearchParams(
-        window.location.search
-    );
-
+    new URLSearchParams(window.location.search);
 
 const streamSource =
     urlParams.get('url');
 
-
 const forcedType =
-    (
-        urlParams.get('type') || ''
-    ).toLowerCase();
-
+    (urlParams.get('type') || '').toLowerCase();
 
 const startMuted =
     urlParams.get('mute') === '1';
 
-
-/* =========================================================
-   ELEMENTS
-========================================================= */
-
-const wrapper =
-    document.getElementById(
-        'player-wrapper'
-    );
-
-
 const loaderEl =
-    document.getElementById(
-        'loader'
-    );
-
+    document.getElementById('loader');
 
 const statusEl =
-    document.getElementById(
-        'status-line'
-    );
+    document.getElementById('status-line');
 
 
-const fullscreenButton =
-    document.getElementById(
-        'rs-fullscreen-button'
-    );
-
-
-const enterIcon =
-    document.getElementById(
-        'fullscreen-enter-icon'
-    );
-
-
-const exitIcon =
-    document.getElementById(
-        'fullscreen-exit-icon'
-    );
-
-
-/* =========================================================
-   LOADER
-========================================================= */
+/* ================= LOADER STATUS ================= */
 
 const statusMessages = [
-
     'LOADING',
-
     'CONNECTING',
-
     'BUFFERING'
-
 ];
-
 
 let statusIdx = 0;
 
-
-const statusTimer =
+let statusTimer =
     setInterval(() => {
 
-        /*
-            Don't update the loader if hidden.
-        */
-
         if(
-            loaderEl.classList.contains(
-                'hide-now'
-            )
-        ){
-
-            return;
-
-        }
-
+            loaderEl.classList.contains('hide-now')
+        ) return;
 
         statusIdx =
-            (
-                statusIdx + 1
-            ) %
+            (statusIdx + 1) %
             statusMessages.length;
 
-
         statusEl.textContent =
-            statusMessages[
-                statusIdx
-            ];
+            statusMessages[statusIdx];
 
     },1800);
 
@@ -1157,7 +559,6 @@ function showLoader(){
     loaderEl.classList.remove(
         'hide-now'
     );
-
 }
 
 
@@ -1166,78 +567,49 @@ function hideLoader(){
     loaderEl.classList.add(
         'hide-now'
     );
-
 }
 
 
 function showState(html){
 
-    clearInterval(
-        statusTimer
-    );
+    clearInterval(statusTimer);
 
-    loaderEl.innerHTML =
-        html;
+    loaderEl.innerHTML = html;
 
     showLoader();
-
 }
 
 
 function brandBlock(){
 
     return `
-
         <div class="brand-name">
-
             <b>RS LIVE</b> TV
-
         </div>
-
     `;
-
 }
 
 
-/* =========================================================
-   WAKE LOCK
-========================================================= */
+/* ================= WAKE LOCK ================= */
 
 let wakeLock = null;
-
 let wakeLockWanted = false;
-
 
 async function requestWakeLock(){
 
     wakeLockWanted = true;
 
-
-    if(
-        !('wakeLock' in navigator)
-    ){
-
+    if(!('wakeLock' in navigator))
         return;
 
-    }
-
-
-    if(wakeLock){
-
+    if(wakeLock)
         return;
-
-    }
-
 
     if(
         document.visibilityState !==
         'visible'
-    ){
-
+    )
         return;
-
-    }
-
 
     try{
 
@@ -1245,7 +617,6 @@ async function requestWakeLock(){
             await navigator.wakeLock.request(
                 'screen'
             );
-
 
         wakeLock.addEventListener(
             'release',
@@ -1256,13 +627,11 @@ async function requestWakeLock(){
             }
         );
 
-
-    }catch(error){
+    }catch(e){
 
         wakeLock = null;
 
     }
-
 }
 
 
@@ -1270,20 +639,14 @@ async function releaseWakeLock(){
 
     wakeLockWanted = false;
 
-
     if(wakeLock){
 
         try{
-
             await wakeLock.release();
-
-        }catch(error){}
-
+        }catch(e){}
 
         wakeLock = null;
-
     }
-
 }
 
 
@@ -1298,489 +661,57 @@ document.addEventListener(
         ){
 
             requestWakeLock();
-
         }
 
     }
 );
 
 
-/* =========================================================
-   STREAM TYPE
-========================================================= */
+/* ================= STREAM TYPE ================= */
 
 function detectType(raw){
 
-    if(forcedType){
-
+    if(forcedType)
         return forcedType;
-
-    }
-
 
     const clean =
         raw
-            .split('?')[0]
-            .split('#')[0]
-            .toLowerCase();
+        .split('?')[0]
+        .split('#')[0]
+        .toLowerCase();
 
-
-    if(
-        clean.endsWith('.m3u8')
-    ){
-
+    if(clean.endsWith('.m3u8'))
         return 'hls';
 
-    }
-
-
-    if(
-        clean.endsWith('.mpd')
-    ){
-
+    if(clean.endsWith('.mpd'))
         return 'dash';
 
-    }
-
-
-    if(
-        clean.endsWith('.mp4')
-    ){
-
+    if(clean.endsWith('.mp4'))
         return 'mp4';
 
-    }
-
-
-    if(
-        clean.endsWith('.webm')
-    ){
-
+    if(clean.endsWith('.webm'))
         return 'webm';
 
-    }
-
-
-    if(
-        clean.endsWith('.mov')
-    ){
-
+    if(clean.endsWith('.mov'))
         return 'mp4';
-
-    }
-
 
     if(
         clean.endsWith('.ogg') ||
         clean.endsWith('.ogv')
-    ){
-
+    )
         return 'ogg';
 
-    }
-
-
-    if(
-        raw.includes('.m3u8')
-    ){
-
+    if(raw.includes('.m3u8'))
         return 'hls';
 
-    }
-
-
-    if(
-        raw.includes('.mpd')
-    ){
-
+    if(raw.includes('.mpd'))
         return 'dash';
 
-    }
-
-
     return null;
-
 }
 
 
-/* =========================================================
-   FULLSCREEN FUNCTIONS
-========================================================= */
-
-let fullscreenBusy = false;
-
-
-/*
-    Detect current fullscreen state.
-*/
-
-function isFullscreen(){
-
-    return Boolean(
-        document.fullscreenElement ||
-        document.webkitFullscreenElement
-    );
-
-}
-
-
-/*
-    Update our fullscreen button icon.
-*/
-
-function updateFullscreenUI(){
-
-    const active =
-        isFullscreen();
-
-
-    wrapper.classList.toggle(
-        'rs-fullscreen',
-        active
-    );
-
-
-    if(active){
-
-        enterIcon.style.display =
-            'none';
-
-        exitIcon.style.display =
-            'block';
-
-        fullscreenButton.setAttribute(
-            'aria-label',
-            'Exit fullscreen'
-        );
-
-    }else{
-
-        enterIcon.style.display =
-            'block';
-
-        exitIcon.style.display =
-            'none';
-
-        fullscreenButton.setAttribute(
-            'aria-label',
-            'Fullscreen'
-        );
-
-    }
-
-}
-
-
-/*
-    ENTER BROWSER FULLSCREEN.
-
-    IMPORTANT:
-
-    We fullscreen the PLAYER WRAPPER,
-    NOT JW Player.
-
-    No player.load()
-    No player.play()
-    No player.pause()
-*/
-
-async function enterFullscreen(){
-
-    if(fullscreenBusy){
-
-        return;
-
-    }
-
-
-    fullscreenBusy = true;
-
-
-    try{
-
-        /*
-            Modern Chrome Android.
-        */
-
-        if(
-            wrapper.requestFullscreen
-        ){
-
-            await wrapper.requestFullscreen({
-                navigationUI:'hide'
-            });
-
-        }
-
-        /*
-            Older WebKit fallback.
-        */
-
-        else if(
-            wrapper.webkitRequestFullscreen
-        ){
-
-            wrapper.webkitRequestFullscreen();
-
-        }
-
-        else{
-
-            /*
-                CSS fallback if Fullscreen API
-                is unavailable.
-            */
-
-            wrapper.classList.add(
-                'rs-fullscreen'
-            );
-
-        }
-
-
-    }catch(error){
-
-        console.warn(
-            'Fullscreen request failed:',
-            error
-        );
-
-        /*
-            Fallback to CSS fullscreen.
-        */
-
-        wrapper.classList.add(
-            'rs-fullscreen'
-        );
-
-    }
-
-
-    /*
-        DO NOT touch video playback here.
-    */
-
-    updateFullscreenUI();
-
-
-    requestAnimationFrame(() => {
-
-        const video =
-            document.querySelector(
-                '#player video'
-            );
-
-
-        if(video){
-
-            video.style.width =
-                '100%';
-
-            video.style.height =
-                '100%';
-
-            video.style.objectFit =
-                'fill';
-
-        }
-
-    });
-
-
-    setTimeout(() => {
-
-        fullscreenBusy = false;
-
-    },300);
-
-}
-
-
-/*
-    EXIT FULLSCREEN.
-*/
-
-async function exitFullscreen(){
-
-    if(fullscreenBusy){
-
-        return;
-
-    }
-
-
-    fullscreenBusy = true;
-
-
-    try{
-
-        if(
-            document.exitFullscreen &&
-            document.fullscreenElement
-        ){
-
-            await document.exitFullscreen();
-
-        }
-
-        else if(
-            document.webkitExitFullscreen &&
-            document.webkitFullscreenElement
-        ){
-
-            document.webkitExitFullscreen();
-
-        }
-
-        else{
-
-            wrapper.classList.remove(
-                'rs-fullscreen'
-            );
-
-        }
-
-    }catch(error){
-
-        console.warn(
-            'Exit fullscreen failed:',
-            error
-        );
-
-        wrapper.classList.remove(
-            'rs-fullscreen'
-        );
-
-    }
-
-
-    updateFullscreenUI();
-
-
-    /*
-        Do NOT call player.play().
-        Do NOT call player.pause().
-        Do NOT reload the stream.
-    */
-
-
-    setTimeout(() => {
-
-        fullscreenBusy = false;
-
-    },300);
-
-}
-
-
-/*
-    Fullscreen button.
-
-    Use pointerdown so Chrome receives the
-    fullscreen request directly from user gesture.
-*/
-
-fullscreenButton.addEventListener(
-    'pointerdown',
-    async event => {
-
-        event.preventDefault();
-
-        event.stopPropagation();
-
-
-        if(isFullscreen()){
-
-            await exitFullscreen();
-
-        }else{
-
-            await enterFullscreen();
-
-        }
-
-    },
-    {
-        passive:false
-    }
-);
-
-
-/*
-    Browser fullscreen change.
-*/
-
-document.addEventListener(
-    'fullscreenchange',
-    () => {
-
-        updateFullscreenUI();
-
-    }
-);
-
-
-/*
-    Older WebKit.
-*/
-
-document.addEventListener(
-    'webkitfullscreenchange',
-    () => {
-
-        updateFullscreenUI();
-
-    }
-);
-
-
-/*
-    Orientation:
-
-    When fullscreen becomes active,
-    try landscape on Chrome Android.
-
-    Failure is ignored because some browsers
-    don't allow automatic orientation.
-*/
-
-async function tryLandscape(){
-
-    try{
-
-        if(
-            screen.orientation &&
-            screen.orientation.lock
-        ){
-
-            await screen.orientation.lock(
-                'landscape'
-            );
-
-        }
-
-    }catch(error){
-
-        /*
-            Not supported or permission denied.
-        */
-
-    }
-
-}
-
-
-/*
-    We intentionally DON'T automatically rotate
-    the screen.
-
-    User's phone orientation controls it.
-*/
-
-
-/* =========================================================
-   NO STREAM URL
-========================================================= */
+/* ================= NO URL ================= */
 
 if(!streamSource){
 
@@ -1807,52 +738,29 @@ if(!streamSource){
 
     `);
 
-}
-
-
-/* =========================================================
-   PLAYER
-========================================================= */
-
-else{
+}else{
 
     const streamType =
-        detectType(
-            streamSource
-        );
-
+        detectType(streamSource);
 
     const playlistItem = {
-
-        file:
-            streamSource
-
+        file:streamSource
     };
 
-
-    if(streamType){
-
-        playlistItem.type =
-            streamType;
-
-    }
+    if(streamType)
+        playlistItem.type = streamType;
 
 
-    /*
-        JW PLAYER SETUP
-    */
+    /* ================= JW PLAYER ================= */
 
     const player =
-        jwplayer(
-            'player'
-        ).setup({
+        jwplayer('player').setup({
 
             playlist:[
                 playlistItem
             ],
 
             width:'100%',
-
             height:'100%',
 
             autostart:true,
@@ -1861,6 +769,11 @@ else{
 
             preload:'auto',
 
+            /*
+             IMPORTANT:
+             Keep uniform here only as JW fallback.
+             CSS forces actual video to FILL.
+            */
             stretching:'uniform',
 
             liveTimeout:0,
@@ -1876,13 +789,10 @@ else{
             controls:true,
 
             repeat:false
-
         });
 
 
-    /* =====================================================
-       STATE
-    ====================================================== */
+    /* ================= RETRY ================= */
 
     let retryCount = 0;
 
@@ -1894,34 +804,35 @@ else{
 
     let userPaused = false;
 
+    const NO_STREAM_TIMEOUT = 12000;
+
     let noStreamTimer =
         setTimeout(() => {
 
-            if(!everPlayed){
-
+            if(!everPlayed)
                 showNoStreamState();
 
-            }
-
-        },12000);
+        },NO_STREAM_TIMEOUT);
 
 
-    /* =====================================================
-       READY
-    ====================================================== */
+    /* ================= READY ================= */
 
     player.on(
         'ready',
         () => {
 
             console.log(
-                '[RS Player] READY:',
-                streamType || 'AUTO'
+                'RS Player ready:',
+                streamType || 'auto'
             );
 
-
             /*
-                Apply fill to video.
+             Do NOT attach dblclick handlers
+             to the video element.
+
+             Chrome Android may interpret those
+             handlers during touch/fullscreen and
+             cause playback/compositor issues.
             */
 
             const video =
@@ -1929,35 +840,16 @@ else{
                     '#player video'
                 );
 
-
             if(video){
 
                 video.style.objectFit =
                     'fill';
 
-                video.style.width =
-                    '100%';
-
-                video.style.height =
-                    '100%';
-
                 video.style.touchAction =
                     'manipulation';
 
-
-                /*
-                    Inline playback.
-
-                    This is important on mobile.
-                */
-
                 video.setAttribute(
                     'playsinline',
-                    ''
-                );
-
-                video.setAttribute(
-                    'webkit-playsinline',
                     ''
                 );
 
@@ -1967,17 +859,15 @@ else{
     );
 
 
-    /* =====================================================
-       FIRST FRAME
-    ====================================================== */
+    /* ================= FIRST FRAME ================= */
 
     player.on(
         'firstFrame',
         () => {
 
-            clearTimeout(
-                noStreamTimer
-            );
+            clearInterval(statusTimer);
+
+            clearTimeout(noStreamTimer);
 
             hideLoader();
 
@@ -1989,21 +879,15 @@ else{
     );
 
 
-    /* =====================================================
-       PLAY
-    ====================================================== */
+    /* ================= PLAY ================= */
 
     player.on(
         'play',
         () => {
 
-            clearTimeout(
-                noStreamTimer
-            );
+            clearTimeout(noStreamTimer);
 
             everPlayed = true;
-
-            userPaused = false;
 
             hideLoader();
 
@@ -2015,9 +899,7 @@ else{
     );
 
 
-    /* =====================================================
-       PAUSE
-    ====================================================== */
+    /* ================= PAUSE ================= */
 
     player.on(
         'pause',
@@ -2031,9 +913,7 @@ else{
     );
 
 
-    /* =====================================================
-       COMPLETE
-    ====================================================== */
+    /* ================= COMPLETE ================= */
 
     player.on(
         'complete',
@@ -2046,22 +926,27 @@ else{
 
 
     /* =====================================================
-       BUFFER
+       IMPORTANT CHROME FIX
 
-       VERY IMPORTANT:
+       Do NOT show a fullscreen/loader overlay simply because
+       JW reports "buffer".
 
-       We do NOTHING here.
-
-       No loader.
-       No pause.
-       No play.
-       No load.
-       No fullscreen action.
-    ====================================================== */
+       Small buffer events are normal on live streams.
+       Showing/hiding a full-screen DOM element during touch
+       can trigger Chrome Android compositor lag.
+    ===================================================== */
 
     player.on(
         'buffer',
         () => {
+
+            /*
+             Intentionally empty.
+
+             We do NOT call showLoader() here.
+             This prevents the screen from being replaced
+             every time Chrome/JW briefly buffers.
+            */
 
             console.log(
                 '[RS Player] buffer'
@@ -2071,18 +956,16 @@ else{
     );
 
 
-    /* =====================================================
-       IDLE
-
-       Do nothing.
-
-       JW can temporarily become idle during
-       network changes/fullscreen.
-    ====================================================== */
-
     player.on(
         'idle',
         () => {
+
+            /*
+             Don't immediately reload.
+
+             JW may enter idle temporarily during
+             fullscreen or network recovery.
+            */
 
             console.log(
                 '[RS Player] idle'
@@ -2092,46 +975,60 @@ else{
     );
 
 
-    /* =====================================================
-       JW FULLSCREEN EVENT
-
-       This should normally never be triggered
-       because the native JW fullscreen button
-       is hidden.
-
-       If it somehow happens, don't reload/pause.
-    ====================================================== */
+    /* ================= FULLSCREEN ================= */
 
     player.on(
         'fullscreen',
-        event => {
+        (evt) => {
 
             console.log(
-                '[RS Player] JW fullscreen event ignored'
+                '[RS Player] fullscreen:',
+                evt && evt.fullscreen
             );
 
             /*
-                Do not call:
+             IMPORTANT:
+             No timeout.
+             No loader.
+             No pause().
+             No play().
+             No load().
 
-                player.load()
-                player.play()
-                player.pause()
-                showLoader()
+             This is the main Chrome touch/fullscreen fix.
             */
+
+            requestAnimationFrame(() => {
+
+                const video =
+                    document.querySelector(
+                        '#player video'
+                    );
+
+                if(video){
+
+                    video.style.width =
+                        '100%';
+
+                    video.style.height =
+                        '100%';
+
+                    video.style.objectFit =
+                        'fill';
+
+                }
+
+            });
 
         }
     );
 
 
-    /* =====================================================
-       ERROR
-    ====================================================== */
+    /* ================= ERROR ================= */
 
     player.on(
         'error',
         handleFault
     );
-
 
     player.on(
         'setupError',
@@ -2139,35 +1036,25 @@ else{
     );
 
 
-    function handleFault(error){
+    function handleFault(err){
 
         console.error(
-            '[RS Player] ERROR:',
-            error
+            '[RS Player] error:',
+            err
         );
 
-
         /*
-            Don't reload if user intentionally paused.
+         If the user intentionally paused,
+         don't automatically reload.
         */
 
-        if(userPaused){
-
+        if(userPaused)
             return;
 
-        }
-
-
-        /*
-            Initial connection failure.
-        */
 
         if(!everPlayed){
 
-            clearTimeout(
-                retryTimer
-            );
-
+            clearTimeout(retryTimer);
 
             retryTimer =
                 setTimeout(() => {
@@ -2180,33 +1067,21 @@ else{
 
                         player.play(true);
 
-                    }catch(error){
+                    }catch(e){
 
-                        console.warn(
-                            error
-                        );
+                        console.warn(e);
 
                     }
 
                 },900);
 
-
             return;
-
         }
 
 
-        /*
-            Reconnect.
-        */
-
-        if(
-            retryCount <
-            maxRetries
-        ){
+        if(retryCount < maxRetries){
 
             retryCount++;
-
 
             statusEl.textContent =
                 'RECONNECTING (' +
@@ -2215,14 +1090,14 @@ else{
                 maxRetries +
                 ')';
 
+            /*
+             Only show loader for a real
+             player error, not normal buffer.
+            */
 
             showLoader();
 
-
-            clearTimeout(
-                retryTimer
-            );
-
+            clearTimeout(retryTimer);
 
             retryTimer =
                 setTimeout(() => {
@@ -2235,11 +1110,9 @@ else{
 
                         player.play(true);
 
-                    }catch(error){
+                    }catch(e){
 
-                        console.warn(
-                            error
-                        );
+                        console.warn(e);
 
                     }
 
@@ -2249,37 +1122,23 @@ else{
                     4000
                 ));
 
-
             return;
-
         }
 
 
-        showNoStreamState(
-            error
-        );
-
+        showNoStreamState(err);
     }
 
 
-    /* =====================================================
-       NO STREAM STATE
-    ====================================================== */
+    /* ================= NO STREAM ================= */
 
-    function showNoStreamState(error){
+    function showNoStreamState(err){
 
-        clearTimeout(
-            retryTimer
-        );
+        clearTimeout(retryTimer);
 
-
-        clearTimeout(
-            noStreamTimer
-        );
-
+        clearTimeout(noStreamTimer);
 
         releaseWakeLock();
-
 
         showState(`
 
@@ -2289,25 +1148,20 @@ else{
                     <i>&#10060;</i>
                 </div>
 
-
                 <p class="title">
                     No streaming — this link won't play
                 </p>
 
-
                 <p class="sub">
-
                     ${
-                        error &&
-                        error.message
+                        err &&
+                        err.message
                         ?
-                        error.message
+                        err.message
                         :
                         'The source could not be reached.'
                     }
-
                 </p>
-
 
                 <button
                     class="retry-btn"
@@ -2316,35 +1170,50 @@ else{
                     Retry
                 </button>
 
-
                 ${brandBlock()}
 
             </div>
 
         `);
-
     }
 
 
-    /* =====================================================
-       VIDEO DOM OBSERVER
-    ====================================================== */
+    /* ================= TOUCH SAFETY ================= */
 
     /*
-        JW may recreate the video element.
-
-        We only re-apply CSS.
-
-        We NEVER call play/pause/load here.
+     IMPORTANT:
+     We only stop browser gesture handling.
+     We never stop JW pointer events.
     */
 
-    const playerElement =
+    const playerBox =
         document.getElementById(
             'player'
         );
 
+    if(playerBox){
 
-    const videoObserver =
+        playerBox.addEventListener(
+            'contextmenu',
+            e => {
+
+                e.preventDefault();
+
+            },
+            {passive:false}
+        );
+
+    }
+
+
+    /* ================= VIDEO COMPOSITING ================= */
+
+    /*
+     Re-apply FILL after JW updates its DOM.
+     This is lightweight and does not touch playback.
+    */
+
+    const observer =
         new MutationObserver(() => {
 
             const video =
@@ -2352,107 +1221,28 @@ else{
                     '#player video'
                 );
 
-
             if(video){
 
                 video.style.objectFit =
                     'fill';
 
-                video.style.width =
-                    '100%';
-
-                video.style.height =
-                    '100%';
-
                 video.style.touchAction =
                     'manipulation';
-
-                video.setAttribute(
-                    'playsinline',
-                    ''
-                );
 
             }
 
         });
 
 
-    videoObserver.observe(
-        playerElement,
+    observer.observe(
+        document.getElementById('player'),
         {
             childList:true,
             subtree:true
         }
     );
 
-
-    /* =====================================================
-       PREVENT CONTEXT MENU ONLY
-
-       We do NOT block touch/click events.
-    ====================================================== */
-
-    playerElement.addEventListener(
-        'contextmenu',
-        event => {
-
-            event.preventDefault();
-
-        },
-        {
-            passive:false
-        }
-    );
-
 }
-
-
-/* =========================================================
-   INITIAL FULLSCREEN UI
-========================================================= */
-
-updateFullscreenUI();
-
-
-/* =========================================================
-   SCREEN ORIENTATION CHANGE
-========================================================= */
-
-window.addEventListener(
-    'orientationchange',
-    () => {
-
-        /*
-            Don't touch playback.
-
-            Just make sure the video remains FILL.
-        */
-
-        requestAnimationFrame(() => {
-
-            const video =
-                document.querySelector(
-                    '#player video'
-                );
-
-
-            if(video){
-
-                video.style.width =
-                    '100%';
-
-                video.style.height =
-                    '100%';
-
-                video.style.objectFit =
-                    'fill';
-
-            }
-
-        });
-
-    }
-);
 
 </script></body>
 </html>
