@@ -1,476 +1,1248 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <title>RS Player Pro</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"><title>RS Player Pro</title><script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script><script>
+jwplayer.key = "Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
+</script><link rel="preconnect" href="https://content.jwplatform.com"><style>
+:root{
+    --bg-1:#0a0a12;
+    --bg-2:#14101f;
+    --grad-a:#22d3ee;
+    --grad-b:#a78bfa;
+    --grad-c:#fb923c;
+    --warn:#ffb84d;
+    --alert:#ff5d5d;
+    --text:#eef0f7;
+    --text-dim:#7a7a92;
+    --font:'Poppins','Segoe UI',sans-serif;
+    --mono:'JetBrains Mono','Courier New',monospace;
+}
 
-    <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
-    <script>
-        jwplayer.key = "Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
-    </script>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
 
-    <link rel="preconnect" href="https://content.jwplatform.com">
+html,
+body{
+    width:100%;
+    height:100%;
+    background:#000;
+    overflow:hidden;
+    font-family:var(--font);
+    position:fixed;
+    inset:0;
+    overscroll-behavior:none;
+}
 
-    <style>
-        :root{
-            --bg-1: #0a0a12;
-            --bg-2: #14101f;
-            --grad-a: #22d3ee;
-            --grad-b: #a78bfa;
-            --grad-c: #fb923c;
-            --warn: #ffb84d;
-            --alert: #ff5d5d;
-            --text: #eef0f7;
-            --text-dim: #7a7a92;
-            --font: 'Poppins','Segoe UI',sans-serif;
-            --mono: 'JetBrains Mono','Courier New',monospace;
-        }
-        *{ margin:0; padding:0; box-sizing:border-box; }
-        html,body{
-            width:100%; height:100%;
-            background:var(--bg-1);
-            overflow:hidden;
-            font-family:var(--font);
-            position:fixed;
-        }
+body{
+    touch-action:pan-x pan-y;
+}
 
-        #player-wrapper{
-            position:relative;
-            width:100%; height:100%;
-            overflow:hidden;
-            background:#000;
-        }
-        #player{
-            width:100% !important;
-            height:100% !important;
-            position:absolute;
-            top:0; left:0;
-            touch-action: manipulation; /* suppress native double-tap zoom/fullscreen gesture */
-        }
-        #player video{
-            touch-action: manipulation;
-        }
+#player-wrapper{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#000;
+    contain:layout paint;
+}
 
-        /* ---------- JW controlbar skin ---------- */
-        .jw-skin-glow .jw-display-icon-container{
-            background: rgba(167,139,250,0.10) !important;
-            border: 1px solid rgba(167,139,250,0.4);
-            backdrop-filter: none !important;
-        }
-        .jw-skin-glow .jw-button-color{ color:#ffffff !important; }
-        .jw-skin-glow .jw-controlbar{
-            background: linear-gradient(0deg, rgba(0,0,0,0.75), transparent) !important;
-            backdrop-filter: none !important;
-        }
-        .jw-skin-glow .jw-slider-time .jw-progress{ background: var(--grad-b) !important; }
-        .jw-skin-glow .jw-knob{ background: var(--grad-b) !important; }
+#player{
+    position:absolute;
+    inset:0;
+    width:100%!important;
+    height:100%!important;
+    touch-action:manipulation;
+}
 
-        .jw-video.jw-reset{ object-fit: fill !important; }
+/*
+ IMPORTANT:
+ Do not put transition/filter/backdrop-filter on the player.
+ These can cause Chrome Android video compositing lag.
+*/
+#player video,
+.jw-video{
+    width:100%!important;
+    height:100%!important;
+    object-fit:fill!important;
+    touch-action:manipulation!important;
+    -webkit-user-select:none;
+    user-select:none;
+}
 
-        /* ================= LOADER ================= */
-        #loader{
-            position:absolute; inset:0;
-            background: radial-gradient(80% 60% at 50% 40%, var(--bg-2) 0%, var(--bg-1) 70%);
-            display:flex; justify-content:center; align-items:center;
-            flex-direction:column;
-            z-index:99;
-            transition: opacity .5s ease, visibility .5s ease;
-        }
+/* Chrome fullscreen */
+video::-webkit-media-controls{
+    display:none!important;
+}
 
-        .tuner{
-            display:flex; flex-direction:column;
-            align-items:center;
-            gap:20px;
-        }
+/* ---------- JW SKIN ---------- */
 
-        /* signature element — TV set with a looping colour-bar screen, glowing frame */
-        .tv-wrap{
-            position:relative;
-            width:78px; height:78px;
-            display:flex; align-items:center; justify-content:center;
-        }
-        .tv-glow{
-            position:absolute;
-            width:100%; height:100%;
-            border-radius:50%;
-            background: radial-gradient(circle, rgba(167,139,250,0.35), transparent 70%);
-            animation: glow-pulse 2.4s ease-in-out infinite;
-        }
-        @keyframes glow-pulse{
-            0%,100%{ transform:scale(0.85); opacity:.5; }
-            50%{ transform:scale(1.15); opacity:1; }
-        }
-        .tv-icon{ position:relative; width:60px; height:60px; }
-        .tv-icon .tv-body{
-            fill:none;
-            stroke: var(--text);
-            stroke-width:2;
-            stroke-linecap:round;
-            stroke-linejoin:round;
-        }
-        .tv-icon .screen-bars rect{
-            transform-origin: bottom;
-            animation: bar-flicker 1.6s ease-in-out infinite;
-        }
-        .tv-icon .screen-bars rect:nth-child(1){ fill:var(--grad-a); animation-delay:-1.2s; }
-        .tv-icon .screen-bars rect:nth-child(2){ fill:var(--grad-b); animation-delay:-0.9s; }
-        .tv-icon .screen-bars rect:nth-child(3){ fill:var(--grad-c); animation-delay:-0.6s; }
-        .tv-icon .screen-bars rect:nth-child(4){ fill:var(--grad-b); animation-delay:-0.3s; }
-        .tv-icon .screen-bars rect:nth-child(5){ fill:var(--grad-a); animation-delay:0s; }
-        @keyframes bar-flicker{
-            0%,100%{ transform: scaleY(0.45); opacity:.65; }
-            50%{ transform: scaleY(1); opacity:1; }
-        }
+.jw-skin-glow .jw-display-icon-container{
+    background:rgba(167,139,250,.10)!important;
+    border:1px solid rgba(167,139,250,.4);
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+}
 
-        .brand-name{
-            font-size:15px; font-weight:700;
-            letter-spacing:1px;
-            text-transform:uppercase;
-            background: linear-gradient(90deg, var(--grad-a), var(--grad-b));
-            -webkit-background-clip:text;
-            background-clip:text;
-            color:transparent;
-        }
-        .brand-name b{ color:var(--text); -webkit-text-fill-color:var(--text); }
+.jw-skin-glow .jw-button-color{
+    color:#fff!important;
+}
 
-        /* three softly pulsing dots — the only loading indicator, no cycling text */
-        .dots{
-            display:flex; gap:6px;
-        }
-        .dots span{
-            width:6px; height:6px;
-            border-radius:50%;
-            background: var(--grad-b);
-            animation: dot-pulse 1.2s ease-in-out infinite;
-        }
-        .dots span:nth-child(1){ animation-delay:0s; }
-        .dots span:nth-child(2){ animation-delay:.2s; }
-        .dots span:nth-child(3){ animation-delay:.4s; }
-        @keyframes dot-pulse{
-            0%,80%,100%{ transform:scale(0.6); opacity:.35; }
-            40%{ transform:scale(1); opacity:1; }
-        }
+.jw-skin-glow .jw-controlbar{
+    background:linear-gradient(
+        0deg,
+        rgba(0,0,0,.75),
+        transparent
+    )!important;
 
-        .status-line{
-            font-family:var(--mono);
-            font-size:9.5px;
-            letter-spacing:2.5px;
-            color:var(--text-dim);
-            text-transform:uppercase;
-        }
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+}
 
-        .hide-now{ opacity:0 !important; visibility:hidden !important; }
+.jw-skin-glow .jw-slider-time .jw-progress{
+    background:var(--grad-b)!important;
+}
 
-        /* ---------- error / empty states ---------- */
-        .state-content{
-            text-align:center;
-            color: var(--text);
-            z-index:100;
-            padding: 0 24px;
-            font-family:var(--font);
-        }
-        .state-content .glyph{
-            font-size:34px;
-            color: var(--alert);
-            margin-bottom:14px;
-            line-height:1;
-        }
-        .state-content .glyph.warn{ color: var(--warn); }
-        .state-content p.title{
-            font-size:13px;
-            letter-spacing:1px;
-            font-weight:600;
-        }
-        .state-content p.sub{
-            font-family:var(--mono);
-            font-size:10.5px;
-            color: var(--text-dim);
-            margin-top:8px;
-            letter-spacing:.5px;
-            max-width:280px;
-        }
-        .state-content .brand-name{ display:block; margin-top:18px; }
+.jw-skin-glow .jw-knob{
+    background:var(--grad-b)!important;
+}
 
-        .retry-btn{
-            margin-top:16px;
-            padding:8px 20px;
-            font-family:var(--font);
-            font-weight:600;
-            font-size:11px;
-            letter-spacing:.5px;
-            color:#0a0a12;
-            background: linear-gradient(90deg, var(--grad-a), var(--grad-b));
-            border:none;
-            border-radius:18px;
-            cursor:pointer;
-        }
-        .retry-btn:active{ transform: scale(0.96); }
-    </style>
-</head>
-<body>
+/* Keep FILL mode */
+.jw-video.jw-reset{
+    object-fit:fill!important;
+}
 
-    <div id="player-wrapper">
-        <div id="loader">
-            <div class="tuner">
-                <div class="tv-wrap">
-                    <div class="tv-glow"></div>
-                    <svg class="tv-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <path class="tv-body" d="M22 12 32 20 42 12"/>
-                        <clipPath id="screenClip"><rect x="12" y="20" width="40" height="26" rx="4"/></clipPath>
-                        <g class="screen-bars" clip-path="url(#screenClip)">
-                            <rect x="12" y="20" width="8" height="26"/>
-                            <rect x="20" y="20" width="8" height="26"/>
-                            <rect x="28" y="20" width="8" height="26"/>
-                            <rect x="36" y="20" width="8" height="26"/>
-                            <rect x="44" y="20" width="8" height="26"/>
-                        </g>
-                        <rect class="tv-body" x="12" y="20" width="40" height="26" rx="4"/>
-                        <line class="tv-body" x1="24" y1="46" x2="24" y2="50"/>
-                        <line class="tv-body" x1="40" y1="46" x2="40" y2="50"/>
-                        <line class="tv-body" x1="20" y1="50" x2="44" y2="50"/>
-                    </svg>
-                </div>
-                <div class="brand-name"><b>RS LIVE</b> TV</div>
-                <div class="dots"><span></span><span></span><span></span></div>
-                <div class="status-line" id="status-line">LOADING</div>
-            </div>
+/* ================= LOADER ================= */
+
+#loader{
+    position:absolute;
+    inset:0;
+    background:radial-gradient(
+        80% 60% at 50% 40%,
+        var(--bg-2) 0%,
+        var(--bg-1) 70%
+    );
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+
+    z-index:99;
+
+    transition:
+        opacity .25s ease,
+        visibility .25s ease;
+
+    pointer-events:none;
+}
+
+#loader.hide-now{
+    opacity:0!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+}
+
+.tuner{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+}
+
+.tv-wrap{
+    position:relative;
+    width:78px;
+    height:78px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.tv-glow{
+    position:absolute;
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    background:
+        radial-gradient(
+            circle,
+            rgba(167,139,250,.35),
+            transparent 70%
+        );
+
+    animation:glow-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes glow-pulse{
+    0%,100%{
+        transform:scale(.85);
+        opacity:.5;
+    }
+
+    50%{
+        transform:scale(1.15);
+        opacity:1;
+    }
+}
+
+.tv-icon{
+    position:relative;
+    width:60px;
+    height:60px;
+}
+
+.tv-icon .tv-body{
+    fill:none;
+    stroke:var(--text);
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.tv-icon .screen-bars rect{
+    transform-origin:bottom;
+    animation:bar-flicker 1.6s ease-in-out infinite;
+}
+
+.tv-icon .screen-bars rect:nth-child(1){
+    fill:var(--grad-a);
+    animation-delay:-1.2s;
+}
+
+.tv-icon .screen-bars rect:nth-child(2){
+    fill:var(--grad-b);
+    animation-delay:-.9s;
+}
+
+.tv-icon .screen-bars rect:nth-child(3){
+    fill:var(--grad-c);
+    animation-delay:-.6s;
+}
+
+.tv-icon .screen-bars rect:nth-child(4){
+    fill:var(--grad-b);
+    animation-delay:-.3s;
+}
+
+.tv-icon .screen-bars rect:nth-child(5){
+    fill:var(--grad-a);
+    animation-delay:0s;
+}
+
+@keyframes bar-flicker{
+    0%,100%{
+        transform:scaleY(.45);
+        opacity:.65;
+    }
+
+    50%{
+        transform:scaleY(1);
+        opacity:1;
+    }
+}
+
+.brand-name{
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--grad-a),
+            var(--grad-b)
+        );
+
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+}
+
+.brand-name b{
+    color:var(--text);
+    -webkit-text-fill-color:var(--text);
+}
+
+.dots{
+    display:flex;
+    gap:6px;
+}
+
+.dots span{
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--grad-b);
+    animation:dot-pulse 1.2s ease-in-out infinite;
+}
+
+.dots span:nth-child(1){
+    animation-delay:0s;
+}
+
+.dots span:nth-child(2){
+    animation-delay:.2s;
+}
+
+.dots span:nth-child(3){
+    animation-delay:.4s;
+}
+
+@keyframes dot-pulse{
+    0%,80%,100%{
+        transform:scale(.6);
+        opacity:.35;
+    }
+
+    40%{
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+.status-line{
+    font-family:var(--mono);
+    font-size:9.5px;
+    letter-spacing:2.5px;
+    color:var(--text-dim);
+    text-transform:uppercase;
+}
+
+/* ---------- ERROR ---------- */
+
+.state-content{
+    text-align:center;
+    color:var(--text);
+    z-index:100;
+    padding:0 24px;
+    font-family:var(--font);
+    pointer-events:auto;
+}
+
+.state-content .glyph{
+    font-size:34px;
+    color:var(--alert);
+    margin-bottom:14px;
+    line-height:1;
+}
+
+.state-content .glyph.warn{
+    color:var(--warn);
+}
+
+.state-content p.title{
+    font-size:13px;
+    letter-spacing:1px;
+    font-weight:600;
+}
+
+.state-content p.sub{
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--text-dim);
+    margin-top:8px;
+    letter-spacing:.5px;
+    max-width:280px;
+}
+
+.state-content .brand-name{
+    display:block;
+    margin-top:18px;
+}
+
+.retry-btn{
+    margin-top:16px;
+    padding:8px 20px;
+    font-family:var(--font);
+    font-weight:600;
+    font-size:11px;
+    letter-spacing:.5px;
+    color:#0a0a12;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--grad-a),
+            var(--grad-b)
+        );
+
+    border:none;
+    border-radius:18px;
+    cursor:pointer;
+    touch-action:manipulation;
+}
+
+.retry-btn:active{
+    transform:scale(.96);
+}
+
+/* ================= FULLSCREEN ================= */
+
+.jwplayer.jw-flag-fullscreen,
+.jwplayer.jw-flag-fullscreen .jw-media,
+.jwplayer.jw-flag-fullscreen video{
+    width:100%!important;
+    height:100%!important;
+}
+
+.jwplayer.jw-flag-fullscreen video{
+    object-fit:fill!important;
+}
+
+/*
+ Prevent Chrome from applying visual compositing effects
+ during touch/fullscreen.
+*/
+.jwplayer,
+.jw-media,
+.jw-video{
+    transform:none!important;
+    filter:none!important;
+    will-change:auto!important;
+}
+</style></head><body><div id="player-wrapper"><div id="loader">
+
+    <div class="tuner">
+
+        <div class="tv-wrap">
+
+            <div class="tv-glow"></div>
+
+            <svg
+                class="tv-icon"
+                viewBox="0 0 64 64"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+
+                <path
+                    class="tv-body"
+                    d="M22 12 32 20 42 12"
+                />
+
+                <clipPath id="screenClip">
+                    <rect
+                        x="12"
+                        y="20"
+                        width="40"
+                        height="26"
+                        rx="4"
+                    />
+                </clipPath>
+
+                <g
+                    class="screen-bars"
+                    clip-path="url(#screenClip)"
+                >
+                    <rect x="12" y="20" width="8" height="26"/>
+                    <rect x="20" y="20" width="8" height="26"/>
+                    <rect x="28" y="20" width="8" height="26"/>
+                    <rect x="36" y="20" width="8" height="26"/>
+                    <rect x="44" y="20" width="8" height="26"/>
+                </g>
+
+                <rect
+                    class="tv-body"
+                    x="12"
+                    y="20"
+                    width="40"
+                    height="26"
+                    rx="4"
+                />
+
+                <line
+                    class="tv-body"
+                    x1="24"
+                    y1="46"
+                    x2="24"
+                    y2="50"
+                />
+
+                <line
+                    class="tv-body"
+                    x1="40"
+                    y1="46"
+                    x2="40"
+                    y2="50"
+                />
+
+                <line
+                    class="tv-body"
+                    x1="20"
+                    y1="50"
+                    x2="44"
+                    y2="50"
+                />
+
+            </svg>
+
         </div>
-        <div id="player"></div>
+
+        <div class="brand-name">
+            <b>RS LIVE</b> TV
+        </div>
+
+        <div class="dots">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div
+            class="status-line"
+            id="status-line"
+        >
+            LOADING
+        </div>
+
     </div>
 
-    <script>
-        const urlParams   = new URLSearchParams(window.location.search);
-        const streamSource = urlParams.get('url');
-        const forcedType   = (urlParams.get('type') || '').toLowerCase();
-        const startMuted   = urlParams.get('mute') === '1';
+</div>
 
-        const loaderEl    = document.getElementById('loader');
-        const statusEl    = document.getElementById('status-line');
+<div id="player"></div>
 
-        const statusMessages = ['LOADING', 'BUFFERING', 'CONNECTING'];
-        let statusIdx = 0;
-        let statusTimer = setInterval(() => {
-            statusIdx = (statusIdx + 1) % statusMessages.length;
-            statusEl.textContent = statusMessages[statusIdx];
-        }, 1800);
+</div><script>
 
-        function showLoader(){ loaderEl.classList.remove('hide-now'); }
-        function hideLoader(){ loaderEl.classList.add('hide-now'); }
+const urlParams =
+    new URLSearchParams(window.location.search);
 
-        function showState(html){
-            clearInterval(statusTimer);
-            showLoader();
-            loaderEl.innerHTML = html;
-        }
+const streamSource =
+    urlParams.get('url');
 
-        function brandBlock(){
-            return '<div class="brand-name"><b>RS LIVE</b> TV</div>';
-        }
+const forcedType =
+    (urlParams.get('type') || '').toLowerCase();
 
-        // ============================================================
-        // SCREEN WAKE LOCK — keeps mobile display awake while playing
-        // ============================================================
-        let wakeLock = null;
-        let wakeLockWanted = false;  // true when video is playing
+const startMuted =
+    urlParams.get('mute') === '1';
 
-        async function requestWakeLock() {
-            wakeLockWanted = true;
-            if (!('wakeLock' in navigator)) return;
-            if (wakeLock) return; // already held
-            // Wake Lock only works on visible pages
-            if (document.visibilityState !== 'visible') return;
-            try {
-                wakeLock = await navigator.wakeLock.request('screen');
-                wakeLock.addEventListener('release', () => {
-                    console.log('[WakeLock] released');
-                    wakeLock = null;
-                });
-                console.log('[WakeLock] acquired — screen will stay on');
-            } catch (err) {
-                console.warn('[WakeLock] request failed:', err);
+const loaderEl =
+    document.getElementById('loader');
+
+const statusEl =
+    document.getElementById('status-line');
+
+
+/* ================= LOADER STATUS ================= */
+
+const statusMessages = [
+    'LOADING',
+    'CONNECTING',
+    'BUFFERING'
+];
+
+let statusIdx = 0;
+
+let statusTimer =
+    setInterval(() => {
+
+        if(
+            loaderEl.classList.contains('hide-now')
+        ) return;
+
+        statusIdx =
+            (statusIdx + 1) %
+            statusMessages.length;
+
+        statusEl.textContent =
+            statusMessages[statusIdx];
+
+    },1800);
+
+
+function showLoader(){
+
+    loaderEl.classList.remove(
+        'hide-now'
+    );
+}
+
+
+function hideLoader(){
+
+    loaderEl.classList.add(
+        'hide-now'
+    );
+}
+
+
+function showState(html){
+
+    clearInterval(statusTimer);
+
+    loaderEl.innerHTML = html;
+
+    showLoader();
+}
+
+
+function brandBlock(){
+
+    return `
+        <div class="brand-name">
+            <b>RS LIVE</b> TV
+        </div>
+    `;
+}
+
+
+/* ================= WAKE LOCK ================= */
+
+let wakeLock = null;
+let wakeLockWanted = false;
+
+async function requestWakeLock(){
+
+    wakeLockWanted = true;
+
+    if(!('wakeLock' in navigator))
+        return;
+
+    if(wakeLock)
+        return;
+
+    if(
+        document.visibilityState !==
+        'visible'
+    )
+        return;
+
+    try{
+
+        wakeLock =
+            await navigator.wakeLock.request(
+                'screen'
+            );
+
+        wakeLock.addEventListener(
+            'release',
+            () => {
+
                 wakeLock = null;
+
             }
+        );
+
+    }catch(e){
+
+        wakeLock = null;
+
+    }
+}
+
+
+async function releaseWakeLock(){
+
+    wakeLockWanted = false;
+
+    if(wakeLock){
+
+        try{
+            await wakeLock.release();
+        }catch(e){}
+
+        wakeLock = null;
+    }
+}
+
+
+document.addEventListener(
+    'visibilitychange',
+    () => {
+
+        if(
+            document.visibilityState ===
+            'visible' &&
+            wakeLockWanted
+        ){
+
+            requestWakeLock();
         }
 
-        async function releaseWakeLock() {
-            wakeLockWanted = false;
-            if (wakeLock) {
-                try { await wakeLock.release(); } catch(e) {}
-                wakeLock = null;
-                console.log('[WakeLock] released (video paused/stopped)');
-            }
-        }
+    }
+);
 
-        // Browser auto-releases Wake Lock when tab is hidden.
-        // Re-acquire it when the page becomes visible again AND video is playing.
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible' && wakeLockWanted) {
-                requestWakeLock();
-            }
+
+/* ================= STREAM TYPE ================= */
+
+function detectType(raw){
+
+    if(forcedType)
+        return forcedType;
+
+    const clean =
+        raw
+        .split('?')[0]
+        .split('#')[0]
+        .toLowerCase();
+
+    if(clean.endsWith('.m3u8'))
+        return 'hls';
+
+    if(clean.endsWith('.mpd'))
+        return 'dash';
+
+    if(clean.endsWith('.mp4'))
+        return 'mp4';
+
+    if(clean.endsWith('.webm'))
+        return 'webm';
+
+    if(clean.endsWith('.mov'))
+        return 'mp4';
+
+    if(
+        clean.endsWith('.ogg') ||
+        clean.endsWith('.ogv')
+    )
+        return 'ogg';
+
+    if(raw.includes('.m3u8'))
+        return 'hls';
+
+    if(raw.includes('.mpd'))
+        return 'dash';
+
+    return null;
+}
+
+
+/* ================= NO URL ================= */
+
+if(!streamSource){
+
+    showState(`
+
+        <div class="state-content">
+
+            <div class="glyph warn">
+                <i>&#9888;</i>
+            </div>
+
+            <p class="title">
+                No stream URL supplied
+            </p>
+
+            <p class="sub">
+                Add ?url=YOUR_STREAM_LINK
+                to this page's address.
+            </p>
+
+            ${brandBlock()}
+
+        </div>
+
+    `);
+
+}else{
+
+    const streamType =
+        detectType(streamSource);
+
+    const playlistItem = {
+        file:streamSource
+    };
+
+    if(streamType)
+        playlistItem.type = streamType;
+
+
+    /* ================= JW PLAYER ================= */
+
+    const player =
+        jwplayer('player').setup({
+
+            playlist:[
+                playlistItem
+            ],
+
+            width:'100%',
+            height:'100%',
+
+            autostart:true,
+
+            mute:startMuted,
+
+            preload:'auto',
+
+            /*
+             IMPORTANT:
+             Keep uniform here only as JW fallback.
+             CSS forces actual video to FILL.
+            */
+            stretching:'uniform',
+
+            liveTimeout:0,
+
+            skin:{
+                name:'glow'
+            },
+
+            displaytitle:false,
+
+            displaydescription:false,
+
+            controls:true,
+
+            repeat:false
         });
 
-        // ---- detect stream type from the URL so every common link works ----
-        function detectType(raw){
-            if (forcedType) return forcedType;
-            const clean = raw.split('?')[0].split('#')[0].toLowerCase();
-            if (clean.endsWith('.m3u8'))            return 'hls';
-            if (clean.endsWith('.mpd'))             return 'dash';
-            if (clean.endsWith('.mp4'))             return 'mp4';
-            if (clean.endsWith('.webm'))            return 'webm';
-            if (clean.endsWith('.mov'))             return 'mp4';
-            if (clean.endsWith('.ogg') || clean.endsWith('.ogv')) return 'ogg';
-            if (raw.includes('.m3u8'))              return 'hls';
-            if (raw.includes('.mpd'))               return 'dash';
-            return null;
-        }
 
-        if (!streamSource) {
-            showState(
-                '<div class="state-content">' +
-                    '<div class="glyph warn"><i>&#9888;</i></div>' +
-                    '<p class="title">No stream URL supplied</p>' +
-                    '<p class="sub">Add ?url=YOUR_STREAM_LINK to this page\'s address.</p>' +
-                    brandBlock() +
-                '</div>'
+    /* ================= RETRY ================= */
+
+    let retryCount = 0;
+
+    const maxRetries = 6;
+
+    let retryTimer = null;
+
+    let everPlayed = false;
+
+    let userPaused = false;
+
+    const NO_STREAM_TIMEOUT = 12000;
+
+    let noStreamTimer =
+        setTimeout(() => {
+
+            if(!everPlayed)
+                showNoStreamState();
+
+        },NO_STREAM_TIMEOUT);
+
+
+    /* ================= READY ================= */
+
+    player.on(
+        'ready',
+        () => {
+
+            console.log(
+                'RS Player ready:',
+                streamType || 'auto'
             );
-        } else {
-            const streamType = detectType(streamSource);
 
-            const playlistItem = { file: streamSource };
-            if (streamType) playlistItem.type = streamType;
+            /*
+             Do NOT attach dblclick handlers
+             to the video element.
 
-            const player = jwplayer('player').setup({
-                playlist: [ playlistItem ],
-                width: '100%',
-                height: '100%',
-                autostart: true,
-                mute: startMuted,
-                preload: 'auto',
-                stretching: 'uniform',
-                liveTimeout: 0,
-                skin: { name: 'glow' },
-                displaytitle: false
-            });
+             Chrome Android may interpret those
+             handlers during touch/fullscreen and
+             cause playback/compositor issues.
+            */
 
-            let retryCount = 0;
-            const maxRetries = 6;
-            let retryTimer = null;
-            let everPlayed = false;
-
-            const NO_STREAM_TIMEOUT = 10000;
-            let noStreamTimer = setTimeout(() => {
-                if (!everPlayed) showNoStreamState();
-            }, NO_STREAM_TIMEOUT);
-
-            player.on('ready', () => {
-                console.log('Player ready — source type:', streamType || 'auto-detected');
-
-                // Prevent native double-tap fullscreen/zoom gesture
-                const videoEl = document.querySelector('#player video');
-                if (videoEl) {
-                    videoEl.addEventListener('dblclick', function(e){
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }, true);
-                }
-            });
-
-            player.on('firstFrame', () => {
-                clearInterval(statusTimer);
-                clearTimeout(noStreamTimer);
-                hideLoader();
-                everPlayed = true;
-                retryCount = 0;
-                console.log('First frame painted');
-            });
-
-            player.on('play', () => {
-                clearTimeout(noStreamTimer);
-                everPlayed = true;
-                hideLoader();
-                // 🔆 Keep screen awake while playing
-                requestWakeLock();
-            });
-
-            // Release Wake Lock when video is paused or finished
-            player.on('pause', () => {
-                releaseWakeLock();
-            });
-            player.on('complete', () => {
-                releaseWakeLock();
-            });
-
-            const BUFFER_SHOW_DELAY = 400;
-            let bufferShowTimer = null;
-
-            let inFullscreenTransition = false;
-
-            player.on('buffer', () => {
-                if (inFullscreenTransition) return;
-                clearTimeout(bufferShowTimer);
-                bufferShowTimer = setTimeout(showLoader, BUFFER_SHOW_DELAY);
-            });
-            player.on('play', () => {
-                clearTimeout(bufferShowTimer);
-            });
-            player.on('firstFrame', () => {
-                clearTimeout(bufferShowTimer);
-            });
-
-            player.on('fullscreen', (evt) => {
-                inFullscreenTransition = true;
-                clearTimeout(bufferShowTimer);
-                hideLoader();
-                setTimeout(() => { inFullscreenTransition = false; }, 1200);
-            });
-
-            player.on('error', handleFault);
-            player.on('setupError', handleFault);
-
-            function handleFault(err){
-                console.error('Player error:', err);
-
-                if (!everPlayed) {
-                    clearTimeout(retryTimer);
-                    retryTimer = setTimeout(() => {
-                        player.load([ playlistItem ]);
-                        player.play(true);
-                    }, 900);
-                    return;
-                }
-
-                if (retryCount < maxRetries) {
-                    retryCount++;
-                    statusEl.textContent = 'RECONNECTING (' + retryCount + '/' + maxRetries + ')';
-                    showLoader();
-                    clearTimeout(retryTimer);
-                    retryTimer = setTimeout(() => {
-                        player.load([ playlistItem ]);
-                        player.play(true);
-                    }, Math.min(1000 * retryCount, 4000));
-                    return;
-                }
-
-                showNoStreamState(err);
-            }
-
-            function showNoStreamState(err){
-                clearTimeout(retryTimer);
-                clearTimeout(noStreamTimer);
-                releaseWakeLock();
-                showState(
-                    '<div class="state-content">' +
-                        '<div class="glyph"><i>&#10060;</i></div>' +
-                        '<p class="title">No streaming — this link won\'t play</p>' +
-                        '<p class="sub">' + ((err && err.message) ? err.message : 'The source could not be reached.') + '</p>' +
-                        '<button class="retry-btn" onclick="location.reload()">Retry</button>' +
-                        brandBlock() +
-                    '</div>'
+            const video =
+                document.querySelector(
+                    '#player video'
                 );
-            }
-        }
-    </script>
 
-</body>
+            if(video){
+
+                video.style.objectFit =
+                    'fill';
+
+                video.style.touchAction =
+                    'manipulation';
+
+                video.setAttribute(
+                    'playsinline',
+                    ''
+                );
+
+            }
+
+        }
+    );
+
+
+    /* ================= FIRST FRAME ================= */
+
+    player.on(
+        'firstFrame',
+        () => {
+
+            clearInterval(statusTimer);
+
+            clearTimeout(noStreamTimer);
+
+            hideLoader();
+
+            everPlayed = true;
+
+            retryCount = 0;
+
+        }
+    );
+
+
+    /* ================= PLAY ================= */
+
+    player.on(
+        'play',
+        () => {
+
+            clearTimeout(noStreamTimer);
+
+            everPlayed = true;
+
+            hideLoader();
+
+            retryCount = 0;
+
+            requestWakeLock();
+
+        }
+    );
+
+
+    /* ================= PAUSE ================= */
+
+    player.on(
+        'pause',
+        () => {
+
+            userPaused = true;
+
+            releaseWakeLock();
+
+        }
+    );
+
+
+    /* ================= COMPLETE ================= */
+
+    player.on(
+        'complete',
+        () => {
+
+            releaseWakeLock();
+
+        }
+    );
+
+
+    /* =====================================================
+       IMPORTANT CHROME FIX
+
+       Do NOT show a fullscreen/loader overlay simply because
+       JW reports "buffer".
+
+       Small buffer events are normal on live streams.
+       Showing/hiding a full-screen DOM element during touch
+       can trigger Chrome Android compositor lag.
+    ===================================================== */
+
+    player.on(
+        'buffer',
+        () => {
+
+            /*
+             Intentionally empty.
+
+             We do NOT call showLoader() here.
+             This prevents the screen from being replaced
+             every time Chrome/JW briefly buffers.
+            */
+
+            console.log(
+                '[RS Player] buffer'
+            );
+
+        }
+    );
+
+
+    player.on(
+        'idle',
+        () => {
+
+            /*
+             Don't immediately reload.
+
+             JW may enter idle temporarily during
+             fullscreen or network recovery.
+            */
+
+            console.log(
+                '[RS Player] idle'
+            );
+
+        }
+    );
+
+
+    /* ================= FULLSCREEN ================= */
+
+    player.on(
+        'fullscreen',
+        (evt) => {
+
+            console.log(
+                '[RS Player] fullscreen:',
+                evt && evt.fullscreen
+            );
+
+            /*
+             IMPORTANT:
+             No timeout.
+             No loader.
+             No pause().
+             No play().
+             No load().
+
+             This is the main Chrome touch/fullscreen fix.
+            */
+
+            requestAnimationFrame(() => {
+
+                const video =
+                    document.querySelector(
+                        '#player video'
+                    );
+
+                if(video){
+
+                    video.style.width =
+                        '100%';
+
+                    video.style.height =
+                        '100%';
+
+                    video.style.objectFit =
+                        'fill';
+
+                }
+
+            });
+
+        }
+    );
+
+
+    /* ================= ERROR ================= */
+
+    player.on(
+        'error',
+        handleFault
+    );
+
+    player.on(
+        'setupError',
+        handleFault
+    );
+
+
+    function handleFault(err){
+
+        console.error(
+            '[RS Player] error:',
+            err
+        );
+
+        /*
+         If the user intentionally paused,
+         don't automatically reload.
+        */
+
+        if(userPaused)
+            return;
+
+
+        if(!everPlayed){
+
+            clearTimeout(retryTimer);
+
+            retryTimer =
+                setTimeout(() => {
+
+                    try{
+
+                        player.load([
+                            playlistItem
+                        ]);
+
+                        player.play(true);
+
+                    }catch(e){
+
+                        console.warn(e);
+
+                    }
+
+                },900);
+
+            return;
+        }
+
+
+        if(retryCount < maxRetries){
+
+            retryCount++;
+
+            statusEl.textContent =
+                'RECONNECTING (' +
+                retryCount +
+                '/' +
+                maxRetries +
+                ')';
+
+            /*
+             Only show loader for a real
+             player error, not normal buffer.
+            */
+
+            showLoader();
+
+            clearTimeout(retryTimer);
+
+            retryTimer =
+                setTimeout(() => {
+
+                    try{
+
+                        player.load([
+                            playlistItem
+                        ]);
+
+                        player.play(true);
+
+                    }catch(e){
+
+                        console.warn(e);
+
+                    }
+
+                },
+                Math.min(
+                    1000 * retryCount,
+                    4000
+                ));
+
+            return;
+        }
+
+
+        showNoStreamState(err);
+    }
+
+
+    /* ================= NO STREAM ================= */
+
+    function showNoStreamState(err){
+
+        clearTimeout(retryTimer);
+
+        clearTimeout(noStreamTimer);
+
+        releaseWakeLock();
+
+        showState(`
+
+            <div class="state-content">
+
+                <div class="glyph">
+                    <i>&#10060;</i>
+                </div>
+
+                <p class="title">
+                    No streaming — this link won't play
+                </p>
+
+                <p class="sub">
+                    ${
+                        err &&
+                        err.message
+                        ?
+                        err.message
+                        :
+                        'The source could not be reached.'
+                    }
+                </p>
+
+                <button
+                    class="retry-btn"
+                    onclick="location.reload()"
+                >
+                    Retry
+                </button>
+
+                ${brandBlock()}
+
+            </div>
+
+        `);
+    }
+
+
+    /* ================= TOUCH SAFETY ================= */
+
+    /*
+     IMPORTANT:
+     We only stop browser gesture handling.
+     We never stop JW pointer events.
+    */
+
+    const playerBox =
+        document.getElementById(
+            'player'
+        );
+
+    if(playerBox){
+
+        playerBox.addEventListener(
+            'contextmenu',
+            e => {
+
+                e.preventDefault();
+
+            },
+            {passive:false}
+        );
+
+    }
+
+
+    /* ================= VIDEO COMPOSITING ================= */
+
+    /*
+     Re-apply FILL after JW updates its DOM.
+     This is lightweight and does not touch playback.
+    */
+
+    const observer =
+        new MutationObserver(() => {
+
+            const video =
+                document.querySelector(
+                    '#player video'
+                );
+
+            if(video){
+
+                video.style.objectFit =
+                    'fill';
+
+                video.style.touchAction =
+                    'manipulation';
+
+            }
+
+        });
+
+
+    observer.observe(
+        document.getElementById('player'),
+        {
+            childList:true,
+            subtree:true
+        }
+    );
+
+}
+
+</script></body>
 </html>
