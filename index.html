@@ -3,14 +3,26 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <title>RS Oven Player Pro</title>
 
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.js"></script>
 
 <style>
+:root {
+    --bg-1:#0a0a12;
+    --bg-2:#14101f;
+    --grad-a:#22d3ee;
+    --grad-b:#a78bfa;
+    --grad-c:#fb923c;
+    --text:#eef0f7;
+    --text-dim:#7a7a92;
+    --alert:#ff5d5d;
+}
+
 * {
     margin:0;
     padding:0;
@@ -18,120 +30,327 @@
     -webkit-tap-highlight-color:transparent;
 }
 
-html,body,#player {
+html,body {
+    width:100%;
+    height:100%;
+    background:#000;
+    overflow:hidden;
+    position:fixed;
+    inset:0;
+    font-family:'Segoe UI',Arial,sans-serif;
+    overscroll-behavior:none;
+}
+
+#player-wrapper {
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    height:100dvh;
+    background:#000;
+    overflow:hidden;
+}
+
+#player {
+    position:absolute;
+    inset:0;
     width:100%;
     height:100%;
     background:#000;
     overflow:hidden;
 }
 
-#player {
-    position:fixed;
-    inset:0;
+/* FULL SCREEN VIDEO - NO CROP */
+#player video,
+#player .ovenplayer,
+#player .op-player,
+#player .op-media,
+#player .op-player__media {
+    width:100%!important;
+    height:100%!important;
+    max-width:none!important;
+    max-height:none!important;
+    background:#000!important;
 }
 
 #player video {
-    width:100%!important;
-    height:100%!important;
-    object-fit:cover!important;
-    background:#000;
+    object-fit:fill!important;
+    object-position:center center!important;
+    display:block!important;
 }
 
-#loading {
+/* Loading Screen */
+#loader {
     position:fixed;
     inset:0;
-    z-index:100;
-    background:#000;
+    width:100%;
+    height:100%;
+    height:100dvh;
+    z-index:99;
+    background:radial-gradient(
+        80% 60% at 50% 40%,
+        var(--bg-2) 0%,
+        var(--bg-1) 70%
+    );
     display:flex;
-    flex-direction:column;
     justify-content:center;
     align-items:center;
-    transition:opacity .3s,visibility .3s;
+    flex-direction:column;
+    transition:opacity .25s ease,visibility .25s ease;
+    pointer-events:none;
 }
 
-#loading.hide {
+#loader.hide-now {
     opacity:0;
     visibility:hidden;
-    pointer-events:none;
 }
 
-.spinner {
-    width:55px;
-    height:55px;
-    border:4px solid #252525;
-    border-top-color:#ff4f00;
+.tuner {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+}
+
+.tv-wrap {
+    position:relative;
+    width:78px;
+    height:78px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.tv-glow {
+    position:absolute;
+    width:100%;
+    height:100%;
     border-radius:50%;
-    animation:spin .7s linear infinite;
-    box-shadow:0 0 18px #ff4f0040;
+    background:radial-gradient(
+        circle,
+        rgba(167,139,250,.35),
+        transparent 70%
+    );
+    animation:glow-pulse 2.4s ease-in-out infinite;
 }
 
-@keyframes spin {
-    to {transform:rotate(360deg)}
+@keyframes glow-pulse {
+    0%,100% {
+        transform:scale(.85);
+        opacity:.5;
+    }
+    50% {
+        transform:scale(1.15);
+        opacity:1;
+    }
 }
 
-.brand {
-    color:#fff;
-    font:bold 23px Arial;
-    letter-spacing:2px;
-    margin-top:25px;
+.tv-icon {
+    position:relative;
+    width:60px;
+    height:60px;
 }
 
-.brand span {color:#ff4f00}
-
-#loadingText {
-    color:#999;
-    font:12px Arial;
-    letter-spacing:2px;
-    margin-top:13px;
-    animation:pulse 1.2s infinite;
+.tv-body {
+    fill:none;
+    stroke:var(--text);
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
 }
 
-@keyframes pulse {
-    50% {opacity:.4}
+.screen-bars rect {
+    transform-origin:bottom;
+    animation:bar-flicker 1.6s ease-in-out infinite;
 }
 
-#status {
-    position:fixed;
-    bottom:12px;
-    left:12px;
-    z-index:20;
-    color:white;
-    background:#0009;
-    padding:6px 10px;
-    font:11px Arial;
-    border-radius:4px;
-    pointer-events:none;
+.screen-bars rect:nth-child(1) {
+    fill:var(--grad-a);
+    animation-delay:-1.2s;
+}
+.screen-bars rect:nth-child(2) {
+    fill:var(--grad-b);
+    animation-delay:-.9s;
+}
+.screen-bars rect:nth-child(3) {
+    fill:var(--grad-c);
+    animation-delay:-.6s;
+}
+.screen-bars rect:nth-child(4) {
+    fill:var(--grad-b);
+    animation-delay:-.3s;
+}
+.screen-bars rect:nth-child(5) {
+    fill:var(--grad-a);
+    animation-delay:0s;
 }
 
-#retry {
-    display:none;
-    position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    z-index:200;
-    padding:13px 28px;
-    background:#ff4f00;
-    color:white;
-    border:0;
-    border-radius:30px;
+@keyframes bar-flicker {
+    0%,100% {
+        transform:scaleY(.45);
+        opacity:.65;
+    }
+    50% {
+        transform:scaleY(1);
+        opacity:1;
+    }
+}
+
+.brand-name {
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    background:linear-gradient(90deg,var(--grad-a),var(--grad-b));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+}
+
+.brand-name b {
+    color:var(--text);
+    -webkit-text-fill-color:var(--text);
+}
+
+.dots {
+    display:flex;
+    gap:6px;
+}
+
+.dots span {
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--grad-b);
+    animation:dot-pulse 1.2s ease-in-out infinite;
+}
+
+.dots span:nth-child(1) {animation-delay:0s}
+.dots span:nth-child(2) {animation-delay:.2s}
+.dots span:nth-child(3) {animation-delay:.4s}
+
+@keyframes dot-pulse {
+    0%,80%,100% {
+        transform:scale(.6);
+        opacity:.35;
+    }
+    40% {
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+.status-line {
+    font-family:'Courier New',monospace;
+    font-size:9.5px;
+    letter-spacing:2.5px;
+    color:var(--text-dim);
+    text-transform:uppercase;
+}
+
+/* Error */
+.state-content {
+    text-align:center;
+    color:var(--text);
+    padding:24px;
+    pointer-events:auto;
+}
+
+.state-content .glyph {
+    font-size:34px;
+    color:var(--alert);
+    margin-bottom:14px;
+}
+
+.state-content p.title {
+    font-size:13px;
+    letter-spacing:1px;
+    font-weight:600;
+}
+
+.state-content p.sub {
+    font-family:monospace;
+    font-size:10px;
+    color:var(--text-dim);
+    margin-top:8px;
+}
+
+.retry-btn {
+    margin-top:16px;
+    padding:9px 22px;
+    color:#0a0a12;
+    background:linear-gradient(90deg,var(--grad-a),var(--grad-b));
+    border:none;
+    border-radius:20px;
     font-weight:bold;
+    cursor:pointer;
 }
+
+/* Fullscreen */
+#player:fullscreen,
+#player:-webkit-full-screen {
+    width:100%!important;
+    height:100%!important;
+    background:#000;
+}
+
+#player:fullscreen video,
+#player:-webkit-full-screen video {
+    width:100%!important;
+    height:100%!important;
+    object-fit:fill!important;
+}
+
 </style>
 </head>
 
 <body>
 
-<div id="player"></div>
-
-<div id="loading">
-    <div class="spinner"></div>
-    <div class="brand">RS <span>PLAYER</span></div>
-    <div id="loadingText">CONNECTING TO LIVE STREAM...</div>
+<div id="player-wrapper">
+    <div id="player"></div>
 </div>
 
-<div id="status">RS OVEN PLAYER PRO</div>
-<button id="retry">RETRY PLAY</button>
+<div id="loader">
+    <div class="tuner">
+
+        <div class="tv-wrap">
+            <div class="tv-glow"></div>
+
+            <svg class="tv-icon" viewBox="0 0 64 64"
+                 xmlns="http://www.w3.org/2000/svg">
+
+                <path class="tv-body" d="M22 12 32 20 42 12"/>
+
+                <clipPath id="screenClip">
+                    <rect x="12" y="20" width="40" height="26" rx="4"/>
+                </clipPath>
+
+                <g class="screen-bars" clip-path="url(#screenClip)">
+                    <rect x="12" y="20" width="8" height="26"/>
+                    <rect x="20" y="20" width="8" height="26"/>
+                    <rect x="28" y="20" width="8" height="26"/>
+                    <rect x="36" y="20" width="8" height="26"/>
+                    <rect x="44" y="20" width="8" height="26"/>
+                </g>
+
+                <rect class="tv-body" x="12" y="20" width="40" height="26" rx="4"/>
+                <line class="tv-body" x1="24" y1="46" x2="24" y2="50"/>
+                <line class="tv-body" x1="40" y1="46" x2="40" y2="50"/>
+                <line class="tv-body" x1="20" y1="50" x2="44" y2="50"/>
+            </svg>
+        </div>
+
+        <div class="brand-name"><b>RS LIVE</b> TV</div>
+
+        <div class="dots">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div class="status-line" id="status-line">LOADING</div>
+    </div>
+</div>
 
 <script>
 (() => {
@@ -139,223 +358,214 @@ html,body,#player {
 
 const params = new URLSearchParams(location.search);
 const streamParam = params.get("url");
+const forcedType = (params.get("type") || "").toLowerCase();
 
-const loading = document.getElementById("loading");
-const loadingText = document.getElementById("loadingText");
-const status = document.getElementById("status");
-const retryButton = document.getElementById("retry");
+const loader = document.getElementById("loader");
+const status = document.getElementById("status-line");
 
-let urls = [];
-let currentIndex = 0;
 let player = null;
+let currentIndex = 0;
 let retryCount = 0;
 let retryTimer = null;
 let switching = false;
 let destroyed = false;
+let firstFrame = false;
 
 const MAX_RETRIES = 5;
 
-function showLoading(text) {
-    loadingText.textContent = text;
-    loading.classList.remove("hide");
+function showLoader(message) {
+    status.textContent = message || "CONNECTING";
+    loader.classList.remove("hide-now");
 }
 
-function hideLoading() {
-    loading.classList.add("hide");
+function hideLoader() {
+    loader.classList.add("hide-now");
 }
 
-if (!streamParam) {
-    showLoading("STREAM URL MISSING");
-    return;
+function detectType(url) {
+    if(forcedType) return forcedType;
+
+    const clean = url.split("?")[0].toLowerCase();
+
+    if(clean.endsWith(".m3u8")) return "hls";
+    if(clean.endsWith(".mpd")) return "dash";
+    if(clean.endsWith(".mp4")) return "mp4";
+    if(clean.endsWith(".webm")) return "webm";
+
+    return "hls";
 }
 
-urls = streamParam.split(",").map(x => x.trim()).filter(x => {
-    try {
-        const u = new URL(x);
-        return ["https:", "http:"].includes(u.protocol);
-    } catch(e) {
-        return false;
-    }
-});
+if(!streamParam) {
+    status.textContent = "STREAM URL MISSING";
+} else {
 
-if (!urls.length) {
-    showLoading("INVALID STREAM URL");
-    return;
-}
+    const urls = streamParam.split(",")
+        .map(x => x.trim())
+        .filter(x => {
+            try {
+                const u = new URL(x);
+                return u.protocol === "https:" || u.protocol === "http:";
+            } catch(e) {
+                return false;
+            }
+        });
 
-function destroyPlayer() {
-    if (player) {
-        try { player.remove(); } catch(e) {}
-        player = null;
-    }
-}
-
-function startPlayer() {
-    if (destroyed) return;
-
-    clearTimeout(retryTimer);
-    switching = false;
-    retryButton.style.display = "none";
-
-    showLoading("CONNECTING TO LIVE STREAM...");
-    status.textContent = "CONNECTING...";
-
-    if (!window.OvenPlayer) {
-        showLoading("PLAYER LIBRARY ERROR");
-        retryButton.style.display = "block";
+    if(!urls.length) {
+        status.textContent = "INVALID STREAM URL";
         return;
     }
 
-    destroyPlayer();
-
-    try {
-        player = OvenPlayer.create("player", {
-            autoStart:true,
-            mute:true,
-            volume:0,
-            controls:true,
-            sources:[{
-                file:urls[currentIndex],
-                type:"hls",
-                label:"LIVE HD"
-            }]
-        });
-
-        player.on("ready", () => {
-            status.textContent = "PLAYER READY";
-            attachVideoEvents();
-        });
-
-        player.on("play", () => {
-            retryCount = 0;
-            hideLoading();
-            status.textContent = "LIVE • RS PLAYER";
-        });
-
-        player.on("error", error => {
-            console.log("Player error:",error);
-            fallback();
-        });
-
-        player.on("fullscreen", () => {
-            setTimeout(rotateScreen,100);
-        });
-
-    } catch(e) {
-        console.log(e);
-        fallback();
-    }
-}
-
-function attachVideoEvents() {
-    const video = document.querySelector("#player video");
-    if (!video) return;
-
-    video.addEventListener("waiting", () => {
-        showLoading("BUFFERING...");
-    });
-
-    video.addEventListener("stalled", () => {
-        showLoading("RECONNECTING...");
-    });
-
-    video.addEventListener("playing", () => {
-        hideLoading();
-        status.textContent = "LIVE • RS PLAYER";
-    });
-
-    video.addEventListener("error", fallback);
-}
-
-function fallback() {
-    if (switching || destroyed) return;
-
-    switching = true;
-    showLoading("STREAM ERROR • RETRYING...");
-    status.textContent = "RECONNECTING...";
-
-    clearTimeout(retryTimer);
-
-    retryTimer = setTimeout(() => {
-        if (currentIndex < urls.length - 1) {
-            currentIndex++;
-        } else {
-            currentIndex = 0;
-            retryCount++;
+    function cleanup() {
+        if(player) {
+            try { player.remove(); } catch(e) {}
+            player = null;
         }
+    }
 
-        if (retryCount >= MAX_RETRIES) {
-            showLoading("STREAM UNAVAILABLE");
-            retryButton.style.display = "block";
-            switching = false;
+    function applyVideoFit() {
+        const videos = document.querySelectorAll("#player video");
+
+        videos.forEach(video => {
+            video.style.setProperty("width","100%","important");
+            video.style.setProperty("height","100%","important");
+            video.style.setProperty("object-fit","fill","important");
+            video.style.setProperty("object-position","center","important");
+            video.style.setProperty("background","#000","important");
+        });
+    }
+
+    function startPlayer() {
+        if(destroyed) return;
+
+        clearTimeout(retryTimer);
+        switching = false;
+
+        showLoader("CONNECTING");
+        cleanup();
+
+        if(!window.OvenPlayer) {
+            status.textContent = "PLAYER LIBRARY ERROR";
             return;
         }
 
-        startPlayer();
-    },2000);
-}
-
-/* Fullscreen landscape */
-async function rotateScreen() {
-    const fullscreen =
-        document.fullscreenElement ||
-        document.webkitFullscreenElement;
-
-    if (fullscreen && screen.orientation?.lock) {
         try {
-            await screen.orientation.lock("landscape");
-        } catch(e) {
-            console.log("Rotation unavailable");
+            player = OvenPlayer.create("player", {
+                autoStart:true,
+                mute:true,
+                volume:0,
+                controls:true,
+                sources:[{
+                    file:urls[currentIndex],
+                    type:detectType(urls[currentIndex]),
+                    label:"LIVE HD"
+                }]
+            });
+
+            player.on("ready", () => {
+                applyVideoFit();
+                status.textContent = "PLAYER READY";
+            });
+
+            player.on("play", () => {
+                firstFrame = true;
+                retryCount = 0;
+                hideLoader();
+            });
+
+            player.on("error", error => {
+                console.error("OvenPlayer error:",error);
+                fallback();
+            });
+
+            player.on("fullscreen", () => {
+                requestAnimationFrame(applyVideoFit);
+                rotateScreen();
+            });
+
+            player.on("pause", () => {
+                // Keep video controls responsive.
+            });
+
+        } catch(error) {
+            console.error(error);
+            fallback();
         }
     }
-}
 
-function unlockScreen() {
-    try {
-        screen.orientation?.unlock?.();
-    } catch(e) {}
-}
+    function fallback() {
+        if(switching || destroyed) return;
 
-document.addEventListener("fullscreenchange", () => {
-    if (document.fullscreenElement) {
-        rotateScreen();
-    } else {
-        unlockScreen();
+        switching = true;
+        showLoader("RECONNECTING");
+
+        clearTimeout(retryTimer);
+
+        retryTimer = setTimeout(() => {
+            if(currentIndex < urls.length - 1) {
+                currentIndex++;
+            } else {
+                currentIndex = 0;
+                retryCount++;
+            }
+
+            if(retryCount >= MAX_RETRIES) {
+                status.textContent = "STREAM UNAVAILABLE";
+                switching = false;
+                return;
+            }
+
+            startPlayer();
+        },2000);
     }
-});
 
-document.addEventListener("webkitfullscreenchange", () => {
-    if (document.webkitFullscreenElement) {
-        rotateScreen();
-    } else {
-        unlockScreen();
+    function rotateScreen() {
+        const fullscreen =
+            document.fullscreenElement ||
+            document.webkitFullscreenElement;
+
+        if(fullscreen && screen.orientation?.lock) {
+            screen.orientation.lock("landscape").catch(() => {});
+        }
     }
-});
 
-retryButton.addEventListener("click", () => {
-    retryCount = 0;
-    currentIndex = 0;
+    document.addEventListener("fullscreenchange", () => {
+        if(document.fullscreenElement) {
+            rotateScreen();
+        } else {
+            try { screen.orientation?.unlock?.(); } catch(e) {}
+        }
+        applyVideoFit();
+    });
+
+    const observer = new MutationObserver(() => {
+        applyVideoFit();
+    });
+
+    observer.observe(document.getElementById("player"), {
+        childList:true,
+        subtree:true
+    });
+
+    window.addEventListener("online", () => {
+        currentIndex = 0;
+        retryCount = 0;
+        firstFrame = false;
+        startPlayer();
+    });
+
+    window.addEventListener("offline", () => {
+        showLoader("INTERNET CONNECTION LOST");
+    });
+
+    window.addEventListener("pagehide", () => {
+        destroyed = true;
+        clearTimeout(retryTimer);
+        observer.disconnect();
+        cleanup();
+    });
+
     startPlayer();
-});
-
-window.addEventListener("online", () => {
-    retryCount = 0;
-    currentIndex = 0;
-    startPlayer();
-});
-
-window.addEventListener("offline", () => {
-    showLoading("INTERNET CONNECTION LOST");
-});
-
-window.addEventListener("pagehide", () => {
-    destroyed = true;
-    clearTimeout(retryTimer);
-    destroyPlayer();
-});
-
-startPlayer();
-
+}
 })();
 </script>
 
