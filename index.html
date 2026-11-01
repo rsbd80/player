@@ -3,9 +3,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>RS Oven Player</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
+<title>RS Oven Player Pro</title>
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.js"></script>
 
 <style>
@@ -33,13 +37,31 @@ html, body {
 
 #status {
     position: fixed;
-    bottom: 15px;
-    left: 15px;
-    color: white;
+    z-index: 10;
+    bottom: 12px;
+    left: 12px;
+    color: #fff;
+    background: rgba(0,0,0,.55);
+    padding: 6px 10px;
+    border-radius: 5px;
     font-size: 12px;
-    z-index: 5;
-    opacity: .7;
     pointer-events: none;
+}
+
+#retry {
+    display: none;
+    position: fixed;
+    z-index: 20;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background: #ff4f00;
+    border: 0;
+    border-radius: 6px;
+    padding: 13px 25px;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
 }
 </style>
 </head>
@@ -47,112 +69,165 @@ html, body {
 <body>
 
 <div id="player"></div>
-<div id="status">RS PLAYER PRO</div>
+<div id="status">RS OVEN PLAYER</div>
+<button id="retry" onclick="manualRetry()">RETRY PLAY</button>
 
 <script>
 (() => {
 
+"use strict";
+
 const params = new URLSearchParams(location.search);
-const stream = params.get("url");
-
-if (!stream) {
-    document.getElementById("status").textContent =
-        "Stream URL Missing";
-    throw new Error("Missing stream URL");
-}
-
-let urls = stream.split(",")
-    .map(x => x.trim())
-    .filter(Boolean);
-
-let index = 0;
-let player = null;
-let retryCount = 0;
-let retryTimer = null;
-let switching = false;
+const streamParam = params.get("url");
 
 const status = document.getElementById("status");
+const retryButton = document.getElementById("retry");
 
-function playStream() {
+let urls = [];
+let currentIndex = 0;
+let player = null;
+let retryTimer = null;
+let retryCount = 0;
+let isSwitching = false;
+let destroyed = false;
 
-    if (index >= urls.length) {
-        index = 0;
-    }
+if (!streamParam) {
+    status.textContent = "ERROR: STREAM URL MISSING";
+    retryButton.style.display = "block";
+    return;
+}
 
-    switching = false;
+// Support multiple comma-separated URLs
+urls = streamParam
+    .split(",")
+    .map(url => url.trim())
+    .filter(url => {
+        try {
+            const parsed = new URL(url);
+            return parsed.protocol === "https:" ||
+                   parsed.protocol === "http:";
+        } catch(e) {
+            return false;
+        }
+    });
 
-    status.textContent = "Connecting...";
+if (!urls.length) {
+    status.textContent = "INVALID STREAM URL";
+    return;
+}
 
+function cleanPlayer() {
     if (player) {
         try {
             player.remove();
         } catch(e) {}
         player = null;
     }
+}
 
-    player = OvenPlayer.create("player", {
-        autoStart: true,
-        autoFallback: false,
-        controls: true,
-        mute: false,
-        sources: [{
-            file: urls[index],
-            type: "hls"
-        }]
-    });
+function startPlayer() {
 
-    player.on("ready", function() {
-        status.textContent = "RS PLAYER PRO";
-    });
+    if (destroyed) return;
 
-    player.on("play", function() {
-        retryCount = 0;
-        status.textContent = "LIVE";
-        clearTimeout(retryTimer);
-    });
+    clearTimeout(retryTimer);
+    retryButton.style.display = "none";
+    isSwitching = false;
 
-    player.on("error", function() {
+    if (!window.OvenPlayer) {
+        status.textContent = "PLAYER LIBRARY ERROR";
+        retryButton.style.display = "block";
+        return;
+    }
+
+    cleanPlayer();
+
+    status.textContent = "CONNECTING...";
+
+    try {
+
+        player = OvenPlayer.create("player", {
+            autoStart: true,
+            mute: true,
+            volume: 0,
+            controls: true,
+            sources: [{
+                file: urls[currentIndex],
+                type: "hls",
+                label: "LIVE"
+            }]
+        });
+
+        player.on("ready", function() {
+            status.textContent = "PLAYER READY";
+        });
+
+        player.on("play", function() {
+            retryCount = 0;
+            status.textContent = "LIVE • RS PLAYER";
+            retryButton.style.display = "none";
+            clearTimeout(retryTimer);
+        });
+
+        player.on("error", function(error) {
+            console.log("Playback error:", error);
+            fallback();
+        });
+
+    } catch(error) {
+        console.log(error);
         fallback();
-    });
+    }
 }
 
 function fallback() {
 
-    if (switching) return;
-    switching = true;
+    if (isSwitching || destroyed) return;
 
-    status.textContent = "Stream Error - Reconnecting...";
-
+    isSwitching = true;
     clearTimeout(retryTimer);
 
-    retryTimer = setTimeout(() => {
+    status.textContent = "STREAM ERROR • RETRYING";
 
-        if (index < urls.length - 1) {
-            index++;
+    retryTimer = setTimeout(function() {
+
+        if (currentIndex < urls.length - 1) {
+            currentIndex++;
         } else {
+            currentIndex = 0;
             retryCount++;
-
-            if (retryCount >= 5) {
-                status.textContent = "Unable to Play Stream";
-                switching = false;
-                return;
-            }
-
-            index = 0;
         }
 
-        playStream();
+        if (retryCount >= 5) {
+            status.textContent = "STREAM UNAVAILABLE";
+            retryButton.style.display = "block";
+            isSwitching = false;
+            return;
+        }
 
-    }, 2500);
+        startPlayer();
+
+    }, 3000);
 }
 
-playStream();
-
-window.addEventListener("online", () => {
+window.manualRetry = function() {
     retryCount = 0;
-    index = 0;
-    playStream();
+    currentIndex = 0;
+    startPlayer();
+};
+
+window.addEventListener("online", function() {
+    retryCount = 0;
+    currentIndex = 0;
+    startPlayer();
 });
+
+window.addEventListener("pagehide", function() {
+    destroyed = true;
+    clearTimeout(retryTimer);
+    cleanPlayer();
+});
+
+startPlayer();
 
 })();
 </script>
