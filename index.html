@@ -3,65 +3,119 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#000000">
 <title>RS Oven Player Pro</title>
-
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.js"></script>
 
 <style>
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
 }
 
-html, body {
-    width: 100%;
-    height: 100%;
-    background: #000;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
+html,body,#player {
+    width:100%;
+    height:100%;
+    background:#000;
+    overflow:hidden;
 }
 
 #player {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    background: #000;
+    position:fixed;
+    inset:0;
+}
+
+#player video {
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    background:#000;
+}
+
+#loading {
+    position:fixed;
+    inset:0;
+    z-index:100;
+    background:#000;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    transition:opacity .3s,visibility .3s;
+}
+
+#loading.hide {
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+}
+
+.spinner {
+    width:55px;
+    height:55px;
+    border:4px solid #252525;
+    border-top-color:#ff4f00;
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+    box-shadow:0 0 18px #ff4f0040;
+}
+
+@keyframes spin {
+    to {transform:rotate(360deg)}
+}
+
+.brand {
+    color:#fff;
+    font:bold 23px Arial;
+    letter-spacing:2px;
+    margin-top:25px;
+}
+
+.brand span {color:#ff4f00}
+
+#loadingText {
+    color:#999;
+    font:12px Arial;
+    letter-spacing:2px;
+    margin-top:13px;
+    animation:pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+    50% {opacity:.4}
 }
 
 #status {
-    position: fixed;
-    z-index: 10;
-    bottom: 12px;
-    left: 12px;
-    color: #fff;
-    background: rgba(0,0,0,.55);
-    padding: 6px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    pointer-events: none;
+    position:fixed;
+    bottom:12px;
+    left:12px;
+    z-index:20;
+    color:white;
+    background:#0009;
+    padding:6px 10px;
+    font:11px Arial;
+    border-radius:4px;
+    pointer-events:none;
 }
 
 #retry {
-    display: none;
-    position: fixed;
-    z-index: 20;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%,-50%);
-    background: #ff4f00;
-    border: 0;
-    border-radius: 6px;
-    padding: 13px 25px;
-    color: #fff;
-    font-size: 15px;
-    cursor: pointer;
+    display:none;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    z-index:200;
+    padding:13px 28px;
+    background:#ff4f00;
+    color:white;
+    border:0;
+    border-radius:30px;
+    font-weight:bold;
 }
 </style>
 </head>
@@ -69,127 +123,160 @@ html, body {
 <body>
 
 <div id="player"></div>
-<div id="status">RS OVEN PLAYER</div>
-<button id="retry" onclick="manualRetry()">RETRY PLAY</button>
+
+<div id="loading">
+    <div class="spinner"></div>
+    <div class="brand">RS <span>PLAYER</span></div>
+    <div id="loadingText">CONNECTING TO LIVE STREAM...</div>
+</div>
+
+<div id="status">RS OVEN PLAYER PRO</div>
+<button id="retry">RETRY PLAY</button>
 
 <script>
 (() => {
-
 "use strict";
 
 const params = new URLSearchParams(location.search);
 const streamParam = params.get("url");
 
+const loading = document.getElementById("loading");
+const loadingText = document.getElementById("loadingText");
 const status = document.getElementById("status");
 const retryButton = document.getElementById("retry");
 
 let urls = [];
 let currentIndex = 0;
 let player = null;
-let retryTimer = null;
 let retryCount = 0;
-let isSwitching = false;
+let retryTimer = null;
+let switching = false;
 let destroyed = false;
 
+const MAX_RETRIES = 5;
+
+function showLoading(text) {
+    loadingText.textContent = text;
+    loading.classList.remove("hide");
+}
+
+function hideLoading() {
+    loading.classList.add("hide");
+}
+
 if (!streamParam) {
-    status.textContent = "ERROR: STREAM URL MISSING";
-    retryButton.style.display = "block";
+    showLoading("STREAM URL MISSING");
     return;
 }
 
-// Support multiple comma-separated URLs
-urls = streamParam
-    .split(",")
-    .map(url => url.trim())
-    .filter(url => {
-        try {
-            const parsed = new URL(url);
-            return parsed.protocol === "https:" ||
-                   parsed.protocol === "http:";
-        } catch(e) {
-            return false;
-        }
-    });
+urls = streamParam.split(",").map(x => x.trim()).filter(x => {
+    try {
+        const u = new URL(x);
+        return ["https:", "http:"].includes(u.protocol);
+    } catch(e) {
+        return false;
+    }
+});
 
 if (!urls.length) {
-    status.textContent = "INVALID STREAM URL";
+    showLoading("INVALID STREAM URL");
     return;
 }
 
-function cleanPlayer() {
+function destroyPlayer() {
     if (player) {
-        try {
-            player.remove();
-        } catch(e) {}
+        try { player.remove(); } catch(e) {}
         player = null;
     }
 }
 
 function startPlayer() {
-
     if (destroyed) return;
 
     clearTimeout(retryTimer);
+    switching = false;
     retryButton.style.display = "none";
-    isSwitching = false;
+
+    showLoading("CONNECTING TO LIVE STREAM...");
+    status.textContent = "CONNECTING...";
 
     if (!window.OvenPlayer) {
-        status.textContent = "PLAYER LIBRARY ERROR";
+        showLoading("PLAYER LIBRARY ERROR");
         retryButton.style.display = "block";
         return;
     }
 
-    cleanPlayer();
-
-    status.textContent = "CONNECTING...";
+    destroyPlayer();
 
     try {
-
         player = OvenPlayer.create("player", {
-            autoStart: true,
-            mute: true,
-            volume: 0,
-            controls: true,
-            sources: [{
-                file: urls[currentIndex],
-                type: "hls",
-                label: "LIVE"
+            autoStart:true,
+            mute:true,
+            volume:0,
+            controls:true,
+            sources:[{
+                file:urls[currentIndex],
+                type:"hls",
+                label:"LIVE HD"
             }]
         });
 
-        player.on("ready", function() {
+        player.on("ready", () => {
             status.textContent = "PLAYER READY";
+            attachVideoEvents();
         });
 
-        player.on("play", function() {
+        player.on("play", () => {
             retryCount = 0;
+            hideLoading();
             status.textContent = "LIVE • RS PLAYER";
-            retryButton.style.display = "none";
-            clearTimeout(retryTimer);
         });
 
-        player.on("error", function(error) {
-            console.log("Playback error:", error);
+        player.on("error", error => {
+            console.log("Player error:",error);
             fallback();
         });
 
-    } catch(error) {
-        console.log(error);
+        player.on("fullscreen", () => {
+            setTimeout(rotateScreen,100);
+        });
+
+    } catch(e) {
+        console.log(e);
         fallback();
     }
 }
 
+function attachVideoEvents() {
+    const video = document.querySelector("#player video");
+    if (!video) return;
+
+    video.addEventListener("waiting", () => {
+        showLoading("BUFFERING...");
+    });
+
+    video.addEventListener("stalled", () => {
+        showLoading("RECONNECTING...");
+    });
+
+    video.addEventListener("playing", () => {
+        hideLoading();
+        status.textContent = "LIVE • RS PLAYER";
+    });
+
+    video.addEventListener("error", fallback);
+}
+
 function fallback() {
+    if (switching || destroyed) return;
 
-    if (isSwitching || destroyed) return;
+    switching = true;
+    showLoading("STREAM ERROR • RETRYING...");
+    status.textContent = "RECONNECTING...";
 
-    isSwitching = true;
     clearTimeout(retryTimer);
 
-    status.textContent = "STREAM ERROR • RETRYING";
-
-    retryTimer = setTimeout(function() {
-
+    retryTimer = setTimeout(() => {
         if (currentIndex < urls.length - 1) {
             currentIndex++;
         } else {
@@ -197,34 +284,74 @@ function fallback() {
             retryCount++;
         }
 
-        if (retryCount >= 5) {
-            status.textContent = "STREAM UNAVAILABLE";
+        if (retryCount >= MAX_RETRIES) {
+            showLoading("STREAM UNAVAILABLE");
             retryButton.style.display = "block";
-            isSwitching = false;
+            switching = false;
             return;
         }
 
         startPlayer();
-
-    }, 3000);
+    },2000);
 }
 
-window.manualRetry = function() {
-    retryCount = 0;
-    currentIndex = 0;
-    startPlayer();
-};
+/* Fullscreen landscape */
+async function rotateScreen() {
+    const fullscreen =
+        document.fullscreenElement ||
+        document.webkitFullscreenElement;
 
-window.addEventListener("online", function() {
+    if (fullscreen && screen.orientation?.lock) {
+        try {
+            await screen.orientation.lock("landscape");
+        } catch(e) {
+            console.log("Rotation unavailable");
+        }
+    }
+}
+
+function unlockScreen() {
+    try {
+        screen.orientation?.unlock?.();
+    } catch(e) {}
+}
+
+document.addEventListener("fullscreenchange", () => {
+    if (document.fullscreenElement) {
+        rotateScreen();
+    } else {
+        unlockScreen();
+    }
+});
+
+document.addEventListener("webkitfullscreenchange", () => {
+    if (document.webkitFullscreenElement) {
+        rotateScreen();
+    } else {
+        unlockScreen();
+    }
+});
+
+retryButton.addEventListener("click", () => {
     retryCount = 0;
     currentIndex = 0;
     startPlayer();
 });
 
-window.addEventListener("pagehide", function() {
+window.addEventListener("online", () => {
+    retryCount = 0;
+    currentIndex = 0;
+    startPlayer();
+});
+
+window.addEventListener("offline", () => {
+    showLoading("INTERNET CONNECTION LOST");
+});
+
+window.addEventListener("pagehide", () => {
     destroyed = true;
     clearTimeout(retryTimer);
-    cleanPlayer();
+    destroyPlayer();
 });
 
 startPlayer();
