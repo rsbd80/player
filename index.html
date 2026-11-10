@@ -134,7 +134,8 @@ video::-webkit-media-controls{
     align-items:center;
     flex-direction:column;
     z-index:99;
-    transition:opacity .25s ease,visibility .25s ease;
+    /* এনিমেশনের সময় কমিয়ে তাৎক্ষণিক হাইড করার ব্যবস্থা */
+    transition:opacity .1s ease,visibility .1s ease;
     pointer-events:none;
 }
 
