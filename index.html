@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,12 +7,11 @@
 
 <title>RS Player Pro</title>
 
-<script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
-<script>
-jwplayer.key = "Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
-</script>
+<!-- Shaka Player 4.16.2 -->
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/controls.css">
 
-<link rel="preconnect" href="https://content.jwplatform.com">
+<script src="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/shaka-player.ui.js"></script>
 
 <style>
 :root{
@@ -60,63 +60,68 @@ body{
     contain:layout paint;
 }
 
-#player{
+#video-container{
     position:absolute;
     inset:0;
-    width:100%!important;
-    height:100%!important;
-    touch-action:manipulation;
+    width:100%;
+    height:100%;
+    background:#000;
+    overflow:hidden;
 }
 
-/* VIDEO */
-
-#player video,
-.jw-video{
+#video{
     width:100%!important;
     height:100%!important;
     object-fit:fill!important;
-    touch-action:manipulation!important;
+    background:#000;
+    touch-action:manipulation;
     -webkit-user-select:none;
     user-select:none;
 }
 
 video::-webkit-media-controls{
+    /* Native controls are retained for direct-file fallback */
+}
+
+.jwplayer{
     display:none!important;
 }
 
-/* JW SKIN */
+/* SHAKA CONTROLS */
 
-.jw-skin-glow .jw-display-icon-container{
-    background:rgba(167,139,250,.10)!important;
-    border:1px solid rgba(167,139,250,.4);
-    backdrop-filter:none!important;
-    -webkit-backdrop-filter:none!important;
+.shaka-video-container{
+    width:100%!important;
+    height:100%!important;
 }
 
-.jw-skin-glow .jw-button-color{
-    color:#fff!important;
+.shaka-controls-container{
+    z-index:20!important;
 }
 
-.jw-skin-glow .jw-controlbar{
-    background:linear-gradient(
-        0deg,
-        rgba(0,0,0,.75),
-        transparent
-    )!important;
-    backdrop-filter:none!important;
-    -webkit-backdrop-filter:none!important;
+.shaka-controls-container button{
+    touch-action:manipulation;
 }
 
-.jw-skin-glow .jw-slider-time .jw-progress{
-    background:var(--grad-b)!important;
+.shaka-range-container input{
+    accent-color:var(--grad-b);
 }
 
-.jw-skin-glow .jw-knob{
-    background:var(--grad-b)!important;
+.shaka-bottom-controls{
+    padding-bottom:5px!important;
 }
 
-.jw-video.jw-reset{
+/* NATIVE VIDEO MODE */
+
+#player-wrapper.native-mode video{
     object-fit:fill!important;
+}
+
+#player-wrapper.native-mode .shaka-controls-container{
+    display:none!important;
+}
+
+#player-wrapper.native-mode video{
+    touch-action:manipulation;
 }
 
 /* LOADER */
@@ -134,7 +139,6 @@ video::-webkit-media-controls{
     align-items:center;
     flex-direction:column;
     z-index:99;
-    /* এনিমেশনের সময় কমিয়ে তাৎক্ষণিক হাইড করার ব্যবস্থা */
     transition:opacity .1s ease,visibility .1s ease;
     pointer-events:none;
 }
@@ -317,45 +321,189 @@ video::-webkit-media-controls{
     transform:scale(.96);
 }
 
+/* DIRECT OVERLAY AD */
+
+#ad-overlay{
+    position:absolute;
+    z-index:40;
+    left:10px;
+    right:10px;
+    bottom:76px;
+    max-width:540px;
+    margin:auto;
+    display:none;
+    opacity:0;
+    transform:translateY(10px);
+    transition:opacity .25s ease,transform .25s ease;
+    pointer-events:none;
+}
+
+#ad-overlay.ad-visible{
+    display:block;
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+}
+
+.ad-card{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-height:68px;
+    padding:9px 38px 9px 10px;
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:11px;
+    background:rgba(12,13,22,.94);
+    box-shadow:0 5px 25px rgba(0,0,0,.45);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+}
+
+.ad-link{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex:1;
+    min-width:0;
+    color:#fff;
+    text-decoration:none;
+}
+
+.ad-image{
+    display:none;
+    width:75px;
+    height:50px;
+    flex-shrink:0;
+    object-fit:cover;
+    border-radius:6px;
+    background:#252536;
+}
+
+.ad-info{
+    min-width:0;
+    flex:1;
+}
+
+.ad-label{
+    display:inline-block;
+    font-size:8px;
+    font-weight:700;
+    letter-spacing:1px;
+    color:#a78bfa;
+    margin-bottom:3px;
+}
+
+.ad-title{
+    color:#fff;
+    font-size:11px;
+    font-weight:700;
+    line-height:1.4;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.ad-description{
+    color:#b5b5c5;
+    font-size:9px;
+    margin-top:3px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.ad-cta{
+    font-size:9px;
+    color:#22d3ee;
+    font-weight:700;
+    white-space:nowrap;
+    margin-left:5px;
+}
+
+.ad-close{
+    position:absolute;
+    top:5px;
+    right:6px;
+    width:25px;
+    height:25px;
+    border:0;
+    border-radius:50%;
+    background:rgba(255,255,255,.13);
+    color:#fff;
+    font-size:17px;
+    line-height:25px;
+    cursor:pointer;
+    touch-action:manipulation;
+}
+
+.ad-close:active{
+    transform:scale(.9);
+}
+
+.ad-timer{
+    position:absolute;
+    left:10px;
+    bottom:-14px;
+    font-size:8px;
+    color:#ddd;
+    font-family:var(--mono);
+}
+
+@media(max-width:420px){
+    #ad-overlay{
+        left:7px;
+        right:7px;
+        bottom:72px;
+    }
+
+    .ad-card{
+        min-height:60px;
+        padding:7px 34px 7px 8px;
+    }
+
+    .ad-image{
+        width:62px;
+        height:44px;
+    }
+
+    .ad-title{
+        font-size:10px;
+    }
+}
+
 /* FULLSCREEN */
 
-.jwplayer.jw-flag-fullscreen,
-.jwplayer.jw-flag-fullscreen .jw-media,
-.jwplayer.jw-flag-fullscreen video{
-    width:100%!important;
-    height:100%!important;
-}
-
-.jwplayer.jw-flag-fullscreen video{
-    object-fit:fill!important;
-}
-
-.jwplayer,
-.jw-media,
-.jw-video{
-    transform:none!important;
-    filter:none!important;
-    will-change:auto!important;
-}
-
-/* LANDSCAPE FULLSCREEN */
-
-#player-wrapper:fullscreen{
-    width:100vw;
-    height:100vh;
-    background:#000;
-}
-
+#player-wrapper:fullscreen,
 #player-wrapper:-webkit-full-screen{
     width:100vw;
     height:100vh;
     background:#000;
 }
 
-#player-wrapper:fullscreen #player,
-#player-wrapper:-webkit-full-screen #player{
+#player-wrapper:fullscreen #video-container,
+#player-wrapper:-webkit-full-screen #video-container{
+    width:100%;
+    height:100%;
+}
+
+#player-wrapper:fullscreen #video,
+#player-wrapper:-webkit-full-screen #video{
     width:100%!important;
     height:100%!important;
+    object-fit:fill!important;
+}
+
+#player-wrapper:fullscreen #ad-overlay,
+#player-wrapper:-webkit-full-screen #ad-overlay{
+    bottom:85px;
+}
+
+/* TOUCH */
+
+#video-container,
+#video{
+    -webkit-user-select:none;
+    user-select:none;
 }
 
 </style>
@@ -365,79 +513,217 @@ video::-webkit-media-controls{
 
 <div id="player-wrapper">
 
-<div id="loader">
+    <div id="video-container">
 
-    <div class="tuner">
+        <video
+            id="video"
+            playsinline
+            webkit-playsinline
+            preload="auto"
+        ></video>
 
-        <div class="tv-wrap">
-            <div class="tv-glow"></div>
+    </div>
 
-            <svg class="tv-icon" viewBox="0 0 64 64"
-                 xmlns="http://www.w3.org/2000/svg">
+    <!-- LOADER -->
 
-                <path class="tv-body" d="M22 12 32 20 42 12"/>
+    <div id="loader">
 
-                <clipPath id="screenClip">
-                    <rect x="12" y="20" width="40" height="26" rx="4"/>
-                </clipPath>
+        <div class="tuner">
 
-                <g class="screen-bars" clip-path="url(#screenClip)">
-                    <rect x="12" y="20" width="8" height="26"/>
-                    <rect x="20" y="20" width="8" height="26"/>
-                    <rect x="28" y="20" width="8" height="26"/>
-                    <rect x="36" y="20" width="8" height="26"/>
-                    <rect x="44" y="20" width="8" height="26"/>
-                </g>
+            <div class="tv-wrap">
+                <div class="tv-glow"></div>
 
-                <rect class="tv-body" x="12" y="20" width="40" height="26" rx="4"/>
+                <svg class="tv-icon" viewBox="0 0 64 64"
+                     xmlns="http://www.w3.org/2000/svg">
 
-                <line class="tv-body" x1="24" y1="46" x2="24" y2="50"/>
-                <line class="tv-body" x1="40" y1="46" x2="40" y2="50"/>
-                <line class="tv-body" x1="20" y1="50" x2="44" y2="50"/>
+                    <path class="tv-body" d="M22 12 32 20 42 12"/>
 
-            </svg>
+                    <clipPath id="screenClip">
+                        <rect x="12" y="20" width="40" height="26" rx="4"/>
+                    </clipPath>
+
+                    <g class="screen-bars" clip-path="url(#screenClip)">
+                        <rect x="12" y="20" width="8" height="26"/>
+                        <rect x="20" y="20" width="8" height="26"/>
+                        <rect x="28" y="20" width="8" height="26"/>
+                        <rect x="36" y="20" width="8" height="26"/>
+                        <rect x="44" y="20" width="8" height="26"/>
+                    </g>
+
+                    <rect class="tv-body" x="12" y="20" width="40" height="26" rx="4"/>
+
+                    <line class="tv-body" x1="24" y1="46" x2="24" y2="50"/>
+                    <line class="tv-body" x1="40" y1="46" x2="40" y2="50"/>
+                    <line class="tv-body" x1="20" y1="50" x2="44" y2="50"/>
+
+                </svg>
+            </div>
+
+            <div class="brand-name">
+                <b>RS LIVE</b> TV
+            </div>
+
+            <div class="dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="status-line" id="status-line">
+                LOADING
+            </div>
+
         </div>
 
-        <div class="brand-name">
-            <b>RS LIVE</b> TV
-        </div>
+    </div>
 
-        <div class="dots">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
+    <!-- DIRECT AD OVERLAY -->
 
-        <div class="status-line" id="status-line">
-            LOADING
+    <div id="ad-overlay">
+
+        <div class="ad-card">
+
+            <a
+                id="ad-link"
+                class="ad-link"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+
+                <img
+                    id="ad-image"
+                    class="ad-image"
+                    alt="Advertisement"
+                >
+
+                <div class="ad-info">
+
+                    <div class="ad-label">
+                        SPONSORED
+                    </div>
+
+                    <div class="ad-title" id="ad-title">
+                        RS LIVE TV Advertisement
+                    </div>
+
+                    <div class="ad-description" id="ad-description">
+                        Visit our sponsor
+                    </div>
+
+                </div>
+
+                <div class="ad-cta" id="ad-cta">
+                    VISIT →
+                </div>
+
+            </a>
+
+            <button
+                type="button"
+                class="ad-close"
+                id="ad-close"
+                aria-label="Close advertisement"
+            >×</button>
+
+            <div class="ad-timer" id="ad-timer">
+                AD
+            </div>
+
         </div>
 
     </div>
 
 </div>
 
-<div id="player"></div>
-
-</div>
-
 <script>
 
-/* URL SETTINGS */
+/* =====================================
+   RS LIVE TV PLAYER CONFIGURATION
+===================================== */
 
-const urlParams = new URLSearchParams(window.location.search);
+/* STREAM URL SETTINGS */
+
+const urlParams = new URLSearchParams(
+    window.location.search
+);
 
 const streamSource = urlParams.get('url');
 
-const forcedType = (urlParams.get('type') || '').toLowerCase();
+const forcedType = (
+    urlParams.get('type') || ''
+).toLowerCase();
 
 const startMuted = urlParams.get('mute') === '1';
 
-const loaderEl = document.getElementById('loader');
-const statusEl = document.getElementById('status-line');
 
-const wrapper = document.getElementById('player-wrapper');
+/* =====================================
+   DIRECT AD CONFIGURATION
+===================================== */
 
-/* LOADER STATUS */
+/*
+   নিজের বিজ্ঞাপনের তথ্য এখানে বসাবে।
+
+   imageUrl = বিজ্ঞাপনের ছবির লিংক
+   clickUrl = বিজ্ঞাপনে ক্লিক করলে যে ওয়েবসাইট খুলবে
+   enabled = true করলে বিজ্ঞাপন চালু হবে
+
+   প্রথমে নিজের তথ্য বসিয়ে তারপর enabled true করবে।
+*/
+
+const AD_CONFIG = {
+
+    enabled: false,
+
+    imageUrl: "",
+
+    clickUrl: "",
+
+    title: "আপনার বিজ্ঞাপন এখানে",
+
+    description: "বিস্তারিত জানতে ভিজিট করুন",
+
+    ctaText: "VISIT →",
+
+    showAfterMs: 5000,
+
+    durationMs: 10000,
+
+    oncePerSession: true
+
+};
+
+
+/* ELEMENTS */
+
+const wrapper = document.getElementById(
+    'player-wrapper'
+);
+
+const videoContainer = document.getElementById(
+    'video-container'
+);
+
+const video = document.getElementById(
+    'video'
+);
+
+const loaderEl = document.getElementById(
+    'loader'
+);
+
+const statusEl = document.getElementById(
+    'status-line'
+);
+
+const adOverlay = document.getElementById(
+    'ad-overlay'
+);
+
+
+/* =====================================
+   LOADER
+===================================== */
 
 const statusMessages = [
     'LOADING',
@@ -449,62 +735,106 @@ let statusIdx = 0;
 
 let statusTimer = setInterval(() => {
 
-    if(loaderEl.classList.contains('hide-now')) return;
+    if(loaderEl.classList.contains('hide-now')){
+        return;
+    }
 
-    statusIdx = (statusIdx + 1) % statusMessages.length;
+    statusIdx = (
+        statusIdx + 1
+    ) % statusMessages.length;
 
-    statusEl.textContent = statusMessages[statusIdx];
+    statusEl.textContent =
+        statusMessages[statusIdx];
 
 },1800);
 
+
 function showLoader(){
-    loaderEl.classList.remove('hide-now');
+
+    loaderEl.classList.remove(
+        'hide-now'
+    );
+
 }
+
 
 function hideLoader(){
-    loaderEl.classList.add('hide-now');
+
+    loaderEl.classList.add(
+        'hide-now'
+    );
+
 }
+
 
 function showState(html){
+
     clearInterval(statusTimer);
+
     loaderEl.innerHTML = html;
+
     showLoader();
+
 }
 
+
 function brandBlock(){
+
     return `
         <div class="brand-name">
             <b>RS LIVE</b> TV
         </div>
     `;
+
 }
 
-/* WAKE LOCK */
+
+/* =====================================
+   WAKE LOCK
+===================================== */
 
 let wakeLock = null;
+
 let wakeLockWanted = false;
+
 
 async function requestWakeLock(){
 
     wakeLockWanted = true;
 
-    if(!('wakeLock' in navigator)) return;
-    if(wakeLock) return;
+    if(!('wakeLock' in navigator)){
+        return;
+    }
 
-    if(document.visibilityState !== 'visible') return;
+    if(wakeLock){
+        return;
+    }
+
+    if(document.visibilityState !== 'visible'){
+        return;
+    }
 
     try{
 
-        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock = await navigator.wakeLock.request(
+            'screen'
+        );
 
-        wakeLock.addEventListener('release',() => {
-            wakeLock = null;
-        });
+        wakeLock.addEventListener(
+            'release',
+            () => {
+                wakeLock = null;
+            }
+        );
 
     }catch(e){
+
         wakeLock = null;
+
     }
+
 }
+
 
 async function releaseWakeLock(){
 
@@ -517,49 +847,340 @@ async function releaseWakeLock(){
         }catch(e){}
 
         wakeLock = null;
+
     }
+
 }
 
-document.addEventListener('visibilitychange',() => {
 
-    if(
-        document.visibilityState === 'visible' &&
-        wakeLockWanted
-    ){
-        requestWakeLock();
+document.addEventListener(
+    'visibilitychange',
+    () => {
+
+        if(
+            document.visibilityState === 'visible' &&
+            wakeLockWanted
+        ){
+
+            requestWakeLock();
+
+        }
+
     }
+);
 
-});
 
-/* STREAM TYPE */
+/* =====================================
+   STREAM TYPE DETECTION
+===================================== */
 
 function detectType(raw){
 
-    if(forcedType) return forcedType;
+    if(forcedType){
+        return forcedType;
+    }
 
     const clean = raw
         .split('?')[0]
         .split('#')[0]
         .toLowerCase();
 
-    if(clean.endsWith('.m3u8')) return 'hls';
-    if(clean.endsWith('.mpd')) return 'dash';
-    if(clean.endsWith('.mp4')) return 'mp4';
-    if(clean.endsWith('.webm')) return 'webm';
-    if(clean.endsWith('.mov')) return 'mp4';
+    if(clean.endsWith('.m3u8')){
+        return 'hls';
+    }
+
+    if(clean.endsWith('.mpd')){
+        return 'dash';
+    }
+
+    if(
+        clean.endsWith('.mp4') ||
+        clean.endsWith('.mov')
+    ){
+        return 'mp4';
+    }
+
+    if(clean.endsWith('.webm')){
+        return 'webm';
+    }
 
     if(
         clean.endsWith('.ogg') ||
         clean.endsWith('.ogv')
-    ) return 'ogg';
+    ){
+        return 'ogg';
+    }
 
-    if(raw.includes('.m3u8')) return 'hls';
-    if(raw.includes('.mpd')) return 'dash';
+    if(raw.toLowerCase().includes('.m3u8')){
+        return 'hls';
+    }
+
+    if(raw.toLowerCase().includes('.mpd')){
+        return 'dash';
+    }
 
     return null;
+
 }
 
-/* NO URL */
+
+function isDirectFile(type){
+
+    return [
+        'mp4',
+        'webm',
+        'ogg'
+    ].includes(type);
+
+}
+
+
+/* =====================================
+   DIRECT OVERLAY AD SYSTEM
+===================================== */
+
+let adTimer = null;
+
+let adCloseTimer = null;
+
+let adCountdownTimer = null;
+
+let adShown = false;
+
+let adRemaining = 10;
+
+
+function wasAdShown(){
+
+    if(!AD_CONFIG.oncePerSession){
+        return false;
+    }
+
+    try{
+
+        return sessionStorage.getItem(
+            'rs_direct_ad_shown'
+        ) === '1';
+
+    }catch(e){
+
+        return false;
+
+    }
+
+}
+
+
+function markAdShown(){
+
+    try{
+
+        sessionStorage.setItem(
+            'rs_direct_ad_shown',
+            '1'
+        );
+
+    }catch(e){}
+
+}
+
+
+function closeAd(){
+
+    clearTimeout(adCloseTimer);
+
+    clearInterval(adCountdownTimer);
+
+    adOverlay.classList.remove(
+        'ad-visible'
+    );
+
+    adOverlay.style.display = 'none';
+
+}
+
+
+function showAd(){
+
+    if(!AD_CONFIG.enabled){
+        return;
+    }
+
+    if(adShown){
+        return;
+    }
+
+    if(wasAdShown()){
+        return;
+    }
+
+    if(!everPlayed){
+        return;
+    }
+
+    adShown = true;
+
+    markAdShown();
+
+    const adImage = document.getElementById(
+        'ad-image'
+    );
+
+    const adTitle = document.getElementById(
+        'ad-title'
+    );
+
+    const adDescription = document.getElementById(
+        'ad-description'
+    );
+
+    const adLink = document.getElementById(
+        'ad-link'
+    );
+
+    const adCta = document.getElementById(
+        'ad-cta'
+    );
+
+    const adTimerText = document.getElementById(
+        'ad-timer'
+    );
+
+
+    adTitle.textContent =
+        AD_CONFIG.title;
+
+    adDescription.textContent =
+        AD_CONFIG.description;
+
+    adCta.textContent =
+        AD_CONFIG.ctaText;
+
+
+    /* IMAGE */
+
+    if(AD_CONFIG.imageUrl){
+
+        adImage.src = AD_CONFIG.imageUrl;
+
+        adImage.style.display = 'block';
+
+    }else{
+
+        adImage.style.display = 'none';
+
+    }
+
+
+    /* CLICK LINK */
+
+    if(AD_CONFIG.clickUrl){
+
+        adLink.href = AD_CONFIG.clickUrl;
+
+        adLink.style.pointerEvents = 'auto';
+
+        adCta.style.display = 'block';
+
+    }else{
+
+        adLink.removeAttribute('href');
+
+        adLink.style.pointerEvents = 'none';
+
+        adCta.style.display = 'none';
+
+    }
+
+
+    adOverlay.style.display = 'block';
+
+    requestAnimationFrame(() => {
+
+        adOverlay.classList.add(
+            'ad-visible'
+        );
+
+    });
+
+
+    /* AUTO CLOSE */
+
+    adRemaining = Math.ceil(
+        AD_CONFIG.durationMs / 1000
+    );
+
+    adTimerText.textContent =
+        'Closing in ' + adRemaining + 's';
+
+
+    adCountdownTimer = setInterval(() => {
+
+        adRemaining--;
+
+        if(adRemaining <= 0){
+
+            clearInterval(adCountdownTimer);
+
+            return;
+
+        }
+
+        adTimerText.textContent =
+            'Closing in ' + adRemaining + 's';
+
+    },1000);
+
+
+    adCloseTimer = setTimeout(() => {
+
+        closeAd();
+
+    },AD_CONFIG.durationMs);
+
+}
+
+
+function scheduleAd(){
+
+    if(!AD_CONFIG.enabled){
+        return;
+    }
+
+    if(adShown || wasAdShown()){
+        return;
+    }
+
+    clearTimeout(adTimer);
+
+    adTimer = setTimeout(() => {
+
+        if(
+            everPlayed &&
+            !video.paused &&
+            !video.ended
+        ){
+
+            showAd();
+
+        }
+
+    },AD_CONFIG.showAfterMs);
+
+}
+
+
+document.getElementById(
+    'ad-close'
+).addEventListener(
+    'click',
+    closeAd
+);
+
+
+/* =====================================
+   NO URL
+===================================== */
 
 if(!streamSource){
 
@@ -568,7 +1189,7 @@ if(!streamSource){
         <div class="state-content">
 
             <div class="glyph warn">
-                <i>&#9888;</i>
+                &#9888;
             </div>
 
             <p class="title">
@@ -588,340 +1209,201 @@ if(!streamSource){
 
 }else{
 
-    const streamType = detectType(streamSource);
 
-    const playlistItem = {
-        file:streamSource
-    };
+/* =====================================
+   PLAYER INITIALIZATION
+===================================== */
 
-    if(streamType){
-        playlistItem.type = streamType;
-    }
+const streamType = detectType(
+    streamSource
+);
 
-    /* JW PLAYER */
+let player = null;
 
-    const player = jwplayer('player').setup({
+let ui = null;
 
-        playlist:[
-            playlistItem
-        ],
+let retryCount = 0;
 
-        width:'100%',
-        height:'100%',
+const maxRetries = 6;
 
-        autostart:true,
-        mute:startMuted,
-        preload:'auto',
+let retryTimer = null;
 
-        stretching:'uniform',
+let noStreamTimer = null;
 
-        liveTimeout:0,
+let everPlayed = false;
 
-        skin:{
-            name:'glow'
-        },
+let userPaused = false;
 
-        displaytitle:false,
-        displaydescription:false,
+let isRetrying = false;
 
-        controls:true,
-        repeat:false
+let isNative = false;
 
-    });
+const NO_STREAM_TIMEOUT = 12000;
 
-    /* RETRY */
 
-    let retryCount = 0;
-    const maxRetries = 6;
+/* VIDEO STYLE */
 
-    let retryTimer = null;
-    let everPlayed = false;
-    let userPaused = false;
+function applyVideoStyle(){
 
-    const NO_STREAM_TIMEOUT = 12000;
+    video.style.width = '100%';
 
-    let noStreamTimer = setTimeout(() => {
+    video.style.height = '100%';
 
-        if(!everPlayed){
-            showNoStreamState();
-        }
+    video.style.objectFit = 'fill';
 
-    },NO_STREAM_TIMEOUT);
+    video.style.touchAction = 'manipulation';
 
-    /* VIDEO STYLE */
+    video.setAttribute(
+        'playsinline',
+        ''
+    );
 
-    function applyVideoStyle(){
+}
 
-        const video = document.querySelector('#player video');
 
-        if(video){
+/* =====================================
+   PLAYBACK STATE
+===================================== */
 
-            video.style.width = '100%';
-            video.style.height = '100%';
-            video.style.objectFit = 'fill';
-            video.style.touchAction = 'manipulation';
+function onFirstPlayback(){
 
-            video.setAttribute('playsinline','');
-        }
+    clearTimeout(noStreamTimer);
 
-    }
+    hideLoader();
 
-    /* READY */
-
-    player.on('ready',() => {
-
-        console.log(
-            'RS Player ready:',
-            streamType || 'auto'
-        );
-
-        applyVideoStyle();
-
-    });
-
-    /* FIRST FRAME */
-
-    player.on('firstFrame',() => {
-
-        clearInterval(statusTimer);
-        clearTimeout(noStreamTimer);
-
-        hideLoader();
-
-        everPlayed = true;
-        retryCount = 0;
-
-    });
-
-    /* PLAY */
-
-    player.on('play',() => {
-
-        clearTimeout(noStreamTimer);
+    if(!everPlayed){
 
         everPlayed = true;
 
-        hideLoader();
+        retryCount = 0;
+
+        scheduleAd();
+
+    }else{
 
         retryCount = 0;
 
-        requestWakeLock();
+    }
 
-    });
+    requestWakeLock();
 
-    /* PAUSE */
+}
 
-    player.on('pause',() => {
 
-        userPaused = true;
+/* =====================================
+   PLAYER ERROR
+===================================== */
 
-        releaseWakeLock();
+function showNoStreamState(err){
 
-    });
+    clearTimeout(retryTimer);
 
-    /* COMPLETE */
+    clearTimeout(noStreamTimer);
 
-    player.on('complete',() => {
-        releaseWakeLock();
-    });
+    clearTimeout(adTimer);
 
-    /* BUFFER */
+    closeAd();
 
-    player.on('buffer',() => {
+    releaseWakeLock();
 
-        console.log('[RS Player] buffer');
+    const message =
+        err && err.message
+        ? String(err.message)
+        : 'The source could not be reached.';
 
-    });
+    const safeMessage = message
+        .replace(/[&<>"']/g, char => ({
+            '&':'&amp;',
+            '<':'&lt;',
+            '>':'&gt;',
+            '"':'&quot;',
+            "'":'&#39;'
+        })[char]);
 
-    /* IDLE */
+    showState(`
 
-    player.on('idle',() => {
+        <div class="state-content">
 
-        console.log('[RS Player] idle');
+            <div class="glyph">
+                &#10060;
+            </div>
 
-    });
+            <p class="title">
+                No streaming — this link won't play
+            </p>
 
-    /* =====================================
-       FULLSCREEN + LANDSCAPE ORIENTATION
-    ===================================== */
+            <p class="sub">
+                ${safeMessage}
+            </p>
 
-    let landscapeLocked = false;
+            <button
+                class="retry-btn"
+                onclick="location.reload()"
+            >
+                Retry
+            </button>
 
-    async function lockLandscape(){
+            ${brandBlock()}
 
-        try{
+        </div>
 
-            if(
-                screen.orientation &&
-                typeof screen.orientation.lock === 'function'
-            ){
+    `);
 
-                await screen.orientation.lock('landscape');
+}
 
-                landscapeLocked = true;
 
-                console.log('[RS Player] Landscape locked');
+/* =====================================
+   AUTO RECONNECT
+===================================== */
 
-            }
+async function loadStream(){
 
-        }catch(error){
+    if(userPaused){
+        return;
+    }
 
-            landscapeLocked = false;
+    isRetrying = true;
 
-            console.log(
-                '[RS Player] Landscape lock unavailable:',
-                error
+    showLoader();
+
+    statusEl.textContent = 'RECONNECTING';
+
+    try{
+
+        if(isNative){
+
+            video.pause();
+
+            video.src = streamSource;
+
+            video.load();
+
+        }else{
+
+            await player.load(
+                streamSource
             );
 
         }
 
-    }
+        const playResult = video.play();
 
-    function unlockLandscape(){
+        if(playResult && playResult.catch){
 
-        try{
-
-            if(
-                screen.orientation &&
-                typeof screen.orientation.unlock === 'function'
-            ){
-
-                screen.orientation.unlock();
-
-            }
-
-        }catch(error){
-
-            console.log(error);
+            await playResult.catch(() => {});
 
         }
 
-        landscapeLocked = false;
+        isRetrying = false;
 
-    }
+    }catch(error){
 
-    /* JW FULLSCREEN EVENT */
+        isRetrying = false;
 
-    player.on('fullscreen',(evt) => {
-
-        const isFullscreen = evt && evt.fullscreen;
-
-        console.log(
-            '[RS Player] fullscreen:',
-            isFullscreen
+        console.error(
+            '[RS Player] reconnect error:',
+            error
         );
-
-        if(isFullscreen){
-
-            lockLandscape();
-
-        }else{
-
-            unlockLandscape();
-
-        }
-
-        requestAnimationFrame(() => {
-            applyVideoStyle();
-        });
-
-    });
-
-    /* NATIVE FULLSCREEN EVENT */
-
-    document.addEventListener('fullscreenchange',() => {
-
-        if(document.fullscreenElement){
-
-            lockLandscape();
-
-        }else if(!player.getFullscreen()){
-
-            unlockLandscape();
-
-        }
-
-        requestAnimationFrame(() => {
-            applyVideoStyle();
-        });
-
-    });
-
-    /* WEBKIT FULLSCREEN */
-
-    document.addEventListener('webkitfullscreenchange',() => {
-
-        if(document.webkitFullscreenElement){
-
-            lockLandscape();
-
-        }else{
-
-            unlockLandscape();
-
-        }
-
-        requestAnimationFrame(() => {
-            applyVideoStyle();
-        });
-
-    });
-
-    /* SCREEN ORIENTATION CHANGE */
-
-    if(screen.orientation){
-
-        screen.orientation.addEventListener('change',() => {
-
-            if(
-                player.getFullscreen() ||
-                document.fullscreenElement
-            ){
-
-                requestAnimationFrame(() => {
-                    applyVideoStyle();
-                });
-
-            }
-
-        });
-
-    }
-
-    /* =====================================
-       ERROR + AUTO RECONNECT
-    ===================================== */
-
-    player.on('error',handleFault);
-    player.on('setupError',handleFault);
-
-    function handleFault(err){
-
-        console.error('[RS Player] error:',err);
-
-        if(userPaused) return;
-
-        if(!everPlayed){
-
-            clearTimeout(retryTimer);
-
-            retryTimer = setTimeout(() => {
-
-                try{
-
-                    player.load([playlistItem]);
-                    player.play(true);
-
-                }catch(e){
-
-                    console.warn(e);
-
-                }
-
-            },900);
-
-            return;
-        }
 
         if(retryCount < maxRetries){
 
@@ -934,108 +1416,638 @@ if(!streamSource){
                 maxRetries +
                 ')';
 
-            showLoader();
-
             clearTimeout(retryTimer);
 
             retryTimer = setTimeout(() => {
 
-                try{
+                loadStream();
 
-                    player.load([playlistItem]);
-                    player.play(true);
+            },Math.min(1000 * retryCount,4000));
 
-                }catch(e){
+        }else{
 
-                    console.warn(e);
+            showNoStreamState(error);
 
-                }
-
-            },
-            Math.min(1000 * retryCount,4000));
-
-            return;
         }
-
-        showNoStreamState(err);
 
     }
 
-    /* NO STREAM */
+}
 
-    function showNoStreamState(err){
+
+function handleFault(error){
+
+    console.error(
+        '[RS Player] error:',
+        error
+    );
+
+    if(userPaused){
+        return;
+    }
+
+    if(retryCount < maxRetries){
+
+        retryCount++;
 
         clearTimeout(retryTimer);
-        clearTimeout(noStreamTimer);
+
+        showLoader();
+
+        statusEl.textContent =
+            'RECONNECTING (' +
+            retryCount +
+            '/' +
+            maxRetries +
+            ')';
+
+        retryTimer = setTimeout(() => {
+
+            loadStream();
+
+        },Math.min(1000 * retryCount,4000));
+
+    }else{
+
+        showNoStreamState(error);
+
+    }
+
+}
+
+
+/* =====================================
+   VIDEO EVENTS
+===================================== */
+
+video.addEventListener(
+    'playing',
+    () => {
+
+        clearTimeout(retryTimer);
+
+        onFirstPlayback();
+
+    }
+);
+
+
+video.addEventListener(
+    'waiting',
+    () => {
+
+        if(everPlayed){
+
+            statusEl.textContent = 'BUFFERING';
+
+            showLoader();
+
+        }
+
+    }
+);
+
+
+video.addEventListener(
+    'stalled',
+    () => {
+
+        if(everPlayed){
+
+            statusEl.textContent = 'BUFFERING';
+
+            showLoader();
+
+        }
+
+    }
+);
+
+
+video.addEventListener(
+    'pause',
+    () => {
 
         releaseWakeLock();
 
-        showState(`
+        if(everPlayed && !isRetrying){
 
-            <div class="state-content">
+            userPaused = true;
 
-                <div class="glyph">
-                    <i>&#10060;</i>
-                </div>
+            clearTimeout(adTimer);
 
-                <p class="title">
-                    No streaming — this link won't play
-                </p>
+            closeAd();
 
-                <p class="sub">
-                    ${
-                        err && err.message
-                        ? err.message
-                        : 'The source could not be reached.'
-                    }
-                </p>
+        }
 
-                <button
-                    class="retry-btn"
-                    onclick="location.reload()"
-                >
-                    Retry
-                </button>
+    }
+);
 
-                ${brandBlock()}
 
-            </div>
+video.addEventListener(
+    'play',
+    () => {
 
-        `);
+        userPaused = false;
+
+        if(everPlayed){
+
+            hideLoader();
+
+        }
+
+    }
+);
+
+
+video.addEventListener(
+    'ended',
+    () => {
+
+        releaseWakeLock();
+
+    }
+);
+
+
+video.addEventListener(
+    'error',
+    () => {
+
+        if(!video.error){
+            return;
+        }
+
+        handleFault(
+            new Error(
+                'Video playback error: ' +
+                video.error.message
+            )
+        );
+
+    }
+);
+
+
+/* =====================================
+   SHAKA INITIALIZATION
+===================================== */
+
+async function initializePlayer(){
+
+    try{
+
+        if(!window.shaka){
+
+            throw new Error(
+                'Shaka Player library failed to load.'
+            );
+
+        }
+
+        shaka.polyfill.installAll();
+
+        if(!shaka.Player.isBrowserSupported()){
+
+            throw new Error(
+                'This browser does not support Shaka Player.'
+            );
+
+        }
+
+
+        /* DIRECT FILE FALLBACK */
+
+        if(isDirectFile(streamType)){
+
+            isNative = true;
+
+            wrapper.classList.add(
+                'native-mode'
+            );
+
+            video.controls = true;
+
+            video.src = streamSource;
+
+            video.load();
+
+            const result = video.play();
+
+            if(result && result.catch){
+
+                await result.catch(error => {
+
+                    console.warn(
+                        '[RS Player] Autoplay blocked:',
+                        error
+                    );
+
+                });
+
+            }
+
+            return;
+
+        }
+
+
+        /* SHAKA PLAYER */
+
+        player = new shaka.Player();
+
+        await player.attach(video);
+
+
+        /* STREAMING CONFIG */
+
+        player.configure({
+
+            streaming:{
+
+                bufferingGoal:20,
+
+                rebufferingGoal:2,
+
+                bufferBehind:30,
+
+                retryParameters:{
+
+                    maxAttempts:3,
+
+                    baseDelay:1000,
+
+                    backoffFactor:2,
+
+                    fuzzFactor:0.5
+
+                }
+
+            }
+
+        });
+
+
+        /* SHAKA UI */
+
+        ui = new shaka.ui.Overlay(
+            player,
+            videoContainer,
+            video
+        );
+
+        ui.configure({
+
+            controlPanelElements:[
+
+                'play_pause',
+
+                'time_and_duration',
+
+                'spacer',
+
+                'mute',
+
+                'volume',
+
+                'fullscreen'
+
+            ],
+
+            overflowMenuButtons:[
+
+                'quality',
+
+                'language',
+
+                'captions',
+
+                'playback_rate'
+
+            ]
+
+        });
+
+
+        video.controls = false;
+
+
+        /* PLAYER ERROR EVENT */
+
+        player.addEventListener(
+            'error',
+            event => {
+
+                console.error(
+                    '[RS Player] Shaka error:',
+                    event.detail
+                );
+
+                handleFault(
+                    new Error(
+                        'Shaka playback error: ' +
+                        (
+                            event.detail &&
+                            event.detail.message
+                            ? event.detail.message
+                            : 'Stream error'
+                        )
+                    )
+                );
+
+            }
+        );
+
+
+        /* BUFFERING */
+
+        player.addEventListener(
+            'buffering',
+            event => {
+
+                if(
+                    event.buffering &&
+                    everPlayed
+                ){
+
+                    statusEl.textContent = 'BUFFERING';
+
+                    showLoader();
+
+                }
+
+            }
+        );
+
+
+        /* LOAD STREAM */
+
+        await player.load(
+            streamSource
+        );
+
+
+        applyVideoStyle();
+
+
+        /* AUTOPLAY */
+
+        const result = video.play();
+
+        if(result && result.catch){
+
+            await result.catch(error => {
+
+                console.warn(
+                    '[RS Player] Autoplay blocked:',
+                    error
+                );
+
+            });
+
+        }
+
+
+        console.log(
+            '[RS Player] Shaka ready:',
+            streamType || 'auto'
+        );
+
+
+    }catch(error){
+
+        console.error(
+            '[RS Player] setup error:',
+            error
+        );
+
+        handleFault(error);
 
     }
 
-    /* TOUCH SAFETY */
+}
 
-    const playerBox = document.getElementById('player');
 
-    if(playerBox){
+/* =====================================
+   FULLSCREEN + LANDSCAPE
+===================================== */
 
-        playerBox.addEventListener(
-            'contextmenu',
-            e => {
-                e.preventDefault();
-            },
-            {passive:false}
+let landscapeLocked = false;
+
+
+async function lockLandscape(){
+
+    try{
+
+        if(
+            screen.orientation &&
+            typeof screen.orientation.lock === 'function'
+        ){
+
+            await screen.orientation.lock(
+                'landscape'
+            );
+
+            landscapeLocked = true;
+
+            console.log(
+                '[RS Player] Landscape locked'
+            );
+
+        }
+
+    }catch(error){
+
+        landscapeLocked = false;
+
+        console.log(
+            '[RS Player] Landscape lock unavailable:',
+            error
         );
 
     }
 
-    /* VIDEO COMPOSITING */
+}
 
-    const observer = new MutationObserver(() => {
+
+function unlockLandscape(){
+
+    try{
+
+        if(
+            screen.orientation &&
+            typeof screen.orientation.unlock === 'function'
+        ){
+
+            screen.orientation.unlock();
+
+        }
+
+    }catch(error){
+
+        console.log(error);
+
+    }
+
+    landscapeLocked = false;
+
+}
+
+
+function checkFullscreen(){
+
+    const fullscreen =
+        document.fullscreenElement ||
+        document.webkitFullscreenElement;
+
+    if(fullscreen){
+
+        lockLandscape();
+
+    }else{
+
+        unlockLandscape();
+
+    }
+
+    requestAnimationFrame(() => {
 
         applyVideoStyle();
 
     });
 
-    observer.observe(
-        document.getElementById('player'),
-        {
-            childList:true,
-            subtree:true
+}
+
+
+document.addEventListener(
+    'fullscreenchange',
+    checkFullscreen
+);
+
+
+document.addEventListener(
+    'webkitfullscreenchange',
+    checkFullscreen
+);
+
+
+if(screen.orientation){
+
+    screen.orientation.addEventListener(
+        'change',
+        () => {
+
+            if(
+                document.fullscreenElement ||
+                document.webkitFullscreenElement
+            ){
+
+                requestAnimationFrame(() => {
+
+                    applyVideoStyle();
+
+                });
+
+            }
+
         }
     );
+
+}
+
+
+/* =====================================
+   INITIAL TIMEOUT
+===================================== */
+
+noStreamTimer = setTimeout(() => {
+
+    if(!everPlayed){
+
+        showNoStreamState(
+            new Error(
+                'Stream did not start within 12 seconds.'
+            )
+        );
+
+    }
+
+},NO_STREAM_TIMEOUT);
+
+
+/* =====================================
+   TOUCH SAFETY
+===================================== */
+
+videoContainer.addEventListener(
+    'contextmenu',
+    event => {
+
+        event.preventDefault();
+
+    },
+    {passive:false}
+);
+
+
+/* =====================================
+   VIDEO COMPOSITING
+===================================== */
+
+const observer = new MutationObserver(() => {
+
+    applyVideoStyle();
+
+});
+
+observer.observe(
+    videoContainer,
+    {
+        childList:true,
+        subtree:true
+    }
+);
+
+
+/* =====================================
+   START PLAYER
+===================================== */
+
+applyVideoStyle();
+
+initializePlayer();
+
+
+/* =====================================
+   PAGE CLEANUP
+===================================== */
+
+window.addEventListener(
+    'pagehide',
+    () => {
+
+        clearTimeout(retryTimer);
+
+        clearTimeout(noStreamTimer);
+
+        clearTimeout(adTimer);
+
+        clearTimeout(adCloseTimer);
+
+        clearInterval(adCountdownTimer);
+
+        releaseWakeLock();
+
+        if(player){
+
+            try{
+                player.destroy();
+            }catch(e){}
+
+        }
+
+    }
+);
 
 }
 
