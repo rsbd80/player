@@ -44,11 +44,14 @@ html,body{
 
 body{touch-action:pan-x pan-y}
 
-/* PLAYER AREA */
+/* PLAYER AREA: নিচে বিজ্ঞাপনের জায়গা */
 
 #player-wrapper{
  position:fixed;
- inset:0;
+ top:0;
+ left:0;
+ right:0;
+ bottom:60px;
  width:100%;
  overflow:hidden;
  background:#000;
@@ -79,111 +82,13 @@ body{touch-action:pan-x pan-y}
  height:100%!important;
 }
 
-.shaka-controls-container{
- z-index:20!important;
-}
+.shaka-controls-container{z-index:20!important}
+.shaka-controls-container button{touch-action:manipulation}
+.shaka-range-container input{accent-color:var(--grad-b)}
+.shaka-bottom-controls{padding-bottom:5px!important}
 
-.shaka-controls-container button{
- touch-action:manipulation;
-}
-
-.shaka-range-container input{
- accent-color:var(--grad-b);
-}
-
-.shaka-bottom-controls{
- padding-bottom:5px!important;
-}
-
-/* Fullscreen tooltip / English text hide */
-
-.shaka-tooltip,
-.shaka-tooltip-container,
-.shaka-controls-container [data-shaka-tooltip]::after{
+#player-wrapper.native-mode .shaka-controls-container{
  display:none!important;
- opacity:0!important;
- visibility:hidden!important;
-}
-
-/* Native player mode */
-
-#player-wrapper.native-mode .shaka-controls-container,
-#player-wrapper.native-mode #quality-control{
- display:none!important;
-}
-
-/* QUALITY BUTTON */
-
-#quality-control{
- position:absolute;
- right:14px;
- bottom:65px;
- z-index:35;
- display:none;
-}
-
-#quality-btn{
- width:42px;
- height:42px;
- display:flex;
- align-items:center;
- justify-content:center;
- border:1px solid rgba(255,255,255,.25);
- border-radius:50%;
- background:rgba(0,0,0,.68);
- color:#fff;
- cursor:pointer;
- backdrop-filter:blur(8px);
- -webkit-backdrop-filter:blur(8px);
-}
-
-#quality-btn svg{
- width:23px;
- height:23px;
-}
-
-#quality-menu{
- position:absolute;
- right:0;
- bottom:50px;
- width:155px;
- max-height:230px;
- overflow-y:auto;
- display:none;
- flex-direction:column;
- padding:7px;
- border:1px solid rgba(255,255,255,.16);
- border-radius:12px;
- background:rgba(15,15,25,.97);
- box-shadow:0 8px 30px rgba(0,0,0,.65);
- backdrop-filter:blur(12px);
-}
-
-#quality-menu.show{
- display:flex;
-}
-
-.quality-option{
- width:100%;
- padding:10px 9px;
- border:0;
- border-radius:7px;
- background:transparent;
- color:#ddd;
- text-align:left;
- font-size:12px;
- font-family:var(--font);
- cursor:pointer;
-}
-
-.quality-option:active{
- background:rgba(167,139,250,.2);
-}
-
-.quality-option.active{
- color:var(--grad-a);
- background:rgba(34,211,238,.12);
- font-weight:700;
 }
 
 /* LOADER */
@@ -238,7 +143,6 @@ body{touch-action:pan-x pan-y}
 }
 
 .tv-icon{position:relative;width:60px;height:60px}
-
 .tv-icon .tv-body{
  fill:none;
  stroke:var(--text);
@@ -280,7 +184,6 @@ body{touch-action:pan-x pan-y}
 }
 
 .dots{display:flex;gap:6px}
-
 .dots span{
  width:6px;
  height:6px;
@@ -288,7 +191,6 @@ body{touch-action:pan-x pan-y}
  background:var(--grad-b);
  animation:dot-pulse 1.2s ease-in-out infinite;
 }
-
 .dots span:nth-child(2){animation-delay:.2s}
 .dots span:nth-child(3){animation-delay:.4s}
 
@@ -323,7 +225,6 @@ body{touch-action:pan-x pan-y}
 
 .state-content .glyph.warn{color:var(--warn)}
 .state-content p.title{font-size:13px;letter-spacing:1px;font-weight:600}
-
 .state-content p.sub{
  font-family:var(--mono);
  font-size:10.5px;
@@ -347,6 +248,28 @@ body{touch-action:pan-x pan-y}
  border:none;
  border-radius:18px;
  cursor:pointer;
+}
+
+/* ADSTERRA BANNER AREA */
+
+#adsterra-slot{
+ position:fixed;
+ left:0;
+ right:0;
+ bottom:0;
+ width:100%;
+ height:60px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ background:#000;
+ overflow:hidden;
+ z-index:200;
+}
+
+#adsterra-slot iframe{
+ max-width:100%;
+ border:0;
 }
 
 /* FULLSCREEN */
@@ -373,6 +296,11 @@ body{touch-action:pan-x pan-y}
  object-fit:fill!important;
 }
 
+#player-wrapper:fullscreen ~ #adsterra-slot,
+#player-wrapper:-webkit-full-screen ~ #adsterra-slot{
+ display:none!important;
+}
+
 #video-container,#video{
  -webkit-user-select:none;
  user-select:none;
@@ -385,24 +313,7 @@ body{touch-action:pan-x pan-y}
 <div id="player-wrapper">
 
  <div id="video-container">
-
   <video id="video" playsinline webkit-playsinline preload="auto"></video>
-
-  <!-- CUSTOM QUALITY CONTROL -->
-  <div id="quality-control">
-
-   <button id="quality-btn" type="button" aria-label="Video quality">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-     <circle cx="12" cy="12" r="3"/>
-     <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.7 2.94-.08-.02a1.7 1.7 0 0 0-1.72.5l-.06.06h-3.4l-.02-.08a1.7 1.7 0 0 0-1.2-1.2l-.08-.02-2.94-1.7.02-.08a1.7 1.7 0 0 0-.5-1.72l-.06-.06v-3.4l.08-.02a1.7 1.7 0 0 0 1.2-1.2l.02-.08 1.7-2.94.08.02a1.7 1.7 0 0 0 1.72-.5l.06-.06h3.4l.02.08a1.7 1.7 0 0 0 1.2 1.2l.08.02 2.94 1.7-.02.08a1.7 1.7 0 0 0 .5 1.72l.06.06z"/>
-    </svg>
-   </button>
-
-   <div id="quality-menu"></div>
-
-  </div>
-
  </div>
 
  <div id="loader">
@@ -442,6 +353,24 @@ body{touch-action:pan-x pan-y}
 
 </div>
 
+<!-- ADSTERRA 320x50 BANNER -->
+
+<div id="adsterra-slot">
+ <script type="text/javascript">
+ atOptions = {
+  'key' : '774c0e371455f6476668178b5faae5ab',
+  'format' : 'iframe',
+  'height' : 50,
+  'width' : 320,
+  'params' : {}
+ };
+ </script>
+ <script
+  type="text/javascript"
+  src="https://www.highperformanceformat.com/774c0e371455f6476668178b5faae5ab/invoke.js">
+ </script>
+</div>
+
 <script>
 /* STREAM SETTINGS */
 
@@ -455,10 +384,6 @@ const videoContainer = document.getElementById('video-container');
 const video = document.getElementById('video');
 const loaderEl = document.getElementById('loader');
 const statusEl = document.getElementById('status-line');
-
-const qualityControl = document.getElementById('quality-control');
-const qualityBtn = document.getElementById('quality-btn');
-const qualityMenu = document.getElementById('quality-menu');
 
 /* LOADER */
 
@@ -549,239 +474,6 @@ function isDirectFile(type){
  return ['mp4','webm','ogg'].includes(type);
 }
 
-/* FULLSCREEN + LANDSCAPE */
-
-async function lockLandscape(){
- try{
-  if(screen.orientation &&
-     typeof screen.orientation.lock === 'function'){
-   await screen.orientation.lock('landscape');
-  }
- }catch(error){
-  console.log('[RS Player] Landscape lock unavailable:',error);
- }
-}
-
-function unlockLandscape(){
- try{
-  if(screen.orientation &&
-     typeof screen.orientation.unlock === 'function'){
-   screen.orientation.unlock();
-  }
- }catch(e){}
-}
-
-async function toggleFullscreen(){
- const fullscreen =
-  document.fullscreenElement ||
-  document.webkitFullscreenElement;
-
- try{
-  if(fullscreen){
-   if(document.exitFullscreen){
-    await document.exitFullscreen();
-   }else if(document.webkitExitFullscreen){
-    document.webkitExitFullscreen();
-   }
-   return;
-  }
-
-  if(wrapper.requestFullscreen){
-   await wrapper.requestFullscreen();
-  }else if(wrapper.webkitRequestFullscreen){
-   wrapper.webkitRequestFullscreen();
-  }else if(video.webkitEnterFullscreen){
-   video.webkitEnterFullscreen();
-  }
-
-  lockLandscape();
-
- }catch(error){
-  console.log('[RS Player] Fullscreen error:',error);
- }
-}
-
-function checkFullscreen(){
- const fullscreen =
-  document.fullscreenElement ||
-  document.webkitFullscreenElement;
-
- if(fullscreen){
-  lockLandscape();
- }else{
-  unlockLandscape();
- }
-
- requestAnimationFrame(applyVideoStyle);
-}
-
-document.addEventListener('fullscreenchange',checkFullscreen);
-document.addEventListener('webkitfullscreenchange',checkFullscreen);
-
-/* DOUBLE TAP FULLSCREEN */
-
-let lastTapTime = 0;
-const DOUBLE_TAP_DELAY = 320;
-
-videoContainer.addEventListener('pointerup',event => {
-
- if(event.pointerType !== 'touch') return;
-
- /* Ignore player controls and quality menu */
- if(event.target.closest(
-  '.shaka-controls-container, #quality-control, button, a, input'
- )) return;
-
- const now = Date.now();
-
- if(now - lastTapTime < DOUBLE_TAP_DELAY){
-  lastTapTime = 0;
-  event.preventDefault();
-  toggleFullscreen();
- }else{
-  lastTapTime = now;
- }
-
-},{passive:false});
-
-/* Desktop double click */
-
-videoContainer.addEventListener('dblclick',event => {
-
- if(event.target.closest(
-  '.shaka-controls-container, #quality-control, button, a, input'
- )) return;
-
- event.preventDefault();
- toggleFullscreen();
-
-});
-
-/* QUALITY CONTROL */
-
-let player = null;
-let qualityRefreshTimer = null;
-
-function getQualityLabel(track){
-
- const height = track.height || 0;
- const width = track.width || 0;
-
- if(height){
-  return height + 'p';
- }
-
- if(width){
-  return width + 'px';
- }
-
- if(track.bandwidth){
-  return Math.round(track.bandwidth / 1000) + ' kbps';
- }
-
- return 'Unknown';
-}
-
-function refreshQualityMenu(){
-
- if(!player || typeof player.getVariantTracks !== 'function'){
-  return;
- }
-
- const tracks = player.getVariantTracks();
-
- if(!tracks || !tracks.length) return;
-
- qualityControl.style.display = 'block';
- qualityMenu.innerHTML = '';
-
- const activeTrack = tracks.find(track => track.active);
-
- /* AUTO OPTION */
-
- const autoButton = document.createElement('button');
- autoButton.type = 'button';
- autoButton.className = 'quality-option';
- autoButton.textContent = 'Auto';
-
- if(player.getConfiguration().abr.enabled){
-  autoButton.classList.add('active');
- }
-
- autoButton.addEventListener('click',() => {
-  player.configure({abr:{enabled:true}});
-  qualityMenu.classList.remove('show');
-  refreshQualityMenu();
- });
-
- qualityMenu.appendChild(autoButton);
-
- /* QUALITY OPTIONS */
-
- const sortedTracks = [...tracks].sort((a,b) => {
-  return (b.height || 0) - (a.height || 0);
- });
-
- const seen = new Set();
-
- sortedTracks.forEach(track => {
-
-  const label = getQualityLabel(track);
-
-  /* Remove duplicate resolutions */
-  if(seen.has(label)) return;
-  seen.add(label);
-
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'quality-option';
-  button.textContent = label;
-
-  if(activeTrack &&
-     activeTrack.height === track.height &&
-     activeTrack.bandwidth === track.bandwidth &&
-     !player.getConfiguration().abr.enabled){
-   button.classList.add('active');
-  }
-
-  button.addEventListener('click',() => {
-
-   try{
-    player.configure({abr:{enabled:false}});
-    player.selectVariantTrack(track,true);
-
-    qualityMenu.classList.remove('show');
-
-    setTimeout(refreshQualityMenu,300);
-
-   }catch(error){
-    console.error('[RS Player] Quality change error:',error);
-   }
-
-  });
-
-  qualityMenu.appendChild(button);
-
- });
-
-}
-
-qualityBtn.addEventListener('click',event => {
- event.stopPropagation();
- qualityMenu.classList.toggle('show');
- refreshQualityMenu();
-});
-
-qualityMenu.addEventListener('click',event => {
- event.stopPropagation();
-});
-
-document.addEventListener('click',event => {
- if(!event.target.closest('#quality-control')){
-  qualityMenu.classList.remove('show');
- }
-});
-
 /* NO STREAM URL */
 
 if(!streamSource){
@@ -799,6 +491,7 @@ if(!streamSource){
 
  const streamType = detectType(streamSource);
 
+ let player = null;
  let ui = null;
  let retryCount = 0;
  const maxRetries = 6;
@@ -888,7 +581,6 @@ if(!streamSource){
    }
 
    isRetrying = false;
-
   }catch(error){
    isRetrying = false;
    console.error('[RS Player] reconnect error:',error);
@@ -970,9 +662,7 @@ if(!streamSource){
  /* PLAYER INITIALIZATION */
 
  async function initializePlayer(){
-
   try{
-
    if(!window.shaka){
     throw new Error('Shaka Player library failed to load.');
    }
@@ -986,55 +676,43 @@ if(!streamSource){
    /* DIRECT FILE */
 
    if(isDirectFile(streamType)){
-
     isNative = true;
     wrapper.classList.add('native-mode');
-
     video.controls = true;
     video.src = streamSource;
     video.load();
 
     const result = video.play();
-
     if(result && result.catch){
      await result.catch(error => {
       console.warn('[RS Player] Autoplay blocked:',error);
      });
     }
-
     return;
    }
 
-   /* SHAKA PLAYER */
+   /* SHAKA */
 
    player = new shaka.Player();
    await player.attach(video);
 
    player.configure({
-
     streaming:{
      bufferingGoal:20,
      rebufferingGoal:2,
      bufferBehind:30,
-
      retryParameters:{
       maxAttempts:3,
       baseDelay:1000,
       backoffFactor:2,
       fuzzFactor:0.5
      }
-    },
-
-    abr:{
-     enabled:true
     }
-
    });
 
    ui = new shaka.ui.Overlay(player,videoContainer,video);
 
    ui.configure({
-
     controlPanelElements:[
      'play_pause',
      'time_and_duration',
@@ -1043,22 +721,17 @@ if(!streamSource){
      'volume',
      'fullscreen'
     ],
-
     overflowMenuButtons:[
      'quality',
      'language',
      'captions',
      'playback_rate'
     ]
-
    });
 
    video.controls = false;
 
-   /* Shaka events */
-
    player.addEventListener('error',event => {
-
     console.error('[RS Player] Shaka error:',event.detail);
 
     handleFault(new Error(
@@ -1067,40 +740,19 @@ if(!streamSource){
       ? event.detail.message
       : 'Stream error')
     ));
-
    });
 
    player.addEventListener('buffering',event => {
-
     if(event.buffering && everPlayed){
      statusEl.textContent = 'BUFFERING';
      showLoader();
     }
-
-   });
-
-   player.addEventListener('variantchanged',() => {
-    refreshQualityMenu();
    });
 
    await player.load(streamSource);
-
    applyVideoStyle();
 
-   /* Show custom quality icon */
-   qualityControl.style.display = 'block';
-
-   refreshQualityMenu();
-
-   /* Refresh available quality tracks */
-   qualityRefreshTimer = setInterval(() => {
-    if(!destroyed && player){
-     refreshQualityMenu();
-    }
-   },3000);
-
    const result = video.play();
-
    if(result && result.catch){
     await result.catch(error => {
      console.warn('[RS Player] Autoplay blocked:',error);
@@ -1110,24 +762,67 @@ if(!streamSource){
    console.log('[RS Player] Shaka ready:',streamType || 'auto');
 
   }catch(error){
-
    console.error('[RS Player] setup error:',error);
    handleFault(error);
+  }
+ }
 
+ /* FULLSCREEN + LANDSCAPE */
+
+ async function lockLandscape(){
+  try{
+   if(screen.orientation &&
+      typeof screen.orientation.lock === 'function'){
+    await screen.orientation.lock('landscape');
+   }
+  }catch(error){
+   console.log('[RS Player] Landscape lock unavailable:',error);
+  }
+ }
+
+ function unlockLandscape(){
+  try{
+   if(screen.orientation &&
+      typeof screen.orientation.unlock === 'function'){
+    screen.orientation.unlock();
+   }
+  }catch(e){}
+ }
+
+ function checkFullscreen(){
+  const fullscreen =
+   document.fullscreenElement ||
+   document.webkitFullscreenElement;
+
+  if(fullscreen){
+   lockLandscape();
+  }else{
+   unlockLandscape();
   }
 
+  requestAnimationFrame(applyVideoStyle);
+ }
+
+ document.addEventListener('fullscreenchange',checkFullscreen);
+ document.addEventListener('webkitfullscreenchange',checkFullscreen);
+
+ if(screen.orientation){
+  screen.orientation.addEventListener('change',() => {
+   if(document.fullscreenElement ||
+      document.webkitFullscreenElement){
+    requestAnimationFrame(applyVideoStyle);
+   }
+  });
  }
 
  /* INITIAL TIMEOUT */
 
  noStreamTimer = setTimeout(() => {
-
   if(!everPlayed){
    showNoStreamState(
     new Error('Stream did not start within 12 seconds.')
    );
   }
-
  },NO_STREAM_TIMEOUT);
 
  /* TOUCH SAFETY */
@@ -1153,13 +848,11 @@ if(!streamSource){
  /* CLEANUP */
 
  window.addEventListener('pagehide',() => {
-
   destroyed = true;
 
   clearTimeout(retryTimer);
   clearTimeout(noStreamTimer);
   clearInterval(statusTimer);
-  clearInterval(qualityRefreshTimer);
 
   releaseWakeLock();
 
@@ -1168,9 +861,7 @@ if(!streamSource){
   if(player){
    try{player.destroy();}catch(e){}
   }
-
  });
-
 }
 </script>
 
