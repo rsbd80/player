@@ -69,7 +69,6 @@ body{
 }
 
 /* VIDEO */
-
 #player video,
 .jw-video{
     width:100%!important;
@@ -85,7 +84,6 @@ video::-webkit-media-controls{
 }
 
 /* JW SKIN */
-
 .jw-skin-glow .jw-display-icon-container{
     background:rgba(167,139,250,.10)!important;
     border:1px solid rgba(167,139,250,.4);
@@ -98,11 +96,7 @@ video::-webkit-media-controls{
 }
 
 .jw-skin-glow .jw-controlbar{
-    background:linear-gradient(
-        0deg,
-        rgba(0,0,0,.75),
-        transparent
-    )!important;
+    background:linear-gradient(0deg, rgba(0,0,0,.75), transparent)!important;
     backdrop-filter:none!important;
     -webkit-backdrop-filter:none!important;
 }
@@ -119,22 +113,52 @@ video::-webkit-media-controls{
     object-fit:fill!important;
 }
 
-/* LOADER */
+/* NEW: LIVE BADGE */
+.live-badge{
+    position:absolute;
+    top:15px;
+    left:15px;
+    background:rgba(255, 0, 85, 0.9);
+    color:#fff;
+    font-size:10px;
+    font-weight:800;
+    padding:4px 10px;
+    border-radius:20px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    z-index:10;
+    font-family:var(--mono);
+    letter-spacing:1px;
+    box-shadow:0 4px 10px rgba(255,0,85,.3);
+    display:none; /* Default hidden, JS will show for live streams */
+}
 
+.live-badge::before{
+    content:'';
+    width:6px;
+    height:6px;
+    background:#fff;
+    border-radius:50%;
+    animation:pulse-dot 1.5s infinite;
+}
+
+@keyframes pulse-dot{
+    0%{opacity:1; transform:scale(1);}
+    50%{opacity:.4; transform:scale(.8);}
+    100%{opacity:1; transform:scale(1);}
+}
+
+/* LOADER */
 #loader{
     position:absolute;
     inset:0;
-    background:radial-gradient(
-        80% 60% at 50% 40%,
-        var(--bg-2) 0%,
-        var(--bg-1) 70%
-    );
+    background:radial-gradient(80% 60% at 50% 40%, var(--bg-2) 0%, var(--bg-1) 70%);
     display:flex;
     justify-content:center;
     align-items:center;
     flex-direction:column;
     z-index:99;
-    /* এনিমেশনের সময় কমিয়ে তাৎক্ষণিক হাইড করার ব্যবস্থা */
     transition:opacity .1s ease,visibility .1s ease;
     pointer-events:none;
 }
@@ -166,11 +190,7 @@ video::-webkit-media-controls{
     width:100%;
     height:100%;
     border-radius:50%;
-    background:radial-gradient(
-        circle,
-        rgba(167,139,250,.35),
-        transparent 70%
-    );
+    background:radial-gradient(circle, rgba(167,139,250,.35), transparent 70%);
     animation:glow-pulse 2.4s ease-in-out infinite;
 }
 
@@ -256,7 +276,6 @@ video::-webkit-media-controls{
 }
 
 /* ERROR */
-
 .state-content{
     text-align:center;
     color:var(--text);
@@ -318,7 +337,6 @@ video::-webkit-media-controls{
 }
 
 /* FULLSCREEN */
-
 .jwplayer.jw-flag-fullscreen,
 .jwplayer.jw-flag-fullscreen .jw-media,
 .jwplayer.jw-flag-fullscreen video{
@@ -339,7 +357,6 @@ video::-webkit-media-controls{
 }
 
 /* LANDSCAPE FULLSCREEN */
-
 #player-wrapper:fullscreen{
     width:100vw;
     height:100vh;
@@ -358,6 +375,45 @@ video::-webkit-media-controls{
     height:100%!important;
 }
 
+/* NEW: TOUCH OVERLAY FOR DOUBLE TAP */
+#touch-overlay{
+    position:absolute;
+    inset:0;
+    z-index:5;
+    display:flex;
+}
+
+.touch-zone{
+    flex:1;
+    height:100%;
+}
+
+/* NEW: TOAST MESSAGE (For volume, speed, etc.) */
+#toast{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    background:rgba(0,0,0,0.8);
+    color:#fff;
+    padding:12px 24px;
+    border-radius:12px;
+    font-size:14px;
+    font-weight:600;
+    font-family:var(--font);
+    z-index:100;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.3s ease;
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+    border:1px solid rgba(255,255,255,0.15);
+}
+
+#toast.show{
+    opacity:1;
+}
+
 </style>
 </head>
 
@@ -365,105 +421,78 @@ video::-webkit-media-controls{
 
 <div id="player-wrapper">
 
-<div id="loader">
+    <!-- NEW: LIVE BADGE -->
+    <div id="live-badge" class="live-badge">LIVE</div>
 
-    <div class="tuner">
-
-        <div class="tv-wrap">
-            <div class="tv-glow"></div>
-
-            <svg class="tv-icon" viewBox="0 0 64 64"
-                 xmlns="http://www.w3.org/2000/svg">
-
-                <path class="tv-body" d="M22 12 32 20 42 12"/>
-
-                <clipPath id="screenClip">
-                    <rect x="12" y="20" width="40" height="26" rx="4"/>
-                </clipPath>
-
-                <g class="screen-bars" clip-path="url(#screenClip)">
-                    <rect x="12" y="20" width="8" height="26"/>
-                    <rect x="20" y="20" width="8" height="26"/>
-                    <rect x="28" y="20" width="8" height="26"/>
-                    <rect x="36" y="20" width="8" height="26"/>
-                    <rect x="44" y="20" width="8" height="26"/>
-                </g>
-
-                <rect class="tv-body" x="12" y="20" width="40" height="26" rx="4"/>
-
-                <line class="tv-body" x1="24" y1="46" x2="24" y2="50"/>
-                <line class="tv-body" x1="40" y1="46" x2="40" y2="50"/>
-                <line class="tv-body" x1="20" y1="50" x2="44" y2="50"/>
-
-            </svg>
-        </div>
-
-        <div class="brand-name">
-            <b>RS LIVE</b> TV
-        </div>
-
-        <div class="dots">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-
-        <div class="status-line" id="status-line">
-            LOADING
-        </div>
-
+    <!-- NEW: TOUCH OVERLAY -->
+    <div id="touch-overlay">
+        <div class="touch-zone" id="zone-left"></div>
+        <div class="touch-zone" id="zone-right"></div>
     </div>
 
-</div>
+    <!-- NEW: TOAST -->
+    <div id="toast"></div>
 
-<div id="player"></div>
+    <div id="loader">
+        <div class="tuner">
+            <div class="tv-wrap">
+                <div class="tv-glow"></div>
+                <svg class="tv-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <path class="tv-body" d="M22 12 32 20 42 12"/>
+                    <clipPath id="screenClip">
+                        <rect x="12" y="20" width="40" height="26" rx="4"/>
+                    </clipPath>
+                    <g class="screen-bars" clip-path="url(#screenClip)">
+                        <rect x="12" y="20" width="8" height="26"/>
+                        <rect x="20" y="20" width="8" height="26"/>
+                        <rect x="28" y="20" width="8" height="26"/>
+                        <rect x="36" y="20" width="8" height="26"/>
+                        <rect x="44" y="20" width="8" height="26"/>
+                    </g>
+                    <rect class="tv-body" x="12" y="20" width="40" height="26" rx="4"/>
+                    <line class="tv-body" x1="24" y1="46" x2="24" y2="50"/>
+                    <line class="tv-body" x1="40" y1="46" x2="40" y2="50"/>
+                    <line class="tv-body" x1="20" y1="50" x2="44" y2="50"/>
+                </svg>
+            </div>
+            <div class="brand-name"><b>RS LIVE</b> TV</div>
+            <div class="dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="status-line" id="status-line">LOADING</div>
+        </div>
+    </div>
+
+    <div id="player"></div>
 
 </div>
 
 <script>
-
 /* URL SETTINGS */
-
 const urlParams = new URLSearchParams(window.location.search);
-
 const streamSource = urlParams.get('url');
-
 const forcedType = (urlParams.get('type') || '').toLowerCase();
-
 const startMuted = urlParams.get('mute') === '1';
 
 const loaderEl = document.getElementById('loader');
 const statusEl = document.getElementById('status-line');
-
 const wrapper = document.getElementById('player-wrapper');
+const liveBadge = document.getElementById('live-badge');
+const toastEl = document.getElementById('toast');
 
 /* LOADER STATUS */
-
-const statusMessages = [
-    'LOADING',
-    'CONNECTING',
-    'BUFFERING'
-];
-
+const statusMessages = ['LOADING', 'CONNECTING', 'BUFFERING'];
 let statusIdx = 0;
-
 let statusTimer = setInterval(() => {
-
     if(loaderEl.classList.contains('hide-now')) return;
-
     statusIdx = (statusIdx + 1) % statusMessages.length;
-
     statusEl.textContent = statusMessages[statusIdx];
+}, 1800);
 
-},1800);
-
-function showLoader(){
-    loaderEl.classList.remove('hide-now');
-}
-
-function hideLoader(){
-    loaderEl.classList.add('hide-now');
-}
+function showLoader(){ loaderEl.classList.remove('hide-now'); }
+function hideLoader(){ loaderEl.classList.add('hide-now'); }
 
 function showState(html){
     clearInterval(statusTimer);
@@ -472,573 +501,362 @@ function showState(html){
 }
 
 function brandBlock(){
-    return `
-        <div class="brand-name">
-            <b>RS LIVE</b> TV
-        </div>
-    `;
+    return `<div class="brand-name"><b>RS LIVE</b> TV</div>`;
+}
+
+/* TOAST HELPER */
+let toastTimeout;
+function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        toastEl.classList.remove('show');
+    }, 1200);
 }
 
 /* WAKE LOCK */
-
 let wakeLock = null;
 let wakeLockWanted = false;
 
 async function requestWakeLock(){
-
     wakeLockWanted = true;
-
     if(!('wakeLock' in navigator)) return;
     if(wakeLock) return;
-
     if(document.visibilityState !== 'visible') return;
-
     try{
-
         wakeLock = await navigator.wakeLock.request('screen');
-
-        wakeLock.addEventListener('release',() => {
-            wakeLock = null;
-        });
-
-    }catch(e){
-        wakeLock = null;
-    }
+        wakeLock.addEventListener('release',() => { wakeLock = null; });
+    }catch(e){ wakeLock = null; }
 }
 
 async function releaseWakeLock(){
-
     wakeLockWanted = false;
-
     if(wakeLock){
-
-        try{
-            await wakeLock.release();
-        }catch(e){}
-
+        try{ await wakeLock.release(); }catch(e){}
         wakeLock = null;
     }
 }
 
-document.addEventListener('visibilitychange',() => {
-
-    if(
-        document.visibilityState === 'visible' &&
-        wakeLockWanted
-    ){
+document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible' && wakeLockWanted){
         requestWakeLock();
     }
-
 });
 
 /* STREAM TYPE */
-
 function detectType(raw){
-
     if(forcedType) return forcedType;
-
-    const clean = raw
-        .split('?')[0]
-        .split('#')[0]
-        .toLowerCase();
-
+    const clean = raw.split('?')[0].split('#')[0].toLowerCase();
     if(clean.endsWith('.m3u8')) return 'hls';
     if(clean.endsWith('.mpd')) return 'dash';
     if(clean.endsWith('.mp4')) return 'mp4';
     if(clean.endsWith('.webm')) return 'webm';
     if(clean.endsWith('.mov')) return 'mp4';
-
-    if(
-        clean.endsWith('.ogg') ||
-        clean.endsWith('.ogv')
-    ) return 'ogg';
-
+    if(clean.endsWith('.ogg') || clean.endsWith('.ogv')) return 'ogg';
     if(raw.includes('.m3u8')) return 'hls';
     if(raw.includes('.mpd')) return 'dash';
-
     return null;
 }
 
 /* NO URL */
-
 if(!streamSource){
-
     showState(`
-
         <div class="state-content">
-
-            <div class="glyph warn">
-                <i>&#9888;</i>
-            </div>
-
-            <p class="title">
-                No stream URL supplied
-            </p>
-
-            <p class="sub">
-                Add ?url=YOUR_STREAM_LINK
-                to this page's address.
-            </p>
-
+            <div class="glyph warn"><i>&#9888;</i></div>
+            <p class="title">No stream URL supplied</p>
+            <p class="sub">Add ?url=YOUR_STREAM_LINK to this page's address.</p>
             ${brandBlock()}
-
         </div>
-
     `);
-
 }else{
-
     const streamType = detectType(streamSource);
+    const playlistItem = { file: streamSource };
+    if(streamType) playlistItem.type = streamType;
 
-    const playlistItem = {
-        file:streamSource
-    };
-
-    if(streamType){
-        playlistItem.type = streamType;
-    }
-
-    /* JW PLAYER */
-
+    /* JW PLAYER SETUP - Added extra UI options */
     const player = jwplayer('player').setup({
-
-        playlist:[
-            playlistItem
-        ],
-
-        width:'100%',
-        height:'100%',
-
-        autostart:true,
-        mute:startMuted,
-        preload:'auto',
-
-        stretching:'uniform',
-
-        liveTimeout:0,
-
-        skin:{
-            name:'glow'
-        },
-
-        displaytitle:false,
-        displaydescription:false,
-
-        controls:true,
-        repeat:false
-
+        playlist: [playlistItem],
+        width: '100%',
+        height: '100%',
+        autostart: true,
+        mute: startMuted,
+        preload: 'auto',
+        stretching: 'uniform',
+        liveTimeout: 0,
+        skin: { name: 'glow' },
+        displaytitle: false,
+        displaydescription: false,
+        controls: true,
+        repeat: false,
+        
+        /* NEW FEATURES */
+        playbackRateControls: [0.5, 1, 1.25, 1.5, 2],
+        playbackRates: [0.5, 1, 1.25, 1.5, 2],
+        pictureInPicture: true,
+        volumeControl: true
     });
 
     /* RETRY */
-
     let retryCount = 0;
     const maxRetries = 6;
-
     let retryTimer = null;
     let everPlayed = false;
     let userPaused = false;
-
     const NO_STREAM_TIMEOUT = 12000;
 
     let noStreamTimer = setTimeout(() => {
-
-        if(!everPlayed){
-            showNoStreamState();
-        }
-
-    },NO_STREAM_TIMEOUT);
+        if(!everPlayed){ showNoStreamState(); }
+    }, NO_STREAM_TIMEOUT);
 
     /* VIDEO STYLE */
-
     function applyVideoStyle(){
-
         const video = document.querySelector('#player video');
-
         if(video){
-
             video.style.width = '100%';
             video.style.height = '100%';
             video.style.objectFit = 'fill';
             video.style.touchAction = 'manipulation';
-
             video.setAttribute('playsinline','');
         }
-
     }
 
     /* READY */
-
     player.on('ready',() => {
-
-        console.log(
-            'RS Player ready:',
-            streamType || 'auto'
-        );
-
+        console.log('RS Player ready:', streamType || 'auto');
         applyVideoStyle();
-
+        
+        /* Show LIVE badge if HLS stream */
+        if(streamType === 'hls' || streamSource.includes('.m3u8')) {
+            liveBadge.style.display = 'flex';
+        }
     });
 
     /* FIRST FRAME */
-
     player.on('firstFrame',() => {
-
         clearInterval(statusTimer);
         clearTimeout(noStreamTimer);
-
         hideLoader();
-
         everPlayed = true;
         retryCount = 0;
-
     });
 
     /* PLAY */
-
     player.on('play',() => {
-
         clearTimeout(noStreamTimer);
-
         everPlayed = true;
-
         hideLoader();
-
         retryCount = 0;
-
         requestWakeLock();
-
     });
 
     /* PAUSE */
-
     player.on('pause',() => {
-
         userPaused = true;
-
         releaseWakeLock();
-
     });
 
     /* COMPLETE */
-
     player.on('complete',() => {
         releaseWakeLock();
     });
 
-    /* BUFFER */
+    /* BUFFER & IDLE */
+    player.on('buffer',() => { console.log('[RS Player] buffer'); });
+    player.on('idle',() => { console.log('[RS Player] idle'); });
 
-    player.on('buffer',() => {
-
-        console.log('[RS Player] buffer');
-
-    });
-
-    /* IDLE */
-
-    player.on('idle',() => {
-
-        console.log('[RS Player] idle');
-
-    });
-
-    /* =====================================
-       FULLSCREEN + LANDSCAPE ORIENTATION
-    ===================================== */
-
+    /* FULLSCREEN + LANDSCAPE ORIENTATION */
     let landscapeLocked = false;
 
     async function lockLandscape(){
-
         try{
-
-            if(
-                screen.orientation &&
-                typeof screen.orientation.lock === 'function'
-            ){
-
+            if(screen.orientation && typeof screen.orientation.lock === 'function'){
                 await screen.orientation.lock('landscape');
-
                 landscapeLocked = true;
-
                 console.log('[RS Player] Landscape locked');
-
             }
-
         }catch(error){
-
             landscapeLocked = false;
-
-            console.log(
-                '[RS Player] Landscape lock unavailable:',
-                error
-            );
-
         }
-
     }
 
     function unlockLandscape(){
-
         try{
-
-            if(
-                screen.orientation &&
-                typeof screen.orientation.unlock === 'function'
-            ){
-
+            if(screen.orientation && typeof screen.orientation.unlock === 'function'){
                 screen.orientation.unlock();
-
             }
-
-        }catch(error){
-
-            console.log(error);
-
-        }
-
+        }catch(error){}
         landscapeLocked = false;
-
     }
-
-    /* JW FULLSCREEN EVENT */
 
     player.on('fullscreen',(evt) => {
-
         const isFullscreen = evt && evt.fullscreen;
-
-        console.log(
-            '[RS Player] fullscreen:',
-            isFullscreen
-        );
-
-        if(isFullscreen){
-
-            lockLandscape();
-
-        }else{
-
-            unlockLandscape();
-
-        }
-
-        requestAnimationFrame(() => {
-            applyVideoStyle();
-        });
-
+        if(isFullscreen){ lockLandscape(); }else{ unlockLandscape(); }
+        requestAnimationFrame(() => { applyVideoStyle(); });
     });
-
-    /* NATIVE FULLSCREEN EVENT */
 
     document.addEventListener('fullscreenchange',() => {
-
-        if(document.fullscreenElement){
-
-            lockLandscape();
-
-        }else if(!player.getFullscreen()){
-
-            unlockLandscape();
-
-        }
-
-        requestAnimationFrame(() => {
-            applyVideoStyle();
-        });
-
+        if(document.fullscreenElement){ lockLandscape(); }else if(!player.getFullscreen()){ unlockLandscape(); }
+        requestAnimationFrame(() => { applyVideoStyle(); });
     });
-
-    /* WEBKIT FULLSCREEN */
 
     document.addEventListener('webkitfullscreenchange',() => {
-
-        if(document.webkitFullscreenElement){
-
-            lockLandscape();
-
-        }else{
-
-            unlockLandscape();
-
-        }
-
-        requestAnimationFrame(() => {
-            applyVideoStyle();
-        });
-
+        if(document.webkitFullscreenElement){ lockLandscape(); }else{ unlockLandscape(); }
+        requestAnimationFrame(() => { applyVideoStyle(); });
     });
 
-    /* SCREEN ORIENTATION CHANGE */
-
     if(screen.orientation){
-
         screen.orientation.addEventListener('change',() => {
-
-            if(
-                player.getFullscreen() ||
-                document.fullscreenElement
-            ){
-
-                requestAnimationFrame(() => {
-                    applyVideoStyle();
-                });
-
+            if(player.getFullscreen() || document.fullscreenElement){
+                requestAnimationFrame(() => { applyVideoStyle(); });
             }
-
         });
-
     }
 
-    /* =====================================
-       ERROR + AUTO RECONNECT
-    ===================================== */
-
-    player.on('error',handleFault);
-    player.on('setupError',handleFault);
+    /* ERROR + AUTO RECONNECT */
+    player.on('error', handleFault);
+    player.on('setupError', handleFault);
 
     function handleFault(err){
-
         console.error('[RS Player] error:',err);
-
         if(userPaused) return;
 
         if(!everPlayed){
-
             clearTimeout(retryTimer);
-
             retryTimer = setTimeout(() => {
-
-                try{
-
-                    player.load([playlistItem]);
-                    player.play(true);
-
-                }catch(e){
-
-                    console.warn(e);
-
-                }
-
-            },900);
-
+                try{ player.load([playlistItem]); player.play(true); }catch(e){}
+            }, 900);
             return;
         }
 
         if(retryCount < maxRetries){
-
             retryCount++;
-
-            statusEl.textContent =
-                'RECONNECTING (' +
-                retryCount +
-                '/' +
-                maxRetries +
-                ')';
-
+            statusEl.textContent = 'RECONNECTING (' + retryCount + '/' + maxRetries + ')';
             showLoader();
-
             clearTimeout(retryTimer);
-
             retryTimer = setTimeout(() => {
-
-                try{
-
-                    player.load([playlistItem]);
-                    player.play(true);
-
-                }catch(e){
-
-                    console.warn(e);
-
-                }
-
-            },
-            Math.min(1000 * retryCount,4000));
-
+                try{ player.load([playlistItem]); player.play(true); }catch(e){}
+            }, Math.min(1000 * retryCount, 4000));
             return;
         }
 
         showNoStreamState(err);
-
     }
 
-    /* NO STREAM */
-
     function showNoStreamState(err){
-
         clearTimeout(retryTimer);
         clearTimeout(noStreamTimer);
-
         releaseWakeLock();
-
         showState(`
-
             <div class="state-content">
-
-                <div class="glyph">
-                    <i>&#10060;</i>
-                </div>
-
-                <p class="title">
-                    No streaming — this link won't play
-                </p>
-
-                <p class="sub">
-                    ${
-                        err && err.message
-                        ? err.message
-                        : 'The source could not be reached.'
-                    }
-                </p>
-
-                <button
-                    class="retry-btn"
-                    onclick="location.reload()"
-                >
-                    Retry
-                </button>
-
+                <div class="glyph"><i>&#10060;</i></div>
+                <p class="title">No streaming — this link won't play</p>
+                <p class="sub">${err && err.message ? err.message : 'The source could not be reached.'}</p>
+                <button class="retry-btn" onclick="location.reload()">Retry</button>
                 ${brandBlock()}
-
             </div>
-
         `);
-
     }
 
     /* TOUCH SAFETY */
-
     const playerBox = document.getElementById('player');
-
     if(playerBox){
-
-        playerBox.addEventListener(
-            'contextmenu',
-            e => {
-                e.preventDefault();
-            },
-            {passive:false}
-        );
-
+        playerBox.addEventListener('contextmenu', e => { e.preventDefault(); }, {passive:false});
     }
 
     /* VIDEO COMPOSITING */
+    const observer = new MutationObserver(() => { applyVideoStyle(); });
+    observer.observe(document.getElementById('player'), { childList:true, subtree:true });
 
-    const observer = new MutationObserver(() => {
+    /* =========================================================
+       NEW: DOUBLE TAP TO SEEK (10s Forward / 10s Backward)
+    ========================================================= */
+    const zoneLeft = document.getElementById('zone-left');
+    const zoneRight = document.getElementById('zone-right');
+    let lastTapLeft = 0;
+    let lastTapRight = 0;
+    const doubleTapDelay = 300;
 
-        applyVideoStyle();
+    function seekForward(){
+        if(!player) return;
+        const current = player.getPosition() || 0;
+        player.seek(current + 10);
+        showToast("⏩ +10s");
+    }
 
+    function seekBackward(){
+        if(!player) return;
+        const current = player.getPosition() || 0;
+        player.seek(Math.max(0, current - 10));
+        showToast("⏪ -10s");
+    }
+
+    if(zoneLeft) {
+        zoneLeft.addEventListener('click', function(e){
+            const now = Date.now();
+            if(now - lastTapLeft < doubleTapDelay){
+                seekBackward();
+                lastTapLeft = 0;
+            } else {
+                lastTapLeft = now;
+            }
+        });
+    }
+
+    if(zoneRight) {
+        zoneRight.addEventListener('click', function(e){
+            const now = Date.now();
+            if(now - lastTapRight < doubleTapDelay){
+                seekForward();
+                lastTapRight = 0;
+            } else {
+                lastTapRight = now;
+            }
+        });
+    }
+
+    /* =========================================================
+       NEW: KEYBOARD SHORTCUTS (Desktop)
+    ========================================================= */
+    document.addEventListener('keydown', function(e){
+        if(!player) return;
+        
+        // Ignore if user typing in an input
+        if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        switch(e.key) {
+            case 'ArrowRight':
+                seekForward();
+                break;
+            case 'ArrowLeft':
+                seekBackward();
+                break;
+            case ' ':
+            case 'k':
+                e.preventDefault();
+                if(player.getState() === 'playing') player.pause();
+                else player.play();
+                break;
+            case 'f':
+                player.setFullscreen(!player.getFullscreen());
+                break;
+            case 'm':
+                player.setMute(!player.getMute());
+                if(!player.getMute()) showToast("🔊 Unmuted");
+                else showToast("🔇 Muted");
+                break;
+            case 'p':
+                // Native PiP if available
+                const videoEl = document.querySelector('#player video');
+                if(videoEl && document.pictureInPictureEnabled && !videoEl.disablePictureInPicture) {
+                    if(document.pictureInPictureElement) document.exitPictureInPicture();
+                    else videoEl.requestPictureInPicture().catch(()=>{});
+                }
+                break;
+        }
     });
 
-    observer.observe(
-        document.getElementById('player'),
-        {
-            childList:true,
-            subtree:true
-        }
-    );
-
 }
-
 </script>
 
 </body>
