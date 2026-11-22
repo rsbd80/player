@@ -131,11 +131,18 @@ video.fit-zoom{
 
 .shaka-controls-container{
   width:100%!important;
+  transition:opacity .25s ease, visibility .25s ease;
+}
+
+.shaka-controls-container.rs-force-hide{
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
 }
 
 .shaka-bottom-controls{
   width:100%!important;
-  padding:0 8px 8px!important;
+  padding:0 10px 8px!important;
 }
 
 .shaka-controls-button-panel{
@@ -148,16 +155,16 @@ video.fit-zoom{
   gap:2px!important;
 }
 
-/* PLAY / PAUSE */
+/* PLAY / PAUSE (একটু ডান দিকে সরানো) */
 
 .shaka-controls-button-panel
 .shaka-play-pause-button{
   order:0!important;
-  flex:0 0 42px!important;
-  width:42px!important;
-  min-width:42px!important;
-  max-width:42px!important;
-  margin:0 4px 0 0!important;
+  flex:0 0 44px!important;
+  width:44px!important;
+  min-width:44px!important;
+  max-width:44px!important;
+  margin:0 4px 0 6px!important;
   padding:0!important;
   display:flex!important;
   align-items:center!important;
@@ -173,72 +180,98 @@ video.fit-zoom{
   width:38px!important;
   min-width:38px!important;
   margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
 }
 
-/* VOLUME BAR (একদম ছবির মতো চিকন) */
+/* VOLUME BAR (একটু নিচে ও আরেকটু মোটা, ভলিউম আইকনের সাথে সেন্টার) */
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
   order:2!important;
-  flex:1 1 85px!important;
-  min-width:60px!important; 
-  max-width:100px!important;
+  flex:0 0 78px!important;
+  width:78px!important;
+  min-width:65px!important;
+  max-width:85px!important;
+  height:24px!important;
   display:flex!important;
   align-items:center!important;
-  height: 20px !important; 
-  padding: 0 !important;
-  margin-right: 6px !important;
+  padding:2px 4px 0!important;
+  margin-right:6px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border:none!important;
 }
 
 .shaka-controls-button-panel
-.shaka-volume-bar-container input[type="range"] {
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  width: 100% !important;
-  height: 100% !important;
-  background: transparent !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  outline: none !important;
-  border: none !important;
+.shaka-volume-bar-container > *{
+  width:100%!important;
+  height:3.5px!important;
+  min-height:3.5px!important;
+  max-height:3.5px!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.38)!important;
+  box-shadow:none!important;
+  border:none!important;
+  position:relative!important;
+  overflow:visible!important;
+  transform:translateY(1px)!important;
 }
 
 .shaka-controls-button-panel
-.shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track {
-  height: 3px !important; 
-  background: #888 !important; 
-  border-radius: 3px !important;
-  border: none !important;
+.shaka-volume-bar-container input[type="range"]{
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  width:100%!important;
+  height:24px!important;
+  min-height:24px!important;
+  max-height:24px!important;
+  background:transparent!important;
+  margin:0!important;
+  padding:0!important;
+  outline:none!important;
+  border:none!important;
+  cursor:pointer!important;
+  transform:translateY(1px)!important;
 }
 
 .shaka-controls-button-panel
-.shaka-volume-bar-container input[type="range"]::-moz-range-track {
-  height: 3px !important;
-  background: #888 !important;
-  border-radius: 3px !important;
-  border: none !important;
+.shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track{
+  height:3.5px!important;
+  background:rgba(255,255,255,.38)!important;
+  border-radius:999px!important;
+  border:none!important;
 }
 
 .shaka-controls-button-panel
-.shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  width: 12px !important;
-  height: 12px !important;
-  border-radius: 50% !important;
-  background: #fff !important;
-  margin-top: -4.5px !important; 
-  border: none !important;
-  box-shadow: none !important;
+.shaka-volume-bar-container input[type="range"]::-moz-range-track{
+  height:3.5px!important;
+  background:rgba(255,255,255,.38)!important;
+  border-radius:999px!important;
+  border:none!important;
 }
 
 .shaka-controls-button-panel
-.shaka-volume-bar-container input[type="range"]::-moz-range-thumb {
-  width: 12px !important;
-  height: 12px !important;
-  border-radius: 50% !important;
-  background: #fff !important;
-  border: none !important;
-  box-shadow: none !important;
+.shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  width:11px!important;
+  height:11px!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  margin-top:-3.75px!important;
+  border:none!important;
+  box-shadow:none!important;
+}
+
+.shaka-controls-button-panel
+.shaka-volume-bar-container input[type="range"]::-moz-range-thumb{
+  width:11px!important;
+  height:11px!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  border:none!important;
+  box-shadow:none!important;
 }
 
 /* TIME */
@@ -249,8 +282,8 @@ video.fit-zoom{
 .shaka-time-container{
   order:3!important;
   flex:0 0 auto!important;
-  margin-right: 2px !important;
-  font-size: 12px !important;
+  margin-right:2px!important;
+  font-size:12px!important;
 }
 
 /* SPACER */
@@ -427,7 +460,7 @@ video.fit-zoom{
   }
 
   .shaka-bottom-controls{
-    padding:0 4px 5px!important;
+    padding:0 6px 5px!important;
   }
 
   .shaka-controls-button-panel{
@@ -436,11 +469,11 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-play-pause-button{
-    flex:0 0 36px!important;
-    width:36px!important;
-    min-width:36px!important;
-    max-width:36px!important;
-    margin: 0 2px 0 0 !important;
+    flex:0 0 38px!important;
+    width:38px!important;
+    min-width:38px!important;
+    max-width:38px!important;
+    margin:0 2px 0 6px!important;
   }
 
   .shaka-controls-button-panel
@@ -452,33 +485,53 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
-    display:flex!important; 
-    flex:1 1 70px!important; 
-    min-width:50px!important;
-    max-width:80px!important;
-    height: 16px !important;
-    margin-right: 4px !important;
+    display:flex!important;
+    flex:0 0 64px!important;
+    width:64px!important;
+    min-width:56px!important;
+    max-width:72px!important;
+    height:20px!important;
+    padding:2px 3px 0!important;
+    margin-right:4px!important;
   }
 
   .shaka-controls-button-panel
-  .shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track {
-    height: 2px !important; 
+  .shaka-volume-bar-container > *{
+    height:3px!important;
+    min-height:3px!important;
+    max-height:3px!important;
+    transform:translateY(1px)!important;
   }
+
   .shaka-controls-button-panel
-  .shaka-volume-bar-container input[type="range"]::-moz-range-track {
-    height: 2px !important;
+  .shaka-volume-bar-container input[type="range"]{
+    height:20px!important;
+    min-height:20px!important;
+    max-height:20px!important;
+    transform:translateY(1px)!important;
   }
-  
+
   .shaka-controls-button-panel
-  .shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb {
-    width: 10px !important;
-    height: 10px !important;
-    margin-top: -4px !important; 
+  .shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track{
+    height:3px!important;
   }
+
   .shaka-controls-button-panel
-  .shaka-volume-bar-container input[type="range"]::-moz-range-thumb {
-    width: 10px !important;
-    height: 10px !important;
+  .shaka-volume-bar-container input[type="range"]::-moz-range-track{
+    height:3px!important;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb{
+    width:10px!important;
+    height:10px!important;
+    margin-top:-3.5px!important;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-volume-bar-container input[type="range"]::-moz-range-thumb{
+    width:10px!important;
+    height:10px!important;
   }
 
   .shaka-controls-button-panel
@@ -589,7 +642,9 @@ let ui;
 let controls;
 let statusTimer;
 let fitButton;
-let hideControlsTimer; /* নতুন টাইমার কন্ট্রোল হাইড করার জন্য */
+let autoHideTimer;
+
+const AUTO_HIDE_DELAY=4000;
 
 let fitIndex=0;
 let previousFitIndex=0;
@@ -663,6 +718,35 @@ function unlockAudio(){
 
   });
 
+}
+
+/* CONTROLS AUTO HIDE (4s AFTER ANY TOUCH/CLICK) */
+
+function getControlsEl(){
+  return container.querySelector(".shaka-controls-container");
+}
+
+function hideControlsNow(){
+  const ctrlEl=getControlsEl();
+  if(ctrlEl){
+    ctrlEl.classList.add("rs-force-hide");
+  }
+  if(controls && typeof controls.hide==="function"){
+    controls.hide();
+  }
+}
+
+function scheduleAutoHide(delay=AUTO_HIDE_DELAY){
+  const ctrlEl=getControlsEl();
+  if(ctrlEl){
+    ctrlEl.classList.remove("rs-force-hide");
+  }
+  clearTimeout(autoHideTimer);
+  autoHideTimer=setTimeout(function(){
+    if(!video.paused && !container.classList.contains("loading")){
+      hideControlsNow();
+    }
+  },delay);
 }
 
 /* STATUS */
@@ -787,6 +871,7 @@ function addFitButton(){
     fitIndex=(fitIndex+1)%FIT_MODES.length;
 
     applyFit();
+    scheduleAutoHide(AUTO_HIDE_DELAY);
 
   });
 
@@ -794,30 +879,7 @@ function addFitButton(){
 
 }
 
-/* ==================================
-   NEW: CONTROLS SHOW/HIDE LOGIC
-================================== */
-
-function showControlsAndDelayHide() {
-  if (controls) {
-    // কন্ট্রোল শো করা
-    controls.show();
-    
-    // আগের টাইমার ক্লিয়ার করা
-    clearTimeout(hideControlsTimer);
-    
-    // ৪ সেকেন্ড পর হাইড করার টাইমার
-    hideControlsTimer = setTimeout(() => {
-      if (controls && video.paused === false) {
-        controls.hide();
-      }
-    }, 4000);
-  }
-}
-
-/* ==================================
-   FULLSCREEN
-================================== */
+/* FULLSCREEN */
 
 function checkFullscreen(){
 
@@ -842,6 +904,8 @@ function checkFullscreen(){
 
   }
 
+  scheduleAutoHide(AUTO_HIDE_DELAY);
+
 }
 
 document.addEventListener(
@@ -854,23 +918,15 @@ document.addEventListener(
   checkFullscreen
 );
 
-/* PLAYER CONTAINER TOUCH - SHOW CONTROLS */
-container.addEventListener("pointerdown", function(e) {
-  // যদি লোডিং অবস্থায় না থাকে
-  if (!container.classList.contains("loading")) {
-    showControlsAndDelayHide();
-  }
-});
+/* ANYWHERE ON PLAYER TOUCH / CLICK -> SHOW & HIDE AFTER 4s */
 
-/* VIDEO TOUCH - AUDIO UNLOCK */
-
-video.addEventListener("pointerdown",function(){
+container.addEventListener("pointerdown",function(){
 
   if(!audioUnlocked && audioEnabled){
-
     unlockAudio();
-
   }
+
+  scheduleAutoHide(AUTO_HIDE_DELAY);
 
 },{passive:true});
 
@@ -921,11 +977,8 @@ video.addEventListener("touchend",function(event){
   if(now-lastTap<300){
 
     lastTap=0;
-
-    if(controls && typeof controls.hide==="function"){
-      clearTimeout(hideControlsTimer);
-      controls.hide();
-    }
+    clearTimeout(autoHideTimer);
+    hideControlsNow();
 
   }else{
 
@@ -939,10 +992,8 @@ video.addEventListener("touchend",function(event){
 
 video.addEventListener("dblclick",function(){
 
-  if(controls && typeof controls.hide==="function"){
-    clearTimeout(hideControlsTimer);
-    controls.hide();
-  }
+  clearTimeout(autoHideTimer);
+  hideControlsNow();
 
 });
 
@@ -981,9 +1032,8 @@ async function init(){
     ui.configure({
 
       addBigPlayButton:false,
-      
-      /* autoHide সরিয়ে দেওয়া হলো যাতে আমরা নিজেরা কন্ট্রোল করতে পারি */
-      autoHide:false, 
+
+      autoHide:false,
 
       controlPanelElements:[
         "play_pause",
@@ -1068,8 +1118,7 @@ async function init(){
 
       }
 
-      /* প্লে শুরু হলে ৪ সেকেন্ড পর হাইড করার টাইমার */
-      showControlsAndDelayHide();
+      scheduleAutoHide(AUTO_HIDE_DELAY);
 
     });
 
@@ -1098,10 +1147,6 @@ async function init(){
         hideLoader();
 
         setStatus("Paused","loading",2500);
-
-        /* ভিডিও পজ হলে কন্ট্রোল শো থাকবে */
-        clearTimeout(hideControlsTimer);
-        if(controls) controls.show();
 
       }
 
