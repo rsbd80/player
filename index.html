@@ -148,8 +148,7 @@ video.fit-zoom{
   gap:2px!important;
 }
 
-/* PLAY / PAUSE */
-
+/* PLAY / PAUSE (আরও ডানদিকে আনা হলো) */
 .shaka-controls-button-panel
 .shaka-play-pause-button{
   order:0!important;
@@ -157,8 +156,8 @@ video.fit-zoom{
   width:42px!important;
   min-width:42px!important;
   max-width:42px!important;
-  margin:0 0 0 4px!important; /* বামদিকের প্যাডিং বাড়িয়ে ডানদিকে সরানো হলো */
-  padding:0!important;
+  margin:0 0 0 10px!important; /* বাড়ানো হলো */
+  padding-left: 4px !important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
@@ -175,7 +174,7 @@ video.fit-zoom{
   margin:0!important;
 }
 
-/* VOLUME BAR (দাগ আরও চিকন করা হলো) */
+/* VOLUME BAR */
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
   order:2!important;
@@ -184,17 +183,52 @@ video.fit-zoom{
   max-width:110px!important;
   display:flex!important;
   align-items:center!important;
-  height: 12px !important; 
+  height: 20px !important; 
   padding: 0 !important;
   margin-right: 4px !important;
 }
 
+/* ভলিউম বারকে একদম চিকন করার জন্য ব্রাউজারের ডিফল্ট স্টাইল ওভাররাইড */
 .shaka-controls-button-panel
-.shaka-volume-bar-container input[type="range"],
+.shaka-volume-bar-container input[type="range"] {
+  height: 12px !important;
+  background: transparent !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
 .shaka-controls-button-panel
-.shaka-volume-bar-container .shaka-volume-bar {
-  height: 0.75px !important; /* দাগটি অর্ধেক করে দেওয়া হলো */
-  margin: 0 !important;
+.shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px !important; /* দাগটি চিকন করা হলো */
+  background: #555 !important;
+  border-radius: 2px !important;
+}
+
+.shaka-controls-button-panel
+.shaka-volume-bar-container input[type="range"]::-moz-range-track {
+  height: 2px !important;
+  background: #555 !important;
+  border-radius: 2px !important;
+}
+
+/* ভলিউমের গোলাকার থাম্ব (বাটন) ছোট করা হলো */
+.shaka-controls-button-panel
+.shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  margin-top: -4px !important; /* ট্র্যাকের মাঝখানে রাখার জন্য */
+}
+
+.shaka-controls-button-panel
+.shaka-volume-bar-container input[type="range"]::-moz-range-thumb {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  border: none !important;
 }
 
 /* TIME */
@@ -389,14 +423,14 @@ video.fit-zoom{
     gap:1px!important;
   }
 
-  /* মোবাইলে প্লে/পজ বাটন আরও ডানদিকে সরানো হলো */
+  /* মোবাইলে প্লে/পজ বাটন আরও ডানদিকে */
   .shaka-controls-button-panel
   .shaka-play-pause-button{
     flex:0 0 36px!important;
     width:36px!important;
     min-width:36px!important;
     max-width:36px!important;
-    margin-left: 6px !important; /* মোবাইলে বাড়তি স্পেস */
+    margin-left: 12px !important; /* মোবাইলে আরও ডানদিকে সরানো হলো */
   }
 
   .shaka-controls-button-panel
@@ -406,22 +440,35 @@ video.fit-zoom{
     min-width:34px!important;
   }
 
-  /* মোবাইলে ভলিউম বার আরও চিকন */
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
     display:flex!important; 
     flex:1 1 70px!important; 
     min-width:50px!important;
     max-width:80px!important;
-    height: 10px !important;
+    height: 16px !important;
     margin-right: 2px !important;
   }
 
+  /* মোবাইলে ভলিউম দাগ আরও চিকন */
   .shaka-controls-button-panel
-  .shaka-volume-bar-container input[type="range"],
+  .shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track {
+    height: 1.5px !important; 
+  }
   .shaka-controls-button-panel
-  .shaka-volume-bar-container .shaka-volume-bar {
-    height: 0.5px !important; /* মোবাইলে আরও অর্ধেক চিকন */
+  .shaka-volume-bar-container input[type="range"]::-moz-range-track {
+    height: 1.5px !important;
+  }
+  .shaka-controls-button-panel
+  .shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb {
+    width: 8px !important;
+    height: 8px !important;
+    margin-top: -3.25px !important;
+  }
+  .shaka-controls-button-panel
+  .shaka-volume-bar-container input[type="range"]::-moz-range-thumb {
+    width: 8px !important;
+    height: 8px !important;
   }
 
   .shaka-controls-button-panel
