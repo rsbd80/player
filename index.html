@@ -392,9 +392,14 @@ video.fit-zoom{
     min-width:36px!important;
   }
 
+  /* পরিবর্তন করা হয়েছে: ভলিউম বার মোবাইলে দেখানোর জন্য */
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
-    display:none!important;
+    display:flex!important; 
+    flex:1 1 60px!important;
+    min-width:40px!important;
+    max-width:75px!important;
+    margin:0 4px!important;
   }
 
   .shaka-controls-button-panel
@@ -520,12 +525,6 @@ let lastTap=0;
 /* ==================================
    AUDIO MEMORY
 ================================== */
-
-/*
-  Audio preference browser storage-এ রাখা হচ্ছে।
-  একই player domain-এ পরবর্তী চ্যানেল/পেজে
-  সেটিং মনে রাখার চেষ্টা করবে।
-*/
 
 const AUDIO_STORAGE_KEY="rs_player_audio_enabled";
 
@@ -795,12 +794,6 @@ document.addEventListener("click",function(event){
 
 video.addEventListener("volumechange",function(){
 
-  /*
-    Browser autoplay-এর কারণে mute হলে
-    user's saved preference overwrite করব না।
-    User audio unlock করার পর পরিবর্তন মনে রাখব।
-  */
-
   if(audioUnlocked){
 
     audioEnabled=!video.muted;
@@ -950,18 +943,11 @@ async function init(){
 
       setStatus("LIVE","live",4000);
 
-      /*
-        If user previously unlocked audio,
-        restore their saved preference.
-      */
-
       if(audioUnlocked && audioEnabled){
 
         video.muted=false;
 
       }
-
-      /* Hide controls after playback starts */
 
       if(controls && typeof controls.hide==="function"){
 
@@ -1055,20 +1041,12 @@ async function loadStream(url){
 
     showLoader("Starting video...");
 
-    /*
-      Saved preference:
-      - Audio ON: প্রথমে sound সহ চেষ্টা
-      - Browser block করলে muted autoplay
-      - Audio OFF: muted autoplay
-    */
-
     if(audioEnabled && audioUnlocked){
 
       video.muted=false;
 
     }else if(audioEnabled){
 
-      /* প্রথম autoplay sound attempt */
       video.muted=false;
 
     }else{
@@ -1091,18 +1069,11 @@ async function loadStream(url){
 
       console.log("Autoplay with audio blocked:",error);
 
-      /* MUTED AUTOPLAY FALLBACK */
-
       video.muted=true;
 
       try{
 
         await video.play();
-
-        /*
-          এখানে saved audioEnabled true থাকবে।
-          Browser বাধা দিয়েছে বলে preference false করব না।
-        */
 
       }catch(secondError){
 
