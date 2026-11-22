@@ -156,33 +156,6 @@ video.fit-zoom{
   pointer-events:none!important;
 }
 
-/* SEEK BAR ALWAYS RED (#ff3030), NEVER WHITE */
-
-.shaka-seek-bar-container input[type="range"],
-.shaka-seek-bar{
-  background:#555!important;
-}
-
-.shaka-seek-bar-container .shaka-played,
-.shaka-seek-bar-container [class*="played"],
-.shaka-seek-bar-container input[type="range"]::-webkit-slider-runnable-track{
-  background-color:#ff3030!important;
-}
-
-.shaka-seek-bar-container .shaka-played,
-.shaka-seek-bar-container [class*="played"]{
-  background:#ff3030!important;
-  background-color:#ff3030!important;
-}
-
-.shaka-seek-bar-container input[type="range"]::-webkit-slider-thumb,
-.shaka-seek-bar-container input[type="range"]::-moz-range-thumb,
-.shaka-scrubber-bar{
-  background:#ff3030!important;
-  background-color:#ff3030!important;
-  border-color:#ff3030!important;
-}
-
 .shaka-bottom-controls{
   width:100%!important;
   padding:0 10px 8px!important;
@@ -780,21 +753,6 @@ function unlockAudio(){
 
 }
 
-/* KEEP SEEK BAR RED (#ff3030) */
-
-function lockSeekBarRed(){
-  const seekWrap=container.querySelector(".shaka-seek-bar-container");
-  if(!seekWrap)return;
-  seekWrap.querySelectorAll("*").forEach(function(el){
-    const cls=(el.className||"").toLowerCase();
-    if(cls.includes("played") || cls.includes("scrubber") || cls.includes("thumb")){
-      el.style.setProperty("background","#ff3030","important");
-      el.style.setProperty("background-color","#ff3030","important");
-      el.style.setProperty("border-color","#ff3030","important");
-    }
-  });
-}
-
 /* CONTROLS + SEEK BAR AUTO HIDE TOGETHER (4s) */
 
 function getControlsEl(){
@@ -822,7 +780,6 @@ function showControlsClear(){
     bottomCtrl.style.opacity="1";
     bottomCtrl.style.visibility="visible";
   }
-  lockSeekBarRed();
 }
 
 function hideControlsNow(){
@@ -1166,7 +1123,6 @@ async function init(){
     });
 
     controls=ui.getControls();
-    lockSeekBarRed();
 
     /* ADD FIT BUTTON */
 
