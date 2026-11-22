@@ -133,6 +133,182 @@ video.fit-zoom{
 }
 
 /* ==================================
+   CONTROL PANEL FIX
+================================== */
+
+.shaka-controls-container{
+  width:100%!important;
+}
+
+.shaka-bottom-controls{
+  width:100%!important;
+  padding:0 8px 8px!important;
+}
+
+.shaka-controls-button-panel{
+  display:flex!important;
+  align-items:center!important;
+  flex-wrap:nowrap!important;
+  width:100%!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  gap:2px!important;
+}
+
+/* Play/Pause fixed position */
+
+.shaka-controls-button-panel
+.shaka-play-pause-button{
+  order:0!important;
+  flex:0 0 42px!important;
+  width:42px!important;
+  min-width:42px!important;
+  max-width:42px!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+
+/* Mute */
+
+.shaka-controls-button-panel
+.shaka-mute-button{
+  order:1!important;
+  flex:0 0 38px!important;
+  width:38px!important;
+  min-width:38px!important;
+  margin:0!important;
+}
+
+/* Volume slider */
+
+.shaka-controls-button-panel
+.shaka-volume-bar-container{
+  order:2!important;
+  flex:0 1 75px!important;
+  min-width:40px!important;
+  max-width:75px!important;
+}
+
+/* Time */
+
+.shaka-controls-button-panel
+.shaka-current-time,
+.shaka-controls-button-panel
+.shaka-time-container{
+  order:3!important;
+  flex:0 1 auto!important;
+  min-width:0!important;
+}
+
+/* Spacer */
+
+.shaka-controls-button-panel
+.shaka-spacer{
+  order:4!important;
+  flex:1 1 auto!important;
+  min-width:0!important;
+}
+
+/* Quality */
+
+.shaka-controls-button-panel
+.shaka-resolution-button{
+  order:5!important;
+  flex:0 0 38px!important;
+  min-width:38px!important;
+}
+
+/* Picture in picture */
+
+.shaka-controls-button-panel
+.shaka-pip-button{
+  order:6!important;
+  flex:0 0 38px!important;
+  min-width:38px!important;
+}
+
+/* FIT button */
+
+.rs-fit-btn{
+  order:7!important;
+  flex:0 0 43px!important;
+}
+
+/* Fullscreen */
+
+.shaka-controls-button-panel
+.shaka-fullscreen-button{
+  order:8!important;
+  flex:0 0 42px!important;
+  width:42px!important;
+  min-width:42px!important;
+  max-width:42px!important;
+  margin:0!important;
+}
+
+/* All buttons */
+
+.shaka-controls-button-panel button{
+  flex-shrink:0!important;
+}
+
+/* ==================================
+   FIT BUTTON
+================================== */
+
+.rs-fit-btn{
+  border:0;
+  background:transparent;
+  color:white;
+  cursor:pointer;
+  padding:0 3px;
+  min-width:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.rs-fit-label{
+  font-size:10px;
+  font-weight:800;
+  padding:4px 6px;
+  border:1px solid #666;
+  border-radius:5px;
+  color:#ddd;
+  white-space:nowrap;
+}
+
+.rs-fit-btn.fill .rs-fit-label{
+  color:#38bdf8;
+  border-color:#38bdf8;
+}
+
+.rs-fit-btn.zoom .rs-fit-label{
+  color:#a78bfa;
+  border-color:#a78bfa;
+}
+
+/* ==================================
+   FULLSCREEN
+================================== */
+
+#player-container:fullscreen,
+#player-container:-webkit-full-screen{
+  width:100vw;
+  height:100vh;
+  background:#000;
+}
+
+#player-container:fullscreen video,
+#player-container:-webkit-full-screen video{
+  width:100%;
+  height:100%;
+}
+
+/* ==================================
    STATUS
 ================================== */
 
@@ -198,59 +374,8 @@ video.fit-zoom{
 }
 
 /* ==================================
-   FIT BUTTON
+   MOBILE CONTROL FIX
 ================================== */
-
-.rs-fit-btn{
-  border:0;
-  background:transparent;
-  color:white;
-  cursor:pointer;
-  padding:0 5px;
-  min-width:40px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.rs-fit-label{
-  font-size:10px;
-  font-weight:800;
-  padding:4px 6px;
-  border:1px solid #666;
-  border-radius:5px;
-  color:#ddd;
-  white-space:nowrap;
-}
-
-.rs-fit-btn.fill .rs-fit-label{
-  color:#38bdf8;
-  border-color:#38bdf8;
-}
-
-.rs-fit-btn.zoom .rs-fit-label{
-  color:#a78bfa;
-  border-color:#a78bfa;
-}
-
-/* ==================================
-   FULLSCREEN
-================================== */
-
-#player-container:fullscreen,
-#player-container:-webkit-full-screen{
-  width:100vw;
-  height:100vh;
-  background:#000;
-}
-
-#player-container:fullscreen video,
-#player-container:-webkit-full-screen video{
-  width:100%;
-  height:100%;
-}
-
-/* MOBILE */
 
 @media(max-width:480px){
 
@@ -261,9 +386,90 @@ video.fit-zoom{
     padding:6px 9px;
   }
 
+  .shaka-bottom-controls{
+    padding:0 4px 5px!important;
+  }
+
+  .shaka-controls-button-panel{
+    gap:0!important;
+  }
+
+  /* Play/Pause never shifts */
+
+  .shaka-controls-button-panel
+  .shaka-play-pause-button{
+    flex:0 0 40px!important;
+    width:40px!important;
+    min-width:40px!important;
+    max-width:40px!important;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-mute-button{
+    flex:0 0 36px!important;
+    width:36px!important;
+    min-width:36px!important;
+  }
+
+  /* Mobile volume slider hidden to save space */
+
+  .shaka-controls-button-panel
+  .shaka-volume-bar-container{
+    display:none!important;
+  }
+
+  /* Time display smaller */
+
+  .shaka-controls-button-panel
+  .shaka-time-container{
+    font-size:10px!important;
+    flex:0 1 auto!important;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-resolution-button{
+    flex:0 0 34px!important;
+    min-width:34px!important;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-pip-button{
+    flex:0 0 34px!important;
+    min-width:34px!important;
+  }
+
+  .rs-fit-btn{
+    flex:0 0 40px!important;
+    min-width:40px!important;
+  }
+
   .rs-fit-label{
     font-size:9px;
     padding:3px 5px;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-fullscreen-button{
+    flex:0 0 40px!important;
+    width:40px!important;
+    min-width:40px!important;
+    max-width:40px!important;
+  }
+
+}
+
+/* Very narrow screens */
+
+@media(max-width:360px){
+
+  .shaka-controls-button-panel
+  .shaka-time-container{
+    display:none!important;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-pip-button{
+    display:none!important;
   }
 
 }
@@ -334,6 +540,11 @@ let previousFitIndex=0;
 let isFullscreen=false;
 
 let lastTap=0;
+
+/* AUDIO MEMORY */
+
+let audioEnabled=true;
+let audioUnlocked=false;
 
 const FIT_MODES=["contain","fill","cover"];
 const FIT_LABELS=["FIT","FILL","ZOOM"];
@@ -453,7 +664,9 @@ function addFitButton(){
 
   }
 
-  button.addEventListener("click",function(){
+  button.addEventListener("click",function(event){
+
+    event.stopPropagation();
 
     fitIndex=(fitIndex+1)%FIT_MODES.length;
 
@@ -501,6 +714,56 @@ document.addEventListener(
   "webkitfullscreenchange",
   checkFullscreen
 );
+
+/* AUDIO UNLOCK */
+
+function unlockAudio(){
+
+  audioUnlocked=true;
+  audioEnabled=true;
+
+  video.muted=false;
+
+  if(video.paused){
+
+    video.play().catch(function(error){
+
+      console.log("Audio play blocked:",error);
+
+    });
+
+  }
+
+}
+
+/* User interaction unlocks sound */
+
+container.addEventListener("pointerdown",function(){
+
+  if(!audioUnlocked){
+
+    unlockAudio();
+
+  }
+
+},{passive:true});
+
+/* Remember user's mute setting */
+
+video.addEventListener("volumechange",function(){
+
+  if(video.muted){
+
+    audioEnabled=false;
+
+  }else{
+
+    audioEnabled=true;
+    audioUnlocked=true;
+
+  }
+
+});
 
 /* DOUBLE TAP TO HIDE CONTROLS */
 
@@ -641,13 +904,21 @@ async function init(){
 
       setStatus("LIVE","live",4000);
 
+      /* Restore audio preference */
+
+      if(audioEnabled && audioUnlocked){
+
+        video.muted=false;
+
+      }
+
       /* Hide controls after playback starts */
 
       if(controls && typeof controls.hide==="function"){
 
         setTimeout(()=>{
           controls.hide();
-        },500);
+        },800);
 
       }
 
@@ -729,11 +1000,21 @@ async function loadStream(url){
 
     setStatus("Connecting...","loading",0);
 
+    /* Keep previous audio setting */
+
+    video.muted=!(audioEnabled && audioUnlocked);
+
     await player.load(url);
 
     showLoader("Starting video...");
 
-    video.play().catch(()=>{
+    video.muted=!(audioEnabled && audioUnlocked);
+
+    video.play().catch(function(error){
+
+      console.log("Autoplay:",error);
+
+      /* Browser autoplay fallback */
 
       video.muted=true;
 
