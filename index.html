@@ -131,6 +131,8 @@ video.fit-zoom{
 
 .shaka-controls-container{
   width:100%!important;
+  opacity:1!important;
+  visibility:visible!important;
   transition:opacity .25s ease, visibility .25s ease;
 }
 
@@ -143,6 +145,7 @@ video.fit-zoom{
 .shaka-bottom-controls{
   width:100%!important;
   padding:0 10px 8px!important;
+  opacity:1!important;
 }
 
 .shaka-controls-button-panel{
@@ -153,6 +156,7 @@ video.fit-zoom{
   min-width:0!important;
   overflow:hidden!important;
   gap:2px!important;
+  opacity:1!important;
 }
 
 /* PLAY / PAUSE (একটু ডান দিকে সরানো) */
@@ -169,6 +173,7 @@ video.fit-zoom{
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
+  opacity:1!important;
 }
 
 /* MUTE */
@@ -183,16 +188,17 @@ video.fit-zoom{
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
+  opacity:1!important;
 }
 
-/* VOLUME BAR (একটু নিচে ও আরেকটু মোটা, ভলিউম আইকনের সাথে সেন্টার) */
+/* VOLUME BAR (গোল ডটের মতো সেম উজ্জ্বল সাদা রঙ ও স্পষ্ট দাগ) */
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
   order:2!important;
-  flex:0 0 78px!important;
-  width:78px!important;
-  min-width:65px!important;
-  max-width:85px!important;
+  flex:0 0 80px!important;
+  width:80px!important;
+  min-width:66px!important;
+  max-width:88px!important;
   height:24px!important;
   display:flex!important;
   align-items:center!important;
@@ -201,21 +207,23 @@ video.fit-zoom{
   background:transparent!important;
   box-shadow:none!important;
   border:none!important;
+  opacity:1!important;
 }
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container > *{
   width:100%!important;
-  height:3.5px!important;
-  min-height:3.5px!important;
-  max-height:3.5px!important;
+  height:4px!important;
+  min-height:4px!important;
+  max-height:4px!important;
   border-radius:999px!important;
-  background:rgba(255,255,255,.38)!important;
+  background:#ffffff!important;
   box-shadow:none!important;
   border:none!important;
   position:relative!important;
   overflow:visible!important;
   transform:translateY(1px)!important;
+  opacity:1!important;
 }
 
 .shaka-controls-button-panel
@@ -233,20 +241,21 @@ video.fit-zoom{
   border:none!important;
   cursor:pointer!important;
   transform:translateY(1px)!important;
+  opacity:1!important;
 }
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track{
-  height:3.5px!important;
-  background:rgba(255,255,255,.38)!important;
+  height:4px!important;
+  background:#ffffff!important;
   border-radius:999px!important;
   border:none!important;
 }
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container input[type="range"]::-moz-range-track{
-  height:3.5px!important;
-  background:rgba(255,255,255,.38)!important;
+  height:4px!important;
+  background:#ffffff!important;
   border-radius:999px!important;
   border:none!important;
 }
@@ -255,23 +264,25 @@ video.fit-zoom{
 .shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance:none!important;
   appearance:none!important;
-  width:11px!important;
-  height:11px!important;
+  width:12px!important;
+  height:12px!important;
   border-radius:50%!important;
-  background:#fff!important;
-  margin-top:-3.75px!important;
+  background:#ffffff!important;
+  margin-top:-4px!important;
   border:none!important;
   box-shadow:none!important;
+  opacity:1!important;
 }
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container input[type="range"]::-moz-range-thumb{
-  width:11px!important;
-  height:11px!important;
+  width:12px!important;
+  height:12px!important;
   border-radius:50%!important;
-  background:#fff!important;
+  background:#ffffff!important;
   border:none!important;
   box-shadow:none!important;
+  opacity:1!important;
 }
 
 /* TIME */
@@ -284,6 +295,7 @@ video.fit-zoom{
   flex:0 0 auto!important;
   margin-right:2px!important;
   font-size:12px!important;
+  opacity:1!important;
 }
 
 /* SPACER */
@@ -302,6 +314,7 @@ video.fit-zoom{
   order:5!important;
   flex:0 0 38px!important;
   min-width:38px!important;
+  opacity:1!important;
 }
 
 /* PIP */
@@ -311,6 +324,7 @@ video.fit-zoom{
   order:6!important;
   flex:0 0 38px!important;
   min-width:38px!important;
+  opacity:1!important;
 }
 
 /* FIT */
@@ -318,6 +332,7 @@ video.fit-zoom{
 .rs-fit-btn{
   order:7!important;
   flex:0 0 43px!important;
+  opacity:1!important;
 }
 
 /* FULLSCREEN */
@@ -330,6 +345,7 @@ video.fit-zoom{
   min-width:42px!important;
   max-width:42px!important;
   margin:0!important;
+  opacity:1!important;
 }
 
 .shaka-controls-button-panel button{
@@ -486,10 +502,10 @@ video.fit-zoom{
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
     display:flex!important;
-    flex:0 0 64px!important;
-    width:64px!important;
-    min-width:56px!important;
-    max-width:72px!important;
+    flex:0 0 66px!important;
+    width:66px!important;
+    min-width:58px!important;
+    max-width:74px!important;
     height:20px!important;
     padding:2px 3px 0!important;
     margin-right:4px!important;
@@ -497,9 +513,10 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container > *{
-    height:3px!important;
-    min-height:3px!important;
-    max-height:3px!important;
+    height:3.5px!important;
+    min-height:3.5px!important;
+    max-height:3.5px!important;
+    background:#ffffff!important;
     transform:translateY(1px)!important;
   }
 
@@ -513,25 +530,29 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track{
-    height:3px!important;
+    height:3.5px!important;
+    background:#ffffff!important;
   }
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container input[type="range"]::-moz-range-track{
-    height:3px!important;
+    height:3.5px!important;
+    background:#ffffff!important;
   }
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb{
-    width:10px!important;
-    height:10px!important;
-    margin-top:-3.5px!important;
+    width:11px!important;
+    height:11px!important;
+    margin-top:-3.75px!important;
+    background:#ffffff!important;
   }
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container input[type="range"]::-moz-range-thumb{
-    width:10px!important;
-    height:10px!important;
+    width:11px!important;
+    height:11px!important;
+    background:#ffffff!important;
   }
 
   .shaka-controls-button-panel
@@ -726,10 +747,25 @@ function getControlsEl(){
   return container.querySelector(".shaka-controls-container");
 }
 
+function showControlsClear(){
+  const ctrlEl=getControlsEl();
+  if(ctrlEl){
+    ctrlEl.classList.remove("rs-force-hide");
+    ctrlEl.style.opacity="1";
+    ctrlEl.style.visibility="visible";
+  }
+  const bottomCtrl=container.querySelector(".shaka-bottom-controls");
+  if(bottomCtrl){
+    bottomCtrl.style.opacity="1";
+  }
+}
+
 function hideControlsNow(){
   const ctrlEl=getControlsEl();
   if(ctrlEl){
     ctrlEl.classList.add("rs-force-hide");
+    ctrlEl.style.opacity="0";
+    ctrlEl.style.visibility="hidden";
   }
   if(controls && typeof controls.hide==="function"){
     controls.hide();
@@ -737,10 +773,7 @@ function hideControlsNow(){
 }
 
 function scheduleAutoHide(delay=AUTO_HIDE_DELAY){
-  const ctrlEl=getControlsEl();
-  if(ctrlEl){
-    ctrlEl.classList.remove("rs-force-hide");
-  }
+  showControlsClear();
   clearTimeout(autoHideTimer);
   autoHideTimer=setTimeout(function(){
     if(!video.paused && !container.classList.contains("loading")){
@@ -918,7 +951,7 @@ document.addEventListener(
   checkFullscreen
 );
 
-/* ANYWHERE ON PLAYER TOUCH / CLICK -> SHOW & HIDE AFTER 4s */
+/* ANYWHERE ON PLAYER TOUCH / CLICK -> SHOW CLEAR & HIDE AFTER 4s */
 
 container.addEventListener("pointerdown",function(){
 
@@ -929,6 +962,14 @@ container.addEventListener("pointerdown",function(){
   scheduleAutoHide(AUTO_HIDE_DELAY);
 
 },{passive:true});
+
+container.addEventListener("click",function(event){
+
+  if(event.detail===2)return;
+
+  scheduleAutoHide(AUTO_HIDE_DELAY);
+
+});
 
 /* SHAKA MUTE BUTTON */
 
@@ -1145,6 +1186,8 @@ async function init(){
       if(!video.ended){
 
         hideLoader();
+        showControlsClear();
+        clearTimeout(autoHideTimer);
 
         setStatus("Paused","loading",2500);
 
