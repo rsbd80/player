@@ -133,6 +133,7 @@ video.fit-zoom{
   width:100%!important;
   opacity:1!important;
   visibility:visible!important;
+  overflow:visible!important;
   transition:opacity .25s ease, visibility .25s ease;
 }
 
@@ -146,6 +147,8 @@ video.fit-zoom{
   width:100%!important;
   padding:0 10px 8px!important;
   opacity:1!important;
+  visibility:visible!important;
+  overflow:visible!important;
 }
 
 .shaka-controls-button-panel{
@@ -154,26 +157,46 @@ video.fit-zoom{
   flex-wrap:nowrap!important;
   width:100%!important;
   min-width:0!important;
-  overflow:hidden!important;
+  overflow:visible!important;
   gap:2px!important;
   opacity:1!important;
+  visibility:visible!important;
 }
 
-/* PLAY / PAUSE (একটু ডান দিকে সরানো) */
+/* PLAY / PAUSE (ভলিউমের বামে পুরোপুরি দৃশ্যমান ও প্লেয়ারের ভেতরে সেট) */
 
 .shaka-controls-button-panel
 .shaka-play-pause-button{
   order:0!important;
-  flex:0 0 44px!important;
-  width:44px!important;
-  min-width:44px!important;
-  max-width:44px!important;
-  margin:0 4px 0 6px!important;
+  flex:0 0 38px!important;
+  width:38px!important;
+  height:34px!important;
+  min-width:38px!important;
+  max-width:38px!important;
+  margin:0 2px 0 4px!important;
   padding:0!important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
   opacity:1!important;
+  visibility:visible!important;
+  overflow:visible!important;
+  color:#ffffff!important;
+}
+
+.shaka-controls-button-panel
+.shaka-play-pause-button i,
+.shaka-controls-button-panel
+.shaka-play-pause-button svg{
+  width:22px!important;
+  height:22px!important;
+  font-size:22px!important;
+  line-height:22px!important;
+  opacity:1!important;
+  visibility:visible!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
 }
 
 /* MUTE */
@@ -181,24 +204,25 @@ video.fit-zoom{
 .shaka-controls-button-panel
 .shaka-mute-button{
   order:1!important;
-  flex:0 0 38px!important;
-  width:38px!important;
-  min-width:38px!important;
+  flex:0 0 36px!important;
+  width:36px!important;
+  min-width:36px!important;
   margin:0!important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
   opacity:1!important;
+  visibility:visible!important;
 }
 
 /* VOLUME BAR (গোল ডটের মতো সেম উজ্জ্বল সাদা রঙ ও স্পষ্ট দাগ) */
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
   order:2!important;
-  flex:0 0 80px!important;
-  width:80px!important;
-  min-width:66px!important;
-  max-width:88px!important;
+  flex:0 0 78px!important;
+  width:78px!important;
+  min-width:64px!important;
+  max-width:86px!important;
   height:24px!important;
   display:flex!important;
   align-items:center!important;
@@ -208,6 +232,7 @@ video.fit-zoom{
   box-shadow:none!important;
   border:none!important;
   opacity:1!important;
+  visibility:visible!important;
 }
 
 .shaka-controls-button-panel
@@ -296,6 +321,7 @@ video.fit-zoom{
   margin-right:2px!important;
   font-size:12px!important;
   opacity:1!important;
+  visibility:visible!important;
 }
 
 /* SPACER */
@@ -312,9 +338,10 @@ video.fit-zoom{
 .shaka-controls-button-panel
 .shaka-resolution-button{
   order:5!important;
-  flex:0 0 38px!important;
-  min-width:38px!important;
+  flex:0 0 36px!important;
+  min-width:36px!important;
   opacity:1!important;
+  visibility:visible!important;
 }
 
 /* PIP */
@@ -322,17 +349,19 @@ video.fit-zoom{
 .shaka-controls-button-panel
 .shaka-pip-button{
   order:6!important;
-  flex:0 0 38px!important;
-  min-width:38px!important;
+  flex:0 0 36px!important;
+  min-width:36px!important;
   opacity:1!important;
+  visibility:visible!important;
 }
 
 /* FIT */
 
 .rs-fit-btn{
   order:7!important;
-  flex:0 0 43px!important;
+  flex:0 0 42px!important;
   opacity:1!important;
+  visibility:visible!important;
 }
 
 /* FULLSCREEN */
@@ -340,12 +369,13 @@ video.fit-zoom{
 .shaka-controls-button-panel
 .shaka-fullscreen-button{
   order:8!important;
-  flex:0 0 42px!important;
-  width:42px!important;
-  min-width:42px!important;
-  max-width:42px!important;
+  flex:0 0 40px!important;
+  width:40px!important;
+  min-width:40px!important;
+  max-width:40px!important;
   margin:0!important;
   opacity:1!important;
+  visibility:visible!important;
 }
 
 .shaka-controls-button-panel button{
@@ -360,7 +390,7 @@ video.fit-zoom{
   color:white;
   cursor:pointer;
   padding:0 3px;
-  min-width:40px;
+  min-width:38px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -485,27 +515,38 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-play-pause-button{
-    flex:0 0 38px!important;
-    width:38px!important;
-    min-width:38px!important;
-    max-width:38px!important;
-    margin:0 2px 0 6px!important;
+    flex:0 0 34px!important;
+    width:34px!important;
+    height:32px!important;
+    min-width:34px!important;
+    max-width:34px!important;
+    margin:0 2px 0 4px!important;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-play-pause-button i,
+  .shaka-controls-button-panel
+  .shaka-play-pause-button svg{
+    width:20px!important;
+    height:20px!important;
+    font-size:20px!important;
+    line-height:20px!important;
   }
 
   .shaka-controls-button-panel
   .shaka-mute-button{
-    flex:0 0 32px!important;
-    width:32px!important;
-    min-width:32px!important;
+    flex:0 0 30px!important;
+    width:30px!important;
+    min-width:30px!important;
   }
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
     display:flex!important;
-    flex:0 0 66px!important;
-    width:66px!important;
-    min-width:58px!important;
-    max-width:74px!important;
+    flex:0 0 60px!important;
+    width:60px!important;
+    min-width:52px!important;
+    max-width:68px!important;
     height:20px!important;
     padding:2px 3px 0!important;
     margin-right:4px!important;
@@ -563,14 +604,14 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-resolution-button{
-    flex:0 0 32px!important;
-    min-width:32px!important;
+    flex:0 0 30px!important;
+    min-width:30px!important;
   }
 
   .shaka-controls-button-panel
   .shaka-pip-button{
-    flex:0 0 32px!important;
-    min-width:32px!important;
+    flex:0 0 30px!important;
+    min-width:30px!important;
   }
 
   .rs-fit-btn{
@@ -585,10 +626,10 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-fullscreen-button{
-    flex:0 0 34px!important;
-    width:34px!important;
-    min-width:34px!important;
-    max-width:34px!important;
+    flex:0 0 32px!important;
+    width:32px!important;
+    min-width:32px!important;
+    max-width:32px!important;
   }
 
 }
@@ -741,6 +782,17 @@ function unlockAudio(){
 
 }
 
+/* ENSURE PLAY/PAUSE BUTTON IS CLEAN & VISIBLE INSIDE PLAYER */
+
+function syncPlayPauseButton(){
+  const playBtn=container.querySelector(".shaka-play-pause-button");
+  if(!playBtn)return;
+  playBtn.style.setProperty("display","flex","important");
+  playBtn.style.setProperty("opacity","1","important");
+  playBtn.style.setProperty("visibility","visible","important");
+  playBtn.style.setProperty("overflow","visible","important");
+}
+
 /* CONTROLS AUTO HIDE (4s AFTER ANY TOUCH/CLICK) */
 
 function getControlsEl(){
@@ -748,6 +800,7 @@ function getControlsEl(){
 }
 
 function showControlsClear(){
+  syncPlayPauseButton();
   const ctrlEl=getControlsEl();
   if(ctrlEl){
     ctrlEl.classList.remove("rs-force-hide");
@@ -757,6 +810,7 @@ function showControlsClear(){
   const bottomCtrl=container.querySelector(".shaka-bottom-controls");
   if(bottomCtrl){
     bottomCtrl.style.opacity="1";
+    bottomCtrl.style.visibility="visible";
   }
 }
 
@@ -1096,6 +1150,7 @@ async function init(){
     });
 
     controls=ui.getControls();
+    syncPlayPauseButton();
 
     /* ADD FIT BUTTON */
 
@@ -1104,6 +1159,7 @@ async function init(){
     const buttonTimer=setInterval(()=>{
 
       addFitButton();
+      syncPlayPauseButton();
 
       count++;
 
@@ -1125,6 +1181,7 @@ async function init(){
         volBar.style.display = 'flex';
         volBar.style.opacity = '1';
         volBar.style.visibility = 'visible';
+        syncPlayPauseButton();
         clearInterval(volumeTimer);
       }
     }, 500);
@@ -1150,6 +1207,7 @@ async function init(){
     video.addEventListener("playing",function(){
 
       hideLoader();
+      syncPlayPauseButton();
 
       setStatus("LIVE","live",4000);
 
