@@ -522,12 +522,6 @@ let lastTap=0;
    AUDIO MEMORY
 ================================== */
 
-/*
-  Audio preference browser storage-এ রাখা হচ্ছে।
-  একই player domain-এ পরবর্তী চ্যানেল/পেজে
-  সেটিং মনে রাখার চেষ্টা করবে।
-*/
-
 const AUDIO_STORAGE_KEY="rs_player_audio_enabled";
 
 let audioEnabled=true;
@@ -796,12 +790,6 @@ document.addEventListener("click",function(event){
 
 video.addEventListener("volumechange",function(){
 
-  /*
-    Browser autoplay-এর কারণে mute হলে
-    user's saved preference overwrite করব না।
-    User audio unlock করার পর পরিবর্তন মনে রাখব।
-  */
-
   if(audioUnlocked){
 
     audioEnabled=!video.muted;
@@ -951,24 +939,19 @@ async function init(){
 
       setStatus("LIVE","live",4000);
 
-      /*
-        If user previously unlocked audio,
-        restore their saved preference.
-      */
-
       if(audioUnlocked && audioEnabled){
 
         video.muted=false;
 
       }
 
-      /* Hide controls after playback starts */
+      /* Hide controls after 3 seconds */
 
       if(controls && typeof controls.hide==="function"){
 
         setTimeout(()=>{
           controls.hide();
-        },800);
+        },3000);
 
       }
 
@@ -1069,7 +1052,6 @@ async function loadStream(url){
 
     }else if(audioEnabled){
 
-      /* প্রথম autoplay sound attempt */
       video.muted=false;
 
     }else{
@@ -1099,11 +1081,6 @@ async function loadStream(url){
       try{
 
         await video.play();
-
-        /*
-          এখানে saved audioEnabled true থাকবে।
-          Browser বাধা দিয়েছে বলে preference false করব না।
-        */
 
       }catch(secondError){
 
