@@ -50,12 +50,14 @@ video.fit-zoom{
   object-fit:cover!important;
 }
 
-/* LOADER */
+/* ==================================
+   LOADER
+================================== */
 
 #rs-loader{
   position:absolute;
   inset:0;
-  z-index:5;
+  z-index:50;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -116,13 +118,29 @@ video.fit-zoom{
   to{transform:rotate(360deg)}
 }
 
-/* STATUS */
+/* ==================================
+   HIDE CONTROLS WHILE LOADING
+================================== */
+
+#player-container.loading .shaka-controls-container{
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+#player-container.loading .shaka-play-button-container{
+  display:none!important;
+}
+
+/* ==================================
+   STATUS
+================================== */
 
 #status{
   position:fixed;
   top:max(12px,env(safe-area-inset-top));
   right:12px;
-  z-index:20;
+  z-index:100;
 
   display:flex;
   align-items:center;
@@ -179,8 +197,9 @@ video.fit-zoom{
   }
 }
 
-/* CUSTOM FIT BUTTON */
-/* Shaka's default controls are otherwise untouched */
+/* ==================================
+   FIT BUTTON
+================================== */
 
 .rs-fit-btn{
   border:0;
@@ -214,7 +233,9 @@ video.fit-zoom{
   border-color:#a78bfa;
 }
 
-/* FULLSCREEN */
+/* ==================================
+   FULLSCREEN
+================================== */
 
 #player-container:fullscreen,
 #player-container:-webkit-full-screen{
@@ -251,7 +272,7 @@ video.fit-zoom{
 
 <body>
 
-<div id="player-container">
+<div id="player-container" class="loading">
 
   <video
     id="video"
@@ -264,6 +285,7 @@ video.fit-zoom{
   <!-- Loader -->
 
   <div id="rs-loader">
+
     <div class="loader-box">
 
       <div class="loader-spinner"></div>
@@ -277,6 +299,7 @@ video.fit-zoom{
       </div>
 
     </div>
+
   </div>
 
 </div>
@@ -293,19 +316,24 @@ video.fit-zoom{
 
 "use strict";
 
-const video = document.getElementById("video");
-const container = document.getElementById("player-container");
-const status = document.getElementById("status");
-const statusText = document.getElementById("statusText");
-const loader = document.getElementById("rs-loader");
-const loaderMessage = document.getElementById("loader-message");
+const video=document.getElementById("video");
+const container=document.getElementById("player-container");
+const status=document.getElementById("status");
+const statusText=document.getElementById("statusText");
+const loader=document.getElementById("rs-loader");
+const loaderMessage=document.getElementById("loader-message");
 
 let player;
+let ui;
+let controls;
 let statusTimer;
 let fitButton;
+
 let fitIndex=0;
 let previousFitIndex=0;
 let isFullscreen=false;
+
+let lastTap=0;
 
 const FIT_MODES=["contain","fill","cover"];
 const FIT_LABELS=["FIT","FILL","ZOOM"];
@@ -331,16 +359,18 @@ function setStatus(text,type="loading",duration=4000){
 
 /* LOADER */
 
-function showLoader(message){
+function showLoader(message="Connecting..."){
 
-  loaderMessage.textContent=message||"Connecting...";
+  loaderMessage.textContent=message;
   loader.classList.remove("hide");
+  container.classList.add("loading");
 
 }
 
 function hideLoader(){
 
   loader.classList.add("hide");
+  container.classList.remove("loading");
 
 }
 
@@ -386,7 +416,7 @@ function applyFit(){
 
 }
 
-/* ADD FIT BUTTON */
+/* FIT BUTTON */
 
 function addFitButton(){
 
@@ -472,6 +502,40 @@ document.addEventListener(
   checkFullscreen
 );
 
+/* DOUBLE TAP TO HIDE CONTROLS */
+
+video.addEventListener("touchend",function(event){
+
+  if(event.changedTouches.length!==1)return;
+
+  const now=Date.now();
+
+  if(now-lastTap<300){
+
+    lastTap=0;
+
+    if(controls && typeof controls.hide==="function"){
+      controls.hide();
+    }
+
+  }else{
+
+    lastTap=now;
+
+  }
+
+},{passive:true});
+
+/* DOUBLE CLICK DESKTOP */
+
+video.addEventListener("dblclick",function(){
+
+  if(controls && typeof controls.hide==="function"){
+    controls.hide();
+  }
+
+});
+
 /* PLAYER INIT */
 
 async function init(){
@@ -496,17 +560,20 @@ async function init(){
 
     await player.attach(video);
 
-    const ui=new shaka.ui.Overlay(
+    ui=new shaka.ui.Overlay(
       player,
       container,
       video
     );
 
-    /* Shaka native controls */
+    /* Controls configuration */
 
     ui.configure({
 
-      addBigPlayButton:true,
+      addBigPlayButton:false,
+
+      autoHide:true,
+      autoHideSeconds:3,
 
       controlPanelElements:[
         "play_pause",
@@ -527,7 +594,9 @@ async function init(){
 
     });
 
-    /* Wait for controls */
+    controls=ui.getControls();
+
+    /* Add FIT button */
 
     let count=0;
 
@@ -548,7 +617,7 @@ async function init(){
 
     },250);
 
-    /* Player error */
+    /* Errors */
 
     player.addEventListener("error",function(event){
 
@@ -564,13 +633,23 @@ async function init(){
 
     });
 
-    /* Video playing */
+    /* Playing */
 
     video.addEventListener("playing",function(){
 
       hideLoader();
 
       setStatus("LIVE","live",4000);
+
+      /* Hide controls after playback starts */
+
+      if(controls && typeof controls.hide==="function"){
+
+        setTimeout(()=>{
+          controls.hide();
+        },500);
+
+      }
 
     });
 
@@ -616,7 +695,11 @@ async function init(){
 
       hideLoader();
 
-      setStatus("Ready - No Stream URL","loading",5000);
+      setStatus(
+        "Ready - No Stream URL",
+        "loading",
+        5000
+      );
 
       return;
 
@@ -656,7 +739,7 @@ async function loadStream(url){
 
       video.play().catch(()=>{
 
-        showLoader("Press Play");
+        showLoader("Tap video to play");
 
       });
 
