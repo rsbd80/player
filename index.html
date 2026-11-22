@@ -157,7 +157,7 @@ video.fit-zoom{
   width:42px!important;
   min-width:42px!important;
   max-width:42px!important;
-  margin:0!important;
+  margin:0 0 0 4px!important; /* বামদিকের প্যাডিং বাড়িয়ে ডানদিকে সরানো হলো */
   padding:0!important;
   display:flex!important;
   align-items:center!important;
@@ -175,25 +175,25 @@ video.fit-zoom{
   margin:0!important;
 }
 
-/* VOLUME BAR (আরও চিকন করা হলো) */
+/* VOLUME BAR (দাগ আরও চিকন করা হলো) */
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
   order:2!important;
-  flex:1 1 90px!important; /* একটু জায়গা বাড়ানো হলো */
+  flex:1 1 90px!important;
   min-width:60px!important; 
   max-width:110px!important;
   display:flex!important;
   align-items:center!important;
   height: 12px !important; 
   padding: 0 !important;
-  margin-right: 4px !important; /* টাইমের সাথে স্পেস */
+  margin-right: 4px !important;
 }
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container input[type="range"],
 .shaka-controls-button-panel
 .shaka-volume-bar-container .shaka-volume-bar {
-  height: 1.5px !important; /* দাগটি আরও চিকন */
+  height: 0.75px !important; /* দাগটি অর্ধেক করে দেওয়া হলো */
   margin: 0 !important;
 }
 
@@ -205,10 +205,10 @@ video.fit-zoom{
 .shaka-time-container{
   order:3!important;
   flex:0 0 auto!important;
-  margin-right: 2px !important; /* রেজোলিউশন থেকে দূরে রাখার জন্য */
+  margin-right: 2px !important;
 }
 
-/* SPACER (এটি টাইম এবং ডানদিকের আইকনের মাঝখানে জায়গা ছেড়ে দেয়) */
+/* SPACER */
 
 .shaka-controls-button-panel
 .shaka-spacer{
@@ -389,12 +389,14 @@ video.fit-zoom{
     gap:1px!important;
   }
 
+  /* মোবাইলে প্লে/পজ বাটন আরও ডানদিকে সরানো হলো */
   .shaka-controls-button-panel
   .shaka-play-pause-button{
     flex:0 0 36px!important;
     width:36px!important;
     min-width:36px!important;
     max-width:36px!important;
+    margin-left: 6px !important; /* মোবাইলে বাড়তি স্পেস */
   }
 
   .shaka-controls-button-panel
@@ -404,11 +406,11 @@ video.fit-zoom{
     min-width:34px!important;
   }
 
-  /* মোবাইলে ভলিউম বার আরও চিকন করে বামদিকে টানা হলো */
+  /* মোবাইলে ভলিউম বার আরও চিকন */
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
     display:flex!important; 
-    flex:1 1 70px!important; /* জায়গা বাড়ানো হলো যাতে বামদিকে যায় */
+    flex:1 1 70px!important; 
     min-width:50px!important;
     max-width:80px!important;
     height: 10px !important;
@@ -419,7 +421,7 @@ video.fit-zoom{
   .shaka-volume-bar-container input[type="range"],
   .shaka-controls-button-panel
   .shaka-volume-bar-container .shaka-volume-bar {
-    height: 1px !important; /* মোবাইলে একদম চিকন */
+    height: 0.5px !important; /* মোবাইলে আরও অর্ধেক চিকন */
   }
 
   .shaka-controls-button-panel
