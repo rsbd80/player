@@ -1,0 +1,1009 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080808">
+<meta name="referrer" content="no-referrer">
+
+<title>RS Player Pro</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/controls.css">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#080808;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+#player-container{
+  position:fixed;
+  inset:0;
+  background:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+video{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  background:#000;
+}
+
+video.fit-fill{
+  object-fit:fill!important;
+}
+
+video.fit-zoom{
+  object-fit:cover!important;
+}
+
+/* =================================
+   RS LIVE TV LOADER
+================================= */
+
+#rs-loader{
+  position:absolute;
+  inset:0;
+  z-index:1000;
+  background:rgba(0,0,0,.94);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  transition:opacity .4s ease,visibility .4s ease;
+}
+
+#rs-loader.hide{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+
+.loader-content{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+.loader-logo{
+  position:relative;
+  width:100px;
+  height:100px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:25px;
+  background:linear-gradient(145deg,#151515,#050505);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:
+    0 0 25px rgba(255,40,40,.12),
+    inset 0 0 20px rgba(255,255,255,.03);
+  animation:logoPulse 2s infinite ease-in-out;
+}
+
+.loader-logo::before{
+  content:"";
+  position:absolute;
+  inset:-5px;
+  border-radius:29px;
+  border:2px solid transparent;
+  border-top-color:#ff3030;
+  border-right-color:#ff3030;
+  animation:spin 1.5s linear infinite;
+}
+
+.loader-logo::after{
+  content:"";
+  position:absolute;
+  inset:-11px;
+  border-radius:35px;
+  border:1px solid rgba(255,48,48,.18);
+}
+
+.logo-text{
+  font-size:25px;
+  font-weight:900;
+  letter-spacing:-1px;
+  color:#fff;
+}
+
+.logo-text span{
+  color:#ff3030;
+}
+
+.loader-title{
+  margin-top:24px;
+  font-size:22px;
+  font-weight:900;
+  letter-spacing:2px;
+  color:#fff;
+}
+
+.loader-title span{
+  color:#ff3030;
+}
+
+.loader-subtitle{
+  margin-top:8px;
+  color:#999;
+  font-size:11px;
+  letter-spacing:3px;
+}
+
+.loader-bars{
+  display:flex;
+  gap:5px;
+  margin-top:25px;
+  height:20px;
+  align-items:center;
+}
+
+.loader-bars span{
+  display:block;
+  width:4px;
+  height:7px;
+  background:#ff3030;
+  border-radius:5px;
+  animation:bars 1s ease-in-out infinite;
+}
+
+.loader-bars span:nth-child(2){animation-delay:.1s}
+.loader-bars span:nth-child(3){animation-delay:.2s}
+.loader-bars span:nth-child(4){animation-delay:.3s}
+.loader-bars span:nth-child(5){animation-delay:.4s}
+.loader-bars span:nth-child(6){animation-delay:.5s}
+.loader-bars span:nth-child(7){animation-delay:.6s}
+
+#loader-message{
+  margin-top:12px;
+  font-size:12px;
+  color:#bbb;
+  letter-spacing:1px;
+}
+
+.loader-footer{
+  position:absolute;
+  bottom:max(25px,env(safe-area-inset-bottom));
+  font-size:10px;
+  letter-spacing:2px;
+  color:#555;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+@keyframes bars{
+  0%,100%{height:6px;opacity:.4}
+  50%{height:19px;opacity:1}
+}
+
+@keyframes logoPulse{
+  0%,100%{transform:scale(1);box-shadow:0 0 20px rgba(255,40,40,.1)}
+  50%{transform:scale(1.04);box-shadow:0 0 35px rgba(255,40,40,.3)}
+}
+
+/* =================================
+   STATUS
+================================= */
+
+#status{
+  position:fixed;
+  top:max(15px,env(safe-area-inset-top));
+  right:15px;
+  z-index:9999;
+
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  padding:8px 13px;
+  border-radius:30px;
+
+  background:rgba(15,15,15,.85);
+  border:1px solid rgba(255,255,255,.10);
+
+  color:#ddd;
+  font-size:12px;
+  font-weight:600;
+
+  opacity:0;
+  transform:translateY(-8px);
+  transition:.25s;
+  pointer-events:none;
+
+  backdrop-filter:blur(12px);
+}
+
+#status.show{
+  opacity:1;
+  transform:translateY(0);
+}
+
+.dot{
+  width:7px;
+  height:7px;
+  background:#38bdf8;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+#status.live .dot{
+  background:#22c55e;
+  animation:pulse 1.5s infinite;
+}
+
+#status.loading .dot{
+  background:#fbbf24;
+  animation:pulse 1s infinite;
+}
+
+#status.error .dot{
+  background:#ef4444;
+}
+
+@keyframes pulse{
+  50%{opacity:.35;transform:scale(.65)}
+}
+
+/* =================================
+   FIT BUTTON
+================================= */
+
+.fit-btn{
+  border:0!important;
+  background:transparent!important;
+  color:white!important;
+
+  min-width:44px!important;
+  width:auto!important;
+  height:40px!important;
+
+  padding:0 6px!important;
+
+  cursor:pointer!important;
+
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+
+  flex-shrink:0!important;
+}
+
+.fit-label{
+  border:1px solid #555;
+  border-radius:5px;
+  padding:4px 7px;
+  font-size:10px;
+  font-weight:800;
+  color:#ddd;
+  white-space:nowrap;
+}
+
+.fit-btn.fill .fit-label{
+  border-color:#38bdf8;
+  color:#38bdf8;
+}
+
+.fit-btn.zoom .fit-label{
+  border-color:#a78bfa;
+  color:#a78bfa;
+}
+
+/* =================================
+   SHAKA CONTROLS FIX
+================================= */
+
+.shaka-video-container{
+  background:#000!important;
+  width:100%!important;
+  height:100%!important;
+}
+
+.shaka-controls-container{
+  z-index:10!important;
+}
+
+.shaka-controls-container button{
+  color:#fff!important;
+}
+
+/* Control panel stable layout */
+
+.shaka-controls-button-panel{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  flex-wrap:nowrap!important;
+  width:100%!important;
+  overflow:visible!important;
+}
+
+.shaka-controls-button-panel > button{
+  flex:0 0 auto!important;
+  position:relative!important;
+  margin:0!important;
+}
+
+/* Play/Pause button position stable */
+
+.shaka-play-pause-button{
+  flex:0 0 40px!important;
+  width:40px!important;
+  min-width:40px!important;
+  max-width:40px!important;
+  position:relative!important;
+  transform:none!important;
+}
+
+/* Volume controls stay together */
+
+.shaka-mute-button{
+  flex-shrink:0!important;
+}
+
+.shaka-volume-bar-container{
+  flex-shrink:0!important;
+}
+
+/* Spacer should not push controls outside */
+
+.shaka-spacer{
+  flex:1 1 auto!important;
+  min-width:0!important;
+}
+
+/* Spinner */
+
+.shaka-spinner-container{
+  background:transparent!important;
+}
+
+/* Big play button */
+
+.shaka-play-button-container{
+  z-index:20!important;
+}
+
+/* =================================
+   FULLSCREEN
+================================= */
+
+#player-container:fullscreen{
+  width:100vw!important;
+  height:100vh!important;
+  background:#000!important;
+}
+
+#player-container:-webkit-full-screen{
+  width:100vw!important;
+  height:100vh!important;
+  background:#000!important;
+}
+
+#player-container:fullscreen video,
+#player-container:-webkit-full-screen video{
+  width:100%!important;
+  height:100%!important;
+}
+
+/* Mobile */
+
+@media(max-width:480px){
+
+  #status{
+    top:10px;
+    right:10px;
+    font-size:11px;
+    padding:7px 10px;
+  }
+
+  .fit-label{
+    font-size:9px;
+    padding:3px 5px;
+  }
+
+  .loader-logo{
+    width:85px;
+    height:85px;
+    border-radius:22px;
+  }
+
+  .logo-text{
+    font-size:22px;
+  }
+
+  .loader-title{
+    font-size:19px;
+  }
+
+  .loader-subtitle{
+    font-size:10px;
+  }
+
+  .shaka-play-pause-button{
+    flex:0 0 36px!important;
+    width:36px!important;
+    min-width:36px!important;
+    max-width:36px!important;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="player-container">
+
+  <video
+    id="video"
+    autoplay
+    muted
+    playsinline
+    preload="metadata">
+  </video>
+
+  <!-- RS LIVE TV LOADER -->
+
+  <div id="rs-loader">
+
+    <div class="loader-content">
+
+      <div class="loader-logo">
+        <div class="logo-text">RS<span>TV</span></div>
+      </div>
+
+      <div class="loader-title">
+        RS <span>LIVE TV</span>
+      </div>
+
+      <div class="loader-subtitle">
+        LIVE STREAMING
+      </div>
+
+      <div class="loader-bars">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <div id="loader-message">
+        Connecting to stream...
+      </div>
+
+    </div>
+
+    <div class="loader-footer">
+      RS PLAYER PRO
+    </div>
+
+  </div>
+
+</div>
+
+<div id="status">
+  <span class="dot"></span>
+  <span id="statusText">Ready</span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/shaka-player.ui.min.js"></script>
+
+<script>
+(function(){
+
+"use strict";
+
+const video = document.getElementById("video");
+const container = document.getElementById("player-container");
+const status = document.getElementById("status");
+const statusText = document.getElementById("statusText");
+
+const loader = document.getElementById("rs-loader");
+const loaderMessage = document.getElementById("loader-message");
+
+let player;
+let statusTimer;
+
+let fitIndex = 0;
+let previousFitIndex = 0;
+let isFullscreen = false;
+
+const FIT_MODES = ["contain","fill","cover"];
+const FIT_LABELS = ["FIT","FILL","ZOOM"];
+
+let fitButton = null;
+
+/* =================================
+   STATUS
+================================= */
+
+function setStatus(text,type="loading",duration=4000){
+
+  statusText.textContent=text;
+  status.className="show "+type;
+
+  clearTimeout(statusTimer);
+
+  if(duration>0){
+
+    statusTimer=setTimeout(()=>{
+      status.classList.remove("show");
+    },duration);
+
+  }
+
+}
+
+/* =================================
+   LOADER
+================================= */
+
+function showLoader(message="Connecting to stream..."){
+
+  loaderMessage.textContent=message;
+
+  loader.classList.remove("hide");
+
+}
+
+function hideLoader(){
+
+  loader.classList.add("hide");
+
+}
+
+/* =================================
+   FIT MODE
+================================= */
+
+function applyFit(){
+
+  const mode=FIT_MODES[fitIndex];
+
+  video.classList.remove("fit-fill","fit-zoom");
+
+  if(fitButton){
+    fitButton.classList.remove("fill","zoom");
+  }
+
+  if(mode==="fill"){
+
+    video.classList.add("fit-fill");
+
+    if(fitButton){
+      fitButton.classList.add("fill");
+    }
+
+  }
+
+  if(mode==="cover"){
+
+    video.classList.add("fit-zoom");
+
+    if(fitButton){
+      fitButton.classList.add("zoom");
+    }
+
+  }
+
+  if(fitButton){
+
+    const label=fitButton.querySelector(".fit-label");
+
+    if(label){
+      label.textContent=FIT_LABELS[fitIndex];
+    }
+
+    fitButton.title="Video Mode: "+FIT_LABELS[fitIndex];
+
+  }
+
+}
+
+/* =================================
+   FIT BUTTON
+================================= */
+
+function addFitButton(){
+
+  const panel=document.querySelector(
+    ".shaka-controls-button-panel"
+  );
+
+  if(!panel){
+    return;
+  }
+
+  if(panel.querySelector(".rs-fit-btn")){
+    return;
+  }
+
+  const fullscreenButton=panel.querySelector(
+    ".shaka-fullscreen-button"
+  );
+
+  fitButton=document.createElement("button");
+
+  fitButton.className="fit-btn rs-fit-btn";
+  fitButton.title="Video Fit Mode";
+
+  fitButton.innerHTML=
+    '<span class="fit-label">FIT</span>';
+
+  if(fullscreenButton){
+
+    panel.insertBefore(
+      fitButton,
+      fullscreenButton
+    );
+
+  }else{
+
+    panel.appendChild(fitButton);
+
+  }
+
+  fitButton.addEventListener("click",function(e){
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    fitIndex=(fitIndex+1)%FIT_MODES.length;
+
+    applyFit();
+
+  });
+
+  applyFit();
+
+}
+
+/* =================================
+   FULLSCREEN DETECTION
+================================= */
+
+function checkFullscreen(){
+
+  const nowFullscreen=
+    !!document.fullscreenElement ||
+    !!document.webkitFullscreenElement ||
+    !!video.webkitDisplayingFullscreen;
+
+  if(nowFullscreen && !isFullscreen){
+
+    previousFitIndex=fitIndex;
+
+    /* Fullscreen automatically FILL */
+
+    fitIndex=1;
+
+    isFullscreen=true;
+
+    applyFit();
+
+  }
+
+  else if(!nowFullscreen && isFullscreen){
+
+    /* Restore previous mode */
+
+    fitIndex=previousFitIndex;
+
+    isFullscreen=false;
+
+    applyFit();
+
+  }
+
+}
+
+document.addEventListener(
+  "fullscreenchange",
+  checkFullscreen
+);
+
+document.addEventListener(
+  "webkitfullscreenchange",
+  checkFullscreen
+);
+
+video.addEventListener(
+  "webkitbeginfullscreen",
+  function(){
+
+    previousFitIndex=fitIndex;
+    fitIndex=1;
+    isFullscreen=true;
+
+    applyFit();
+
+  }
+);
+
+video.addEventListener(
+  "webkitendfullscreen",
+  function(){
+
+    fitIndex=previousFitIndex;
+    isFullscreen=false;
+
+    applyFit();
+
+  }
+);
+
+/* =================================
+   PLAYER INIT
+================================= */
+
+async function init(){
+
+  showLoader("Initializing player...");
+
+  shaka.polyfill.installAll();
+
+  if(!shaka.Player.isBrowserSupported()){
+
+    showLoader("Browser not supported");
+
+    setStatus(
+      "Browser Not Supported",
+      "error",
+      0
+    );
+
+    return;
+
+  }
+
+  try{
+
+    player=new shaka.Player();
+
+    await player.attach(video);
+
+    const ui=new shaka.ui.Overlay(
+      player,
+      container,
+      video
+    );
+
+    ui.configure({
+
+      addBigPlayButton:true,
+
+      controlPanelElements:[
+        "play_pause",
+        "mute",
+        "volume",
+        "time_and_duration",
+        "spacer",
+        "quality",
+        "picture_in_picture",
+        "fullscreen"
+      ],
+
+      seekBarColors:{
+        base:"#555",
+        buffered:"#777",
+        played:"#ff3030"
+      }
+
+    });
+
+    /* Add fit button */
+
+    let tries=0;
+
+    const fitInterval=setInterval(()=>{
+
+      addFitButton();
+
+      tries++;
+
+      if(
+        document.querySelector(".rs-fit-btn") ||
+        tries>40
+      ){
+
+        clearInterval(fitInterval);
+
+      }
+
+    },200);
+
+    /* Error */
+
+    player.addEventListener("error",function(event){
+
+      const error=event.detail;
+
+      showLoader("Stream error. Please wait...");
+
+      setStatus(
+        "Stream Error "+(error.code||""),
+        "error",
+        6000
+      );
+
+    });
+
+    /* Playing */
+
+    video.addEventListener("playing",function(){
+
+      hideLoader();
+
+      setStatus("LIVE","live",4000);
+
+    });
+
+    /* Buffering */
+
+    video.addEventListener("waiting",function(){
+
+      showLoader("Buffering...");
+
+      setStatus(
+        "Buffering...",
+        "loading",
+        0
+      );
+
+    });
+
+    video.addEventListener("stalled",function(){
+
+      showLoader("Reconnecting...");
+
+    });
+
+    /* Pause */
+
+    video.addEventListener("pause",function(){
+
+      if(!video.ended){
+
+        hideLoader();
+
+        setStatus(
+          "Paused",
+          "loading",
+          2500
+        );
+
+      }
+
+    });
+
+    /* Play */
+
+    video.addEventListener("play",function(){
+
+      video.muted=false;
+
+    });
+
+    /* URL */
+
+    const params=new URLSearchParams(
+      window.location.search
+    );
+
+    const streamUrl=params.get("url");
+
+    if(!streamUrl){
+
+      hideLoader();
+
+      setStatus(
+        "Ready - No Stream URL",
+        "loading",
+        5000
+      );
+
+      return;
+
+    }
+
+    await loadStream(streamUrl);
+
+  }catch(error){
+
+    console.error(error);
+
+    showLoader("Player initialization failed");
+
+    setStatus(
+      "Player Initialization Failed",
+      "error",
+      0
+    );
+
+  }
+
+}
+
+/* =================================
+   LOAD STREAM
+================================= */
+
+async function loadStream(url){
+
+  try{
+
+    showLoader("Connecting to stream...");
+
+    setStatus(
+      "Connecting...",
+      "loading",
+      0
+    );
+
+    await player.load(url);
+
+    showLoader("Starting video...");
+
+    video.play().catch(()=>{
+
+      video.muted=true;
+
+      video.play().catch(()=>{
+
+        showLoader("Tap Play to start");
+
+      });
+
+    });
+
+  }catch(error){
+
+    console.error("Player Error:",error);
+
+    showLoader("Playback failed");
+
+    setStatus(
+      "Playback Failed",
+      "error",
+      0
+    );
+
+  }
+
+}
+
+/* =================================
+   START
+================================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  init
+);
+
+})();
+</script>
+
+</body>
+</html>
