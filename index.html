@@ -50,9 +50,7 @@ video.fit-zoom{
   object-fit:cover!important;
 }
 
-/* ==================================
-   LOADER
-================================== */
+/* LOADER */
 
 #rs-loader{
   position:absolute;
@@ -118,9 +116,7 @@ video.fit-zoom{
   to{transform:rotate(360deg)}
 }
 
-/* ==================================
-   HIDE CONTROLS WHILE LOADING
-================================== */
+/* HIDE CONTROLS WHILE LOADING */
 
 #player-container.loading .shaka-controls-container{
   opacity:0!important;
@@ -132,9 +128,7 @@ video.fit-zoom{
   display:none!important;
 }
 
-/* ==================================
-   CONTROL PANEL FIX
-================================== */
+/* CONTROL PANEL */
 
 .shaka-controls-container{
   width:100%!important;
@@ -155,7 +149,7 @@ video.fit-zoom{
   gap:2px!important;
 }
 
-/* Play/Pause fixed position */
+/* PLAY / PAUSE */
 
 .shaka-controls-button-panel
 .shaka-play-pause-button{
@@ -171,7 +165,7 @@ video.fit-zoom{
   justify-content:center!important;
 }
 
-/* Mute */
+/* MUTE */
 
 .shaka-controls-button-panel
 .shaka-mute-button{
@@ -182,7 +176,7 @@ video.fit-zoom{
   margin:0!important;
 }
 
-/* Volume slider */
+/* VOLUME */
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
@@ -192,7 +186,7 @@ video.fit-zoom{
   max-width:75px!important;
 }
 
-/* Time */
+/* TIME */
 
 .shaka-controls-button-panel
 .shaka-current-time,
@@ -203,7 +197,7 @@ video.fit-zoom{
   min-width:0!important;
 }
 
-/* Spacer */
+/* SPACER */
 
 .shaka-controls-button-panel
 .shaka-spacer{
@@ -212,7 +206,7 @@ video.fit-zoom{
   min-width:0!important;
 }
 
-/* Quality */
+/* QUALITY */
 
 .shaka-controls-button-panel
 .shaka-resolution-button{
@@ -221,7 +215,7 @@ video.fit-zoom{
   min-width:38px!important;
 }
 
-/* Picture in picture */
+/* PIP */
 
 .shaka-controls-button-panel
 .shaka-pip-button{
@@ -230,14 +224,14 @@ video.fit-zoom{
   min-width:38px!important;
 }
 
-/* FIT button */
+/* FIT */
 
 .rs-fit-btn{
   order:7!important;
   flex:0 0 43px!important;
 }
 
-/* Fullscreen */
+/* FULLSCREEN */
 
 .shaka-controls-button-panel
 .shaka-fullscreen-button{
@@ -249,15 +243,11 @@ video.fit-zoom{
   margin:0!important;
 }
 
-/* All buttons */
-
 .shaka-controls-button-panel button{
   flex-shrink:0!important;
 }
 
-/* ==================================
-   FIT BUTTON
-================================== */
+/* FIT BUTTON */
 
 .rs-fit-btn{
   border:0;
@@ -291,9 +281,7 @@ video.fit-zoom{
   border-color:#a78bfa;
 }
 
-/* ==================================
-   FULLSCREEN
-================================== */
+/* FULLSCREEN */
 
 #player-container:fullscreen,
 #player-container:-webkit-full-screen{
@@ -308,9 +296,7 @@ video.fit-zoom{
   height:100%;
 }
 
-/* ==================================
-   STATUS
-================================== */
+/* STATUS */
 
 #status{
   position:fixed;
@@ -373,9 +359,7 @@ video.fit-zoom{
   }
 }
 
-/* ==================================
-   MOBILE CONTROL FIX
-================================== */
+/* MOBILE */
 
 @media(max-width:480px){
 
@@ -394,8 +378,6 @@ video.fit-zoom{
     gap:0!important;
   }
 
-  /* Play/Pause never shifts */
-
   .shaka-controls-button-panel
   .shaka-play-pause-button{
     flex:0 0 40px!important;
@@ -411,14 +393,10 @@ video.fit-zoom{
     min-width:36px!important;
   }
 
-  /* Mobile volume slider hidden to save space */
-
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
     display:none!important;
   }
-
-  /* Time display smaller */
 
   .shaka-controls-button-panel
   .shaka-time-container{
@@ -458,7 +436,7 @@ video.fit-zoom{
 
 }
 
-/* Very narrow screens */
+/* VERY SMALL SCREENS */
 
 @media(max-width:360px){
 
@@ -483,12 +461,11 @@ video.fit-zoom{
   <video
     id="video"
     autoplay
-    muted
     playsinline
     preload="metadata">
   </video>
 
-  <!-- Loader -->
+  <!-- LOADER -->
 
   <div id="rs-loader">
 
@@ -541,13 +518,79 @@ let isFullscreen=false;
 
 let lastTap=0;
 
-/* AUDIO MEMORY */
+/* ==================================
+   AUDIO MEMORY
+================================== */
+
+/*
+  Audio preference browser storage-এ রাখা হচ্ছে।
+  একই player domain-এ পরবর্তী চ্যানেল/পেজে
+  সেটিং মনে রাখার চেষ্টা করবে।
+*/
+
+const AUDIO_STORAGE_KEY="rs_player_audio_enabled";
 
 let audioEnabled=true;
 let audioUnlocked=false;
 
+try{
+
+  const savedAudio=localStorage.getItem(AUDIO_STORAGE_KEY);
+
+  if(savedAudio==="false"){
+    audioEnabled=false;
+  }else{
+    audioEnabled=true;
+  }
+
+}catch(error){
+
+  audioEnabled=true;
+
+}
+
 const FIT_MODES=["contain","fill","cover"];
 const FIT_LABELS=["FIT","FILL","ZOOM"];
+
+/* SAVE AUDIO */
+
+function saveAudioPreference(){
+
+  try{
+
+    localStorage.setItem(
+      AUDIO_STORAGE_KEY,
+      String(audioEnabled)
+    );
+
+  }catch(error){
+
+    console.log("Audio storage unavailable");
+
+  }
+
+}
+
+/* USER UNLOCK */
+
+function unlockAudio(){
+
+  if(audioUnlocked)return;
+
+  audioUnlocked=true;
+  audioEnabled=true;
+
+  saveAudioPreference();
+
+  video.muted=false;
+
+  video.play().catch(function(error){
+
+    console.log("Audio play blocked:",error);
+
+  });
+
+}
 
 /* STATUS */
 
@@ -715,32 +758,11 @@ document.addEventListener(
   checkFullscreen
 );
 
-/* AUDIO UNLOCK */
+/* VIDEO TOUCH - AUDIO UNLOCK */
 
-function unlockAudio(){
+video.addEventListener("pointerdown",function(){
 
-  audioUnlocked=true;
-  audioEnabled=true;
-
-  video.muted=false;
-
-  if(video.paused){
-
-    video.play().catch(function(error){
-
-      console.log("Audio play blocked:",error);
-
-    });
-
-  }
-
-}
-
-/* User interaction unlocks sound */
-
-container.addEventListener("pointerdown",function(){
-
-  if(!audioUnlocked){
+  if(!audioUnlocked && audioEnabled){
 
     unlockAudio();
 
@@ -748,18 +770,43 @@ container.addEventListener("pointerdown",function(){
 
 },{passive:true});
 
-/* Remember user's mute setting */
+/* SHAKA MUTE BUTTON */
+
+document.addEventListener("click",function(event){
+
+  const muteButton=event.target.closest(
+    ".shaka-mute-button"
+  );
+
+  if(!muteButton)return;
+
+  setTimeout(function(){
+
+    audioEnabled=!video.muted;
+
+    audioUnlocked=true;
+
+    saveAudioPreference();
+
+  },150);
+
+});
+
+/* AUDIO CHANGE */
 
 video.addEventListener("volumechange",function(){
 
-  if(video.muted){
+  /*
+    Browser autoplay-এর কারণে mute হলে
+    user's saved preference overwrite করব না।
+    User audio unlock করার পর পরিবর্তন মনে রাখব।
+  */
 
-    audioEnabled=false;
+  if(audioUnlocked){
 
-  }else{
+    audioEnabled=!video.muted;
 
-    audioEnabled=true;
-    audioUnlocked=true;
+    saveAudioPreference();
 
   }
 
@@ -829,7 +876,7 @@ async function init(){
       video
     );
 
-    /* Controls configuration */
+    /* CONTROLS CONFIGURATION */
 
     ui.configure({
 
@@ -859,7 +906,7 @@ async function init(){
 
     controls=ui.getControls();
 
-    /* Add FIT button */
+    /* ADD FIT BUTTON */
 
     let count=0;
 
@@ -880,7 +927,7 @@ async function init(){
 
     },250);
 
-    /* Errors */
+    /* ERRORS */
 
     player.addEventListener("error",function(event){
 
@@ -896,7 +943,7 @@ async function init(){
 
     });
 
-    /* Playing */
+    /* PLAYING */
 
     video.addEventListener("playing",function(){
 
@@ -904,9 +951,12 @@ async function init(){
 
       setStatus("LIVE","live",4000);
 
-      /* Restore audio preference */
+      /*
+        If user previously unlocked audio,
+        restore their saved preference.
+      */
 
-      if(audioEnabled && audioUnlocked){
+      if(audioUnlocked && audioEnabled){
 
         video.muted=false;
 
@@ -924,7 +974,7 @@ async function init(){
 
     });
 
-    /* Buffering */
+    /* BUFFERING */
 
     video.addEventListener("waiting",function(){
 
@@ -940,7 +990,7 @@ async function init(){
 
     });
 
-    /* Pause */
+    /* PAUSE */
 
     video.addEventListener("pause",function(){
 
@@ -990,7 +1040,9 @@ async function init(){
 
 }
 
-/* LOAD STREAM */
+/* ==================================
+   LOAD STREAM
+================================== */
 
 async function loadStream(url){
 
@@ -1000,31 +1052,68 @@ async function loadStream(url){
 
     setStatus("Connecting...","loading",0);
 
-    /* Keep previous audio setting */
-
-    video.muted=!(audioEnabled && audioUnlocked);
-
     await player.load(url);
 
     showLoader("Starting video...");
 
-    video.muted=!(audioEnabled && audioUnlocked);
+    /*
+      Saved preference:
+      - Audio ON: প্রথমে sound সহ চেষ্টা
+      - Browser block করলে muted autoplay
+      - Audio OFF: muted autoplay
+    */
 
-    video.play().catch(function(error){
+    if(audioEnabled && audioUnlocked){
 
-      console.log("Autoplay:",error);
+      video.muted=false;
 
-      /* Browser autoplay fallback */
+    }else if(audioEnabled){
+
+      /* প্রথম autoplay sound attempt */
+      video.muted=false;
+
+    }else{
 
       video.muted=true;
 
-      video.play().catch(()=>{
+    }
+
+    try{
+
+      await video.play();
+
+      if(!video.muted){
+
+        audioEnabled=true;
+
+      }
+
+    }catch(error){
+
+      console.log("Autoplay with audio blocked:",error);
+
+      /* MUTED AUTOPLAY FALLBACK */
+
+      video.muted=true;
+
+      try{
+
+        await video.play();
+
+        /*
+          এখানে saved audioEnabled true থাকবে।
+          Browser বাধা দিয়েছে বলে preference false করব না।
+        */
+
+      }catch(secondError){
+
+        console.log("Muted autoplay blocked:",secondError);
 
         showLoader("Tap video to play");
 
-      });
+      }
 
-    });
+    }
 
   }catch(error){
 
