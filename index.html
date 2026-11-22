@@ -176,14 +176,16 @@ video.fit-zoom{
   margin:0!important;
 }
 
-/* VOLUME */
+/* VOLUME BAR */
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
   order:2!important;
-  flex:0 1 75px!important;
-  min-width:40px!important;
-  max-width:75px!important;
+  flex:0 1 100px!important;
+  width:100px!important;
+  min-width:65px!important;
+  max-width:110px!important;
+  margin:0 5px!important;
 }
 
 /* TIME */
@@ -380,22 +382,35 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-play-pause-button{
-    flex:0 0 40px!important;
-    width:40px!important;
-    min-width:40px!important;
-    max-width:40px!important;
+    flex:0 0 38px!important;
+    width:38px!important;
+    min-width:38px!important;
+    max-width:38px!important;
   }
 
   .shaka-controls-button-panel
   .shaka-mute-button{
-    flex:0 0 36px!important;
-    width:36px!important;
-    min-width:36px!important;
+    flex:0 0 34px!important;
+    width:34px!important;
+    min-width:34px!important;
   }
+
+  /* MOBILE VOLUME - NOW VISIBLE */
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
-    display:none!important;
+    display:flex!important;
+    flex:0 1 95px!important;
+    width:95px!important;
+    min-width:65px!important;
+    max-width:100px!important;
+    margin:0 3px!important;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-volume-bar-container
+  .shaka-volume-bar{
+    min-width:55px!important;
   }
 
   .shaka-controls-button-panel
@@ -406,19 +421,19 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-resolution-button{
-    flex:0 0 34px!important;
-    min-width:34px!important;
+    flex:0 0 32px!important;
+    min-width:32px!important;
   }
 
   .shaka-controls-button-panel
   .shaka-pip-button{
-    flex:0 0 34px!important;
-    min-width:34px!important;
+    flex:0 0 32px!important;
+    min-width:32px!important;
   }
 
   .rs-fit-btn{
-    flex:0 0 40px!important;
-    min-width:40px!important;
+    flex:0 0 38px!important;
+    min-width:38px!important;
   }
 
   .rs-fit-label{
@@ -428,10 +443,10 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-fullscreen-button{
-    flex:0 0 40px!important;
-    width:40px!important;
-    min-width:40px!important;
-    max-width:40px!important;
+    flex:0 0 38px!important;
+    width:38px!important;
+    min-width:38px!important;
+    max-width:38px!important;
   }
 
 }
@@ -448,6 +463,14 @@ video.fit-zoom{
   .shaka-controls-button-panel
   .shaka-pip-button{
     display:none!important;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-volume-bar-container{
+    flex:0 1 80px!important;
+    width:80px!important;
+    min-width:60px!important;
+    max-width:85px!important;
   }
 
 }
@@ -511,6 +534,7 @@ let ui;
 let controls;
 let statusTimer;
 let fitButton;
+let controlsHideTimer;
 
 let fitIndex=0;
 let previousFitIndex=0;
@@ -518,9 +542,7 @@ let isFullscreen=false;
 
 let lastTap=0;
 
-/* ==================================
-   AUDIO MEMORY
-================================== */
+/* AUDIO MEMORY */
 
 const AUDIO_STORAGE_KEY="rs_player_audio_enabled";
 
@@ -565,7 +587,7 @@ function saveAudioPreference(){
 
 }
 
-/* USER UNLOCK */
+/* AUDIO UNLOCK */
 
 function unlockAudio(){
 
@@ -621,6 +643,83 @@ function hideLoader(){
   container.classList.remove("loading");
 
 }
+
+/* ==================================
+   CONTROLS VISIBILITY
+   MANUAL 3 SECOND TIMER
+================================== */
+
+function cancelControlsHide(){
+
+  clearTimeout(controlsHideTimer);
+
+}
+
+function showControls(){
+
+  if(!controls)return;
+
+  if(typeof controls.show==="function"){
+    controls.show();
+  }
+
+  cancelControlsHide();
+
+}
+
+function scheduleControlsHide(){
+
+  cancelControlsHide();
+
+  controlsHideTimer=setTimeout(function(){
+
+    if(
+      controls &&
+      !video.paused &&
+      !video.ended
+    ){
+
+      if(typeof controls.hide==="function"){
+        controls.hide();
+      }
+
+    }
+
+  },3000);
+
+}
+
+function revealControlsAndStartTimer(){
+
+  if(!controls)return;
+
+  showControls();
+
+  if(!video.paused && !video.ended){
+
+    scheduleControlsHide();
+
+  }
+
+}
+
+/* TOUCH / CLICK / POINTER */
+
+container.addEventListener("pointerdown",function(){
+
+  revealControlsAndStartTimer();
+
+},{passive:true});
+
+container.addEventListener("pointermove",function(){
+
+  if(!video.paused){
+
+    revealControlsAndStartTimer();
+
+  }
+
+},{passive:true});
 
 /* FIT MODE */
 
@@ -709,6 +808,8 @@ function addFitButton(){
 
     applyFit();
 
+    revealControlsAndStartTimer();
+
   });
 
   applyFit();
@@ -762,7 +863,7 @@ video.addEventListener("pointerdown",function(){
 
   }
 
-},{passive:true});
+});
 
 /* SHAKA MUTE BUTTON */
 
@@ -812,6 +913,8 @@ video.addEventListener("touchend",function(event){
 
     lastTap=0;
 
+    cancelControlsHide();
+
     if(controls && typeof controls.hide==="function"){
       controls.hide();
     }
@@ -827,6 +930,8 @@ video.addEventListener("touchend",function(event){
 /* DOUBLE CLICK DESKTOP */
 
 video.addEventListener("dblclick",function(){
+
+  cancelControlsHide();
 
   if(controls && typeof controls.hide==="function"){
     controls.hide();
@@ -870,7 +975,9 @@ async function init(){
 
       addBigPlayButton:false,
 
-      autoHide:true,
+      /* AUTO HIDE OFF - CUSTOM TIMER WILL CONTROL */
+
+      autoHide:false,
       autoHideSeconds:3,
 
       controlPanelElements:[
@@ -945,13 +1052,13 @@ async function init(){
 
       }
 
-      /* Hide controls after 3 seconds */
+      /* SHOW CONTROLS FOR FULL 3 SECONDS */
 
-      if(controls && typeof controls.hide==="function"){
+      if(controls){
 
-        setTimeout(()=>{
-          controls.hide();
-        },3000);
+        showControls();
+
+        scheduleControlsHide();
 
       }
 
@@ -965,7 +1072,11 @@ async function init(){
 
       setStatus("Buffering...","loading",0);
 
+      cancelControlsHide();
+
     });
+
+    /* STALLED */
 
     video.addEventListener("stalled",function(){
 
@@ -977,11 +1088,17 @@ async function init(){
 
     video.addEventListener("pause",function(){
 
+      cancelControlsHide();
+
       if(!video.ended){
 
         hideLoader();
 
         setStatus("Paused","loading",2500);
+
+        if(controls && typeof controls.show==="function"){
+          controls.show();
+        }
 
       }
 
