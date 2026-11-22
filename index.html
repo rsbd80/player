@@ -175,68 +175,91 @@ video.fit-zoom{
   margin:0!important;
 }
 
-/* VOLUME BAR (ছবির মতো একদম চিকন করার জন্য) */
+/* VOLUME BAR (চিকন সাদা লাইন + ছোট গোল ডট) */
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
   order:2!important;
-  flex:1 1 80px!important;
-  min-width:60px!important; 
-  max-width:100px!important;
+  flex:0 0 78px!important;
+  width:78px!important;
+  min-width:65px!important;
+  max-width:85px!important;
+  height:20px!important;
   display:flex!important;
   align-items:center!important;
-  height: 20px !important; /* হাইট বাড়িয়ে দেওয়া হলো যাতে থাম্ব ঠিকমতো বসে */
-  padding: 0 !important;
-  margin-right: 6px !important;
-}
-
-/* ব্রাউজারের ডিফল্ট মোটা স্টাইল রিমুভ করা হলো */
-.shaka-controls-button-panel
-.shaka-volume-bar-container input[type="range"] {
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  width: 100% !important;
-  background: transparent !important;
-  margin: 0 !important;
-  outline: none !important;
-}
-
-/* লম্বা দাগটি (ট্র্যাক) */
-.shaka-controls-button-panel
-.shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track {
-  height: 3px !important; /* দাগের মোটা */
-  background: #fff !important; /* ছবির মতো সাদা রঙ */
-  border-radius: 2px !important;
-  border: none !important;
+  padding:0 4px!important;
+  margin-right:6px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border:none!important;
 }
 
 .shaka-controls-button-panel
-.shaka-volume-bar-container input[type="range"]::-moz-range-track {
-  height: 3px !important;
-  background: #fff !important;
-  border-radius: 2px !important;
-  border: none !important;
-}
-
-/* ছোট গোলাকার বাটনটি (থাম্ব) */
-.shaka-controls-button-panel
-.shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  width: 12px !important;
-  height: 12px !important;
-  border-radius: 50% !important;
-  background: #fff !important;
-  margin-top: -4.5px !important; /* দাগের একদম মাঝখানে রাখার জন্য */
-  border: none !important;
+.shaka-volume-bar-container > *{
+  width:100%!important;
+  height:2.5px!important;
+  min-height:2.5px!important;
+  max-height:2.5px!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.35)!important;
+  box-shadow:none!important;
+  border:none!important;
+  position:relative!important;
+  overflow:visible!important;
 }
 
 .shaka-controls-button-panel
-.shaka-volume-bar-container input[type="range"]::-moz-range-thumb {
-  width: 12px !important;
-  height: 12px !important;
-  border-radius: 50% !important;
-  background: #fff !important;
-  border: none !important;
+.shaka-volume-bar-container input[type="range"]{
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  width:100%!important;
+  height:20px!important;
+  min-height:20px!important;
+  max-height:20px!important;
+  background:transparent!important;
+  margin:0!important;
+  padding:0!important;
+  outline:none!important;
+  border:none!important;
+  cursor:pointer!important;
+}
+
+.shaka-controls-button-panel
+.shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track{
+  height:2.5px!important;
+  background:rgba(255,255,255,.35)!important;
+  border-radius:999px!important;
+  border:none!important;
+}
+
+.shaka-controls-button-panel
+.shaka-volume-bar-container input[type="range"]::-moz-range-track{
+  height:2.5px!important;
+  background:rgba(255,255,255,.35)!important;
+  border-radius:999px!important;
+  border:none!important;
+}
+
+.shaka-controls-button-panel
+.shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  width:10px!important;
+  height:10px!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  margin-top:-3.75px!important;
+  border:none!important;
+  box-shadow:none!important;
+}
+
+.shaka-controls-button-panel
+.shaka-volume-bar-container input[type="range"]::-moz-range-thumb{
+  width:10px!important;
+  height:10px!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  border:none!important;
+  box-shadow:none!important;
 }
 
 /* TIME */
@@ -247,8 +270,8 @@ video.fit-zoom{
 .shaka-time-container{
   order:3!important;
   flex:0 0 auto!important;
-  margin-right: 2px !important;
-  font-size: 12px !important; /* ছবির মতো ফন্ট সাইজ */
+  margin-right:2px!important;
+  font-size:12px!important;
 }
 
 /* SPACER */
@@ -438,7 +461,7 @@ video.fit-zoom{
     width:36px!important;
     min-width:36px!important;
     max-width:36px!important;
-    margin: 0 2px 0 0 !important;
+    margin:0 2px 0 0!important;
   }
 
   .shaka-controls-button-panel
@@ -450,35 +473,51 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
-    display:flex!important; 
-    flex:1 1 70px!important; 
-    min-width:50px!important;
-    max-width:80px!important;
-    height: 16px !important;
-    margin-right: 4px !important;
+    display:flex!important;
+    flex:0 0 64px!important;
+    width:64px!important;
+    min-width:56px!important;
+    max-width:72px!important;
+    height:16px!important;
+    padding:0 3px!important;
+    margin-right:4px!important;
   }
 
-  /* মোবাইলে দাগ আরও চিকন (২ পিক্সেল) */
   .shaka-controls-button-panel
-  .shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track {
-    height: 2px !important; 
+  .shaka-volume-bar-container > *{
+    height:2px!important;
+    min-height:2px!important;
+    max-height:2px!important;
   }
+
   .shaka-controls-button-panel
-  .shaka-volume-bar-container input[type="range"]::-moz-range-track {
-    height: 2px !important;
+  .shaka-volume-bar-container input[type="range"]{
+    height:16px!important;
+    min-height:16px!important;
+    max-height:16px!important;
   }
-  
-  /* মোবাইলে গোল বাটনটি */
+
   .shaka-controls-button-panel
-  .shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb {
-    width: 10px !important;
-    height: 10px !important;
-    margin-top: -4px !important; 
+  .shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track{
+    height:2px!important;
   }
+
   .shaka-controls-button-panel
-  .shaka-volume-bar-container input[type="range"]::-moz-range-thumb {
-    width: 10px !important;
-    height: 10px !important;
+  .shaka-volume-bar-container input[type="range"]::-moz-range-track{
+    height:2px!important;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb{
+    width:9px!important;
+    height:9px!important;
+    margin-top:-3.5px!important;
+  }
+
+  .shaka-controls-button-panel
+  .shaka-volume-bar-container input[type="range"]::-moz-range-thumb{
+    width:9px!important;
+    height:9px!important;
   }
 
   .shaka-controls-button-panel
