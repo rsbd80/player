@@ -127,7 +127,7 @@ video.fit-zoom{
   display:none!important;
 }
 
-/* CONTROL PANEL & SEEK BAR TOGETHER */
+/* CONTROL PANEL */
 
 .shaka-controls-container{
   width:100%!important;
@@ -136,46 +136,16 @@ video.fit-zoom{
   transition:opacity .25s ease, visibility .25s ease;
 }
 
-.shaka-controls-container
-.shaka-seek-bar-container,
-.shaka-controls-container
-.shaka-bottom-controls,
-.shaka-controls-container
-.shaka-controls-button-panel{
-  opacity:1!important;
-  visibility:visible!important;
-  transition:opacity .25s ease, visibility .25s ease;
-}
-
-.shaka-controls-container.rs-force-hide,
-.shaka-controls-container.rs-force-hide .shaka-seek-bar-container,
-.shaka-controls-container.rs-force-hide .shaka-bottom-controls,
-.shaka-controls-container.rs-force-hide .shaka-controls-button-panel{
+.shaka-controls-container.rs-force-hide{
   opacity:0!important;
   visibility:hidden!important;
   pointer-events:none!important;
 }
 
-/* SEEK BAR (কন্ট্রোল বাটনের ওপরের লম্বা দাগ - সবসময় দ্বিতীয় স্ক্রিনশটের মতো উজ্জ্বল লাল) */
-
-.shaka-seek-bar-container,
-.shaka-seek-bar-container > div,
-.shaka-seek-bar,
-.shaka-seek-bar-container input[type="range"],
-.shaka-seek-bar-container input[type="range"]::-webkit-slider-runnable-track,
-.shaka-seek-bar-container input[type="range"]::-moz-range-track,
-.shaka-seek-bar-container input[type="range"]::-webkit-slider-thumb,
-.shaka-seek-bar-container input[type="range"]::-moz-range-thumb{
-  background:#ff3030!important;
-  background-color:#ff3030!important;
-  background-image:none!important;
-  border-color:#ff3030!important;
-  opacity:1!important;
-}
-
 .shaka-bottom-controls{
   width:100%!important;
   padding:0 10px 8px!important;
+  opacity:1!important;
 }
 
 .shaka-controls-button-panel{
@@ -186,6 +156,7 @@ video.fit-zoom{
   min-width:0!important;
   overflow:hidden!important;
   gap:2px!important;
+  opacity:1!important;
 }
 
 /* PLAY / PAUSE (একটু ডান দিকে সরানো) */
@@ -220,39 +191,33 @@ video.fit-zoom{
   opacity:1!important;
 }
 
-/* VOLUME BAR (শুরু থেকেই সবসময় চিকন সাদা লাইন ও গোল ডট) */
+/* VOLUME BAR (গোল ডটের মতো সেম উজ্জ্বল সাদা রঙ ও স্পষ্ট দাগ) */
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
   order:2!important;
-  flex:0 0 78px!important;
-  width:78px!important;
-  min-width:64px!important;
-  max-width:86px!important;
+  flex:0 0 80px!important;
+  width:80px!important;
+  min-width:66px!important;
+  max-width:88px!important;
   height:24px!important;
   display:flex!important;
   align-items:center!important;
   padding:2px 4px 0!important;
   margin-right:6px!important;
   background:transparent!important;
-  background-color:transparent!important;
-  background-image:none!important;
   box-shadow:none!important;
   border:none!important;
   opacity:1!important;
 }
 
 .shaka-controls-button-panel
-.shaka-volume-bar-container > div,
-.shaka-controls-button-panel
-.shaka-volume-bar-container > span{
+.shaka-volume-bar-container > *{
   width:100%!important;
-  height:3px!important;
-  min-height:3px!important;
-  max-height:3px!important;
+  height:4px!important;
+  min-height:4px!important;
+  max-height:4px!important;
   border-radius:999px!important;
   background:#ffffff!important;
-  background-color:#ffffff!important;
-  background-image:none!important;
   box-shadow:none!important;
   border:none!important;
   position:relative!important;
@@ -270,13 +235,10 @@ video.fit-zoom{
   min-height:24px!important;
   max-height:24px!important;
   background:transparent!important;
-  background-color:transparent!important;
-  background-image:none!important;
   margin:0!important;
   padding:0!important;
   outline:none!important;
   border:none!important;
-  box-shadow:none!important;
   cursor:pointer!important;
   transform:translateY(1px)!important;
   opacity:1!important;
@@ -284,39 +246,28 @@ video.fit-zoom{
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track{
-  height:3px!important;
-  min-height:3px!important;
-  max-height:3px!important;
+  height:4px!important;
   background:#ffffff!important;
-  background-color:#ffffff!important;
-  background-image:none!important;
   border-radius:999px!important;
   border:none!important;
-  box-shadow:none!important;
 }
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container input[type="range"]::-moz-range-track{
-  height:3px!important;
-  min-height:3px!important;
-  max-height:3px!important;
+  height:4px!important;
   background:#ffffff!important;
-  background-color:#ffffff!important;
-  background-image:none!important;
   border-radius:999px!important;
   border:none!important;
-  box-shadow:none!important;
 }
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance:none!important;
   appearance:none!important;
-  width:11px!important;
-  height:11px!important;
+  width:12px!important;
+  height:12px!important;
   border-radius:50%!important;
   background:#ffffff!important;
-  background-color:#ffffff!important;
   margin-top:-4px!important;
   border:none!important;
   box-shadow:none!important;
@@ -325,11 +276,10 @@ video.fit-zoom{
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container input[type="range"]::-moz-range-thumb{
-  width:11px!important;
-  height:11px!important;
+  width:12px!important;
+  height:12px!important;
   border-radius:50%!important;
   background:#ffffff!important;
-  background-color:#ffffff!important;
   border:none!important;
   box-shadow:none!important;
   opacity:1!important;
@@ -552,28 +502,21 @@ video.fit-zoom{
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
     display:flex!important;
-    flex:0 0 64px!important;
-    width:64px!important;
-    min-width:56px!important;
-    max-width:72px!important;
+    flex:0 0 66px!important;
+    width:66px!important;
+    min-width:58px!important;
+    max-width:74px!important;
     height:20px!important;
     padding:2px 3px 0!important;
     margin-right:4px!important;
-    background:transparent!important;
-    background-color:transparent!important;
-    background-image:none!important;
   }
 
   .shaka-controls-button-panel
-  .shaka-volume-bar-container > div,
-  .shaka-controls-button-panel
-  .shaka-volume-bar-container > span{
-    height:2.5px!important;
-    min-height:2.5px!important;
-    max-height:2.5px!important;
+  .shaka-volume-bar-container > *{
+    height:3.5px!important;
+    min-height:3.5px!important;
+    max-height:3.5px!important;
     background:#ffffff!important;
-    background-color:#ffffff!important;
-    background-image:none!important;
     transform:translateY(1px)!important;
   }
 
@@ -582,47 +525,34 @@ video.fit-zoom{
     height:20px!important;
     min-height:20px!important;
     max-height:20px!important;
-    background:transparent!important;
-    background-color:transparent!important;
-    background-image:none!important;
     transform:translateY(1px)!important;
   }
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container input[type="range"]::-webkit-slider-runnable-track{
-    height:2.5px!important;
-    min-height:2.5px!important;
-    max-height:2.5px!important;
+    height:3.5px!important;
     background:#ffffff!important;
-    background-color:#ffffff!important;
-    background-image:none!important;
   }
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container input[type="range"]::-moz-range-track{
-    height:2.5px!important;
-    min-height:2.5px!important;
-    max-height:2.5px!important;
+    height:3.5px!important;
     background:#ffffff!important;
-    background-color:#ffffff!important;
-    background-image:none!important;
   }
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container input[type="range"]::-webkit-slider-thumb{
-    width:10px!important;
-    height:10px!important;
+    width:11px!important;
+    height:11px!important;
     margin-top:-3.75px!important;
     background:#ffffff!important;
-    background-color:#ffffff!important;
   }
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container input[type="range"]::-moz-range-thumb{
-    width:10px!important;
-    height:10px!important;
+    width:11px!important;
+    height:11px!important;
     background:#ffffff!important;
-    background-color:#ffffff!important;
   }
 
   .shaka-controls-button-panel
@@ -811,80 +741,31 @@ function unlockAudio(){
 
 }
 
-/* ALWAYS KEEP SEEK BAR (UPPER RED BAR) LIKE SECOND SCREENSHOT FROM START */
-
-function enforceRedSeekBar(){
-  const seekWrap=container.querySelector(".shaka-seek-bar-container");
-  if(!seekWrap)return;
-  seekWrap.style.setProperty("background","#ff3030","important");
-  seekWrap.style.setProperty("background-color","#ff3030","important");
-  seekWrap.style.setProperty("background-image","none","important");
-  seekWrap.style.setProperty("opacity","1","important");
-
-  seekWrap.querySelectorAll("*").forEach(function(el){
-    el.style.setProperty("background","#ff3030","important");
-    el.style.setProperty("background-color","#ff3030","important");
-    el.style.setProperty("background-image","none","important");
-    el.style.setProperty("border-color","#ff3030","important");
-    el.style.setProperty("opacity","1","important");
-  });
-}
-
-function observeControlsBar(){
-  const target=container.querySelector(".shaka-controls-container") || container;
-  if(!target || typeof MutationObserver==="undefined")return;
-  const observer=new MutationObserver(function(){
-    enforceRedSeekBar();
-  });
-  observer.observe(target,{
-    childList:true,
-    subtree:true,
-    attributes:true,
-    attributeFilter:["style","class"]
-  });
-}
-
-/* CONTROLS + SEEK BAR AUTO HIDE TOGETHER (4s) */
+/* CONTROLS AUTO HIDE (4s AFTER ANY TOUCH/CLICK) */
 
 function getControlsEl(){
   return container.querySelector(".shaka-controls-container");
 }
 
-function getSeekBarEl(){
-  return container.querySelector(".shaka-seek-bar-container");
-}
-
 function showControlsClear(){
-  enforceRedSeekBar();
   const ctrlEl=getControlsEl();
-  const seekEl=getSeekBarEl();
   if(ctrlEl){
     ctrlEl.classList.remove("rs-force-hide");
     ctrlEl.style.opacity="1";
     ctrlEl.style.visibility="visible";
   }
-  if(seekEl){
-    seekEl.style.opacity="1";
-    seekEl.style.visibility="visible";
-  }
   const bottomCtrl=container.querySelector(".shaka-bottom-controls");
   if(bottomCtrl){
     bottomCtrl.style.opacity="1";
-    bottomCtrl.style.visibility="visible";
   }
 }
 
 function hideControlsNow(){
   const ctrlEl=getControlsEl();
-  const seekEl=getSeekBarEl();
   if(ctrlEl){
     ctrlEl.classList.add("rs-force-hide");
     ctrlEl.style.opacity="0";
     ctrlEl.style.visibility="hidden";
-  }
-  if(seekEl){
-    seekEl.style.opacity="0";
-    seekEl.style.visibility="hidden";
   }
   if(controls && typeof controls.hide==="function"){
     controls.hide();
@@ -1107,7 +988,6 @@ document.addEventListener("click",function(event){
     audioUnlocked=true;
 
     saveAudioPreference();
-    enforceRedSeekBar();
 
   },150);
 
@@ -1116,8 +996,6 @@ document.addEventListener("click",function(event){
 /* AUDIO CHANGE */
 
 video.addEventListener("volumechange",function(){
-
-  enforceRedSeekBar();
 
   if(audioUnlocked){
 
@@ -1210,16 +1088,14 @@ async function init(){
       ],
 
       seekBarColors:{
-        base:"#ff3030",
-        buffered:"#ff3030",
+        base:"#555",
+        buffered:"#777",
         played:"#ff3030"
       }
 
     });
 
     controls=ui.getControls();
-    enforceRedSeekBar();
-    observeControlsBar();
 
     /* ADD FIT BUTTON */
 
@@ -1228,7 +1104,6 @@ async function init(){
     const buttonTimer=setInterval(()=>{
 
       addFitButton();
-      enforceRedSeekBar();
 
       count++;
 
@@ -1250,10 +1125,9 @@ async function init(){
         volBar.style.display = 'flex';
         volBar.style.opacity = '1';
         volBar.style.visibility = 'visible';
-        enforceRedSeekBar();
         clearInterval(volumeTimer);
       }
-    }, 200);
+    }, 500);
 
     /* ERRORS */
 
@@ -1276,7 +1150,6 @@ async function init(){
     video.addEventListener("playing",function(){
 
       hideLoader();
-      enforceRedSeekBar();
 
       setStatus("LIVE","live",4000);
 
