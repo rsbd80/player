@@ -32,9 +32,6 @@ html,body{
   width:100%;
   height:100%;
   background:#000;
-  display:flex;
-  align-items:center;
-  justify-content:center;
   overflow:hidden;
 }
 
@@ -53,14 +50,12 @@ video.fit-zoom{
   object-fit:cover!important;
 }
 
-/* =================================
-   SMALL LOADER INSIDE VIDEO
-================================= */
+/* LOADER */
 
 #rs-loader{
   position:absolute;
   inset:0;
-  z-index:50;
+  z-index:5;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -76,67 +71,58 @@ video.fit-zoom{
   visibility:hidden;
 }
 
-.loader-content{
+.loader-box{
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
+  padding:12px 16px;
+  border-radius:10px;
   background:rgba(0,0,0,.72);
-  padding:13px 20px;
-  border-radius:12px;
   border:1px solid rgba(255,255,255,.08);
 }
 
-.loader-logo{
-  width:34px;
-  height:34px;
+.loader-spinner{
+  width:27px;
+  height:27px;
   border-radius:50%;
   border:3px solid rgba(255,255,255,.15);
   border-top-color:#ff3030;
   border-right-color:#ff3030;
-  animation:spin .8s linear infinite;
+  animation:rs-spin .8s linear infinite;
 }
 
-.logo-text,
-.loader-subtitle,
-.loader-footer,
-.loader-bars{
-  display:none!important;
-}
-
-.loader-title{
-  margin-top:9px;
-  font-size:13px;
+.loader-name{
+  margin-top:8px;
+  font-size:12px;
   font-weight:900;
-  letter-spacing:1px;
   color:#fff;
+  letter-spacing:.6px;
   white-space:nowrap;
 }
 
-.loader-title span{
+.loader-name span{
   color:#ff3030;
 }
 
 #loader-message{
-  margin-top:5px;
-  color:#bbb;
+  margin-top:4px;
   font-size:10px;
+  color:#aaa;
   white-space:nowrap;
 }
 
-@keyframes spin{
+@keyframes rs-spin{
   to{transform:rotate(360deg)}
 }
 
-/* =================================
-   STATUS
-================================= */
+/* STATUS */
 
 #status{
   position:fixed;
   top:max(12px,env(safe-area-inset-top));
   right:12px;
-  z-index:9999;
+  z-index:20;
 
   display:flex;
   align-items:center;
@@ -170,159 +156,80 @@ video.fit-zoom{
   height:7px;
   background:#38bdf8;
   border-radius:50%;
-  flex-shrink:0;
 }
 
 #status.live .dot{
   background:#22c55e;
-  animation:pulse 1.5s infinite;
+  animation:rs-pulse 1.5s infinite;
 }
 
 #status.loading .dot{
   background:#fbbf24;
-  animation:pulse 1s infinite;
+  animation:rs-pulse 1s infinite;
 }
 
 #status.error .dot{
   background:#ef4444;
 }
 
-@keyframes pulse{
+@keyframes rs-pulse{
   50%{
     opacity:.35;
     transform:scale(.65);
   }
 }
 
-/* =================================
-   FIT BUTTON
-================================= */
+/* CUSTOM FIT BUTTON */
+/* Shaka's default controls are otherwise untouched */
 
-.fit-btn{
-  border:0!important;
-  background:transparent!important;
-  color:white!important;
-  min-width:42px!important;
-  width:auto!important;
-  height:40px!important;
-  padding:0 5px!important;
-  cursor:pointer!important;
-  display:flex!important;
-  justify-content:center!important;
-  align-items:center!important;
-  flex-shrink:0!important;
+.rs-fit-btn{
+  border:0;
+  background:transparent;
+  color:white;
+  cursor:pointer;
+  padding:0 5px;
+  min-width:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
-.fit-label{
-  border:1px solid #555;
-  border-radius:5px;
-  padding:4px 6px;
+.rs-fit-label{
   font-size:10px;
   font-weight:800;
+  padding:4px 6px;
+  border:1px solid #666;
+  border-radius:5px;
   color:#ddd;
   white-space:nowrap;
 }
 
-.fit-btn.fill .fit-label{
-  border-color:#38bdf8;
+.rs-fit-btn.fill .rs-fit-label{
   color:#38bdf8;
+  border-color:#38bdf8;
 }
 
-.fit-btn.zoom .fit-label{
-  border-color:#a78bfa;
+.rs-fit-btn.zoom .rs-fit-label{
   color:#a78bfa;
+  border-color:#a78bfa;
 }
 
-/* =================================
-   SHAKA CONTROLS
-================================= */
-
-.shaka-video-container{
-  background:#000!important;
-  width:100%!important;
-  height:100%!important;
-}
-
-.shaka-controls-container{
-  z-index:10!important;
-}
-
-.shaka-controls-container button{
-  color:#fff!important;
-}
-
-.shaka-controls-button-panel{
-  display:flex!important;
-  flex-direction:row!important;
-  align-items:center!important;
-  flex-wrap:nowrap!important;
-  width:100%!important;
-  overflow:visible!important;
-}
-
-.shaka-controls-button-panel>button{
-  flex:0 0 auto!important;
-  position:relative!important;
-  margin:0!important;
-}
-
-/* Play/Pause fixed position */
-
-.shaka-play-pause-button{
-  flex:0 0 40px!important;
-  width:40px!important;
-  min-width:40px!important;
-  max-width:40px!important;
-  position:relative!important;
-  transform:none!important;
-}
-
-/* Volume */
-
-.shaka-mute-button{
-  flex-shrink:0!important;
-}
-
-.shaka-volume-bar-container{
-  flex-shrink:0!important;
-}
-
-/* Spacer */
-
-.shaka-spacer{
-  flex:1 1 auto!important;
-  min-width:0!important;
-}
-
-.shaka-spinner-container{
-  background:transparent!important;
-}
-
-/* Big play button */
-
-.shaka-play-button-container{
-  z-index:20!important;
-}
-
-/* =================================
-   FULLSCREEN
-================================= */
+/* FULLSCREEN */
 
 #player-container:fullscreen,
 #player-container:-webkit-full-screen{
-  width:100vw!important;
-  height:100vh!important;
-  background:#000!important;
-  overflow:hidden!important;
+  width:100vw;
+  height:100vh;
+  background:#000;
 }
 
 #player-container:fullscreen video,
 #player-container:-webkit-full-screen video{
-  width:100%!important;
-  height:100%!important;
+  width:100%;
+  height:100%;
 }
 
-/* Mobile */
+/* MOBILE */
 
 @media(max-width:480px){
 
@@ -333,33 +240,9 @@ video.fit-zoom{
     padding:6px 9px;
   }
 
-  .fit-label{
+  .rs-fit-label{
     font-size:9px;
     padding:3px 5px;
-  }
-
-  .shaka-play-pause-button{
-    flex:0 0 36px!important;
-    width:36px!important;
-    min-width:36px!important;
-    max-width:36px!important;
-  }
-
-  .loader-content{
-    padding:11px 16px;
-  }
-
-  .loader-logo{
-    width:29px;
-    height:29px;
-  }
-
-  .loader-title{
-    font-size:12px;
-  }
-
-  #loader-message{
-    font-size:9px;
   }
 
 }
@@ -378,15 +261,14 @@ video.fit-zoom{
     preload="metadata">
   </video>
 
-  <!-- SMALL RS LOADER -->
+  <!-- Loader -->
 
   <div id="rs-loader">
+    <div class="loader-box">
 
-    <div class="loader-content">
+      <div class="loader-spinner"></div>
 
-      <div class="loader-logo"></div>
-
-      <div class="loader-title">
+      <div class="loader-name">
         RS <span>LIVE TV</span>
       </div>
 
@@ -395,7 +277,6 @@ video.fit-zoom{
       </div>
 
     </div>
-
   </div>
 
 </div>
@@ -421,13 +302,13 @@ const loaderMessage = document.getElementById("loader-message");
 
 let player;
 let statusTimer;
-let fitIndex = 0;
-let previousFitIndex = 0;
-let isFullscreen = false;
-let fitButton = null;
+let fitButton;
+let fitIndex=0;
+let previousFitIndex=0;
+let isFullscreen=false;
 
-const FIT_MODES = ["contain","fill","cover"];
-const FIT_LABELS = ["FIT","FILL","ZOOM"];
+const FIT_MODES=["contain","fill","cover"];
+const FIT_LABELS=["FIT","FILL","ZOOM"];
 
 /* STATUS */
 
@@ -450,9 +331,9 @@ function setStatus(text,type="loading",duration=4000){
 
 /* LOADER */
 
-function showLoader(message="Connecting..."){
+function showLoader(message){
 
-  loaderMessage.textContent=message;
+  loaderMessage.textContent=message||"Connecting...";
   loader.classList.remove("hide");
 
 }
@@ -463,11 +344,9 @@ function hideLoader(){
 
 }
 
-/* FIT */
+/* FIT MODE */
 
 function applyFit(){
-
-  const mode=FIT_MODES[fitIndex];
 
   video.classList.remove("fit-fill","fit-zoom");
 
@@ -475,7 +354,7 @@ function applyFit(){
     fitButton.classList.remove("fill","zoom");
   }
 
-  if(mode==="fill"){
+  if(FIT_MODES[fitIndex]==="fill"){
 
     video.classList.add("fit-fill");
 
@@ -485,7 +364,7 @@ function applyFit(){
 
   }
 
-  if(mode==="cover"){
+  if(FIT_MODES[fitIndex]==="cover"){
 
     video.classList.add("fit-zoom");
 
@@ -497,19 +376,17 @@ function applyFit(){
 
   if(fitButton){
 
-    const label=fitButton.querySelector(".fit-label");
+    const label=fitButton.querySelector(".rs-fit-label");
 
     if(label){
       label.textContent=FIT_LABELS[fitIndex];
     }
 
-    fitButton.title="Video Mode: "+FIT_LABELS[fitIndex];
-
   }
 
 }
 
-/* FIT BUTTON */
+/* ADD FIT BUTTON */
 
 function addFitButton(){
 
@@ -521,35 +398,32 @@ function addFitButton(){
 
   if(panel.querySelector(".rs-fit-btn"))return;
 
+  const button=document.createElement("button");
+
+  button.type="button";
+  button.className="rs-fit-btn";
+  button.title="Video Fit Mode";
+
+  button.innerHTML=
+    '<span class="rs-fit-label">FIT</span>';
+
+  fitButton=button;
+
   const fullscreenButton=panel.querySelector(
     ".shaka-fullscreen-button"
   );
 
-  fitButton=document.createElement("button");
-
-  fitButton.className="fit-btn rs-fit-btn";
-  fitButton.title="Video Fit Mode";
-
-  fitButton.innerHTML=
-    '<span class="fit-label">FIT</span>';
-
   if(fullscreenButton){
 
-    panel.insertBefore(
-      fitButton,
-      fullscreenButton
-    );
+    panel.insertBefore(button,fullscreenButton);
 
   }else{
 
-    panel.appendChild(fitButton);
+    panel.appendChild(button);
 
   }
 
-  fitButton.addEventListener("click",function(e){
-
-    e.preventDefault();
-    e.stopPropagation();
+  button.addEventListener("click",function(){
 
     fitIndex=(fitIndex+1)%FIT_MODES.length;
 
@@ -561,16 +435,15 @@ function addFitButton(){
 
 }
 
-/* FULLSCREEN DETECTION */
+/* FULLSCREEN */
 
 function checkFullscreen(){
 
-  const nowFullscreen=
+  const fullscreen=
     !!document.fullscreenElement ||
-    !!document.webkitFullscreenElement ||
-    !!video.webkitDisplayingFullscreen;
+    !!document.webkitFullscreenElement;
 
-  if(nowFullscreen && !isFullscreen){
+  if(fullscreen && !isFullscreen){
 
     previousFitIndex=fitIndex;
     fitIndex=1;
@@ -578,9 +451,7 @@ function checkFullscreen(){
 
     applyFit();
 
-  }
-
-  else if(!nowFullscreen && isFullscreen){
+  }else if(!fullscreen && isFullscreen){
 
     fitIndex=previousFitIndex;
     isFullscreen=false;
@@ -601,115 +472,6 @@ document.addEventListener(
   checkFullscreen
 );
 
-/* iPhone fullscreen events */
-
-video.addEventListener(
-  "webkitbeginfullscreen",
-  function(){
-
-    if(!isFullscreen){
-
-      previousFitIndex=fitIndex;
-      fitIndex=1;
-      isFullscreen=true;
-
-      applyFit();
-
-    }
-
-  }
-);
-
-video.addEventListener(
-  "webkitendfullscreen",
-  function(){
-
-    fitIndex=previousFitIndex;
-    isFullscreen=false;
-
-    applyFit();
-
-  }
-);
-
-/* FULLSCREEN BUTTON FIX */
-
-function fixFullscreenButton(){
-
-  const btn=document.querySelector(
-    ".shaka-fullscreen-button"
-  );
-
-  if(!btn || btn.dataset.rsFixed)return;
-
-  btn.dataset.rsFixed="true";
-
-  btn.addEventListener("click",async function(e){
-
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-
-    try{
-
-      const currentlyFullscreen=
-        !!document.fullscreenElement ||
-        !!document.webkitFullscreenElement;
-
-      if(currentlyFullscreen){
-
-        if(document.exitFullscreen){
-
-          await document.exitFullscreen();
-
-        }else if(document.webkitExitFullscreen){
-
-          document.webkitExitFullscreen();
-
-        }
-
-      }else{
-
-        if(container.requestFullscreen){
-
-          await container.requestFullscreen();
-
-        }else if(container.webkitRequestFullscreen){
-
-          container.webkitRequestFullscreen();
-
-        }else if(video.webkitEnterFullscreen){
-
-          video.webkitEnterFullscreen();
-
-        }else{
-
-          setStatus(
-            "Fullscreen Not Supported",
-            "error",
-            3000
-          );
-
-        }
-
-      }
-
-    }catch(error){
-
-      console.error("Fullscreen error:",error);
-
-      setStatus(
-        "Fullscreen Failed",
-        "error",
-        3000
-      );
-
-    }
-
-  },true);
-
-}
-
 /* PLAYER INIT */
 
 async function init(){
@@ -722,11 +484,7 @@ async function init(){
 
     showLoader("Browser not supported");
 
-    setStatus(
-      "Browser Not Supported",
-      "error",
-      0
-    );
+    setStatus("Browser Not Supported","error",0);
 
     return;
 
@@ -743,6 +501,8 @@ async function init(){
       container,
       video
     );
+
+    /* Shaka native controls */
 
     ui.configure({
 
@@ -767,61 +527,50 @@ async function init(){
 
     });
 
-    /* Add buttons */
+    /* Wait for controls */
 
-    let tries=0;
+    let count=0;
 
-    const buttonInterval=setInterval(()=>{
+    const buttonTimer=setInterval(()=>{
 
       addFitButton();
-      fixFullscreenButton();
 
-      tries++;
+      count++;
 
       if(
-        document.querySelector(".rs-fit-btn") &&
-        document.querySelector(".shaka-fullscreen-button")?.dataset.rsFixed
+        document.querySelector(".rs-fit-btn") ||
+        count>=30
       ){
 
-        clearInterval(buttonInterval);
+        clearInterval(buttonTimer);
 
       }
 
-      if(tries>50){
+    },250);
 
-        clearInterval(buttonInterval);
-
-      }
-
-    },200);
-
-    /* Player Error */
+    /* Player error */
 
     player.addEventListener("error",function(event){
 
-      const error=event.detail;
+      console.error("Shaka error:",event.detail);
 
       showLoader("Stream error...");
 
       setStatus(
-        "Stream Error "+(error.code||""),
+        "Stream Error "+(event.detail.code||""),
         "error",
         6000
       );
 
     });
 
-    /* Playing */
+    /* Video playing */
 
     video.addEventListener("playing",function(){
 
       hideLoader();
 
-      setStatus(
-        "LIVE",
-        "live",
-        4000
-      );
+      setStatus("LIVE","live",4000);
 
     });
 
@@ -831,11 +580,7 @@ async function init(){
 
       showLoader("Buffering...");
 
-      setStatus(
-        "Buffering...",
-        "loading",
-        0
-      );
+      setStatus("Buffering...","loading",0);
 
     });
 
@@ -853,21 +598,9 @@ async function init(){
 
         hideLoader();
 
-        setStatus(
-          "Paused",
-          "loading",
-          2500
-        );
+        setStatus("Paused","loading",2500);
 
       }
-
-    });
-
-    /* Play */
-
-    video.addEventListener("play",function(){
-
-      video.muted=false;
 
     });
 
@@ -883,11 +616,7 @@ async function init(){
 
       hideLoader();
 
-      setStatus(
-        "Ready - No Stream URL",
-        "loading",
-        5000
-      );
+      setStatus("Ready - No Stream URL","loading",5000);
 
       return;
 
@@ -897,15 +626,11 @@ async function init(){
 
   }catch(error){
 
-    console.error(error);
+    console.error("Initialization:",error);
 
     showLoader("Player initialization failed");
 
-    setStatus(
-      "Initialization Failed",
-      "error",
-      0
-    );
+    setStatus("Initialization Failed","error",0);
 
   }
 
@@ -919,11 +644,7 @@ async function loadStream(url){
 
     showLoader("Connecting...");
 
-    setStatus(
-      "Connecting...",
-      "loading",
-      0
-    );
+    setStatus("Connecting...","loading",0);
 
     await player.load(url);
 
@@ -935,7 +656,7 @@ async function loadStream(url){
 
       video.play().catch(()=>{
 
-        showLoader("Tap Play to start");
+        showLoader("Press Play");
 
       });
 
@@ -943,15 +664,11 @@ async function loadStream(url){
 
   }catch(error){
 
-    console.error("Player Error:",error);
+    console.error("Load Error:",error);
 
     showLoader("Playback failed");
 
-    setStatus(
-      "Playback Failed",
-      "error",
-      0
-    );
+    setStatus("Playback Failed","error",0);
 
   }
 
