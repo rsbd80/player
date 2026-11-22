@@ -175,14 +175,16 @@ video.fit-zoom{
   margin:0!important;
 }
 
-/* VOLUME */
-
+/* VOLUME BAR (ডেস্কটপ ও মোবাইল উভয়ের জন্য) */
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
   order:2!important;
-  flex:0 1 75px!important;
-  min-width:40px!important;
-  max-width:75px!important;
+  flex:1 1 80px!important;
+  min-width:60px!important; 
+  max-width:100px!important;
+  height: 24px !important;
+  display:flex!important;
+  align-items:center!important;
 }
 
 /* TIME */
@@ -374,32 +376,31 @@ video.fit-zoom{
   }
 
   .shaka-controls-button-panel{
-    gap:0!important;
+    gap:2px!important; /* জায়গা একটু বাড়ানো হলো */
   }
 
   .shaka-controls-button-panel
   .shaka-play-pause-button{
-    flex:0 0 40px!important;
-    width:40px!important;
-    min-width:40px!important;
-    max-width:40px!important;
+    flex:0 0 36px!important;
+    width:36px!important;
+    min-width:36px!important;
+    max-width:36px!important;
   }
 
   .shaka-controls-button-panel
   .shaka-mute-button{
-    flex:0 0 36px!important;
-    width:36px!important;
-    min-width:36px!important;
+    flex:0 0 34px!important;
+    width:34px!important;
+    min-width:34px!important;
   }
 
-  /* পরিবর্তন করা হয়েছে: ভলিউম বার মোবাইলে দেখানোর জন্য */
+  /* মোবাইলে ভলিউম বার জোরপূর্বক দেখানো হলো */
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
     display:flex!important; 
-    flex:1 1 60px!important;
-    min-width:40px!important;
-    max-width:75px!important;
-    margin:0 4px!important;
+    flex:1 1 50px!important; /* ফ্লেক্সিবল সাইজ */
+    min-width:45px!important;
+    max-width:60px!important;
   }
 
   .shaka-controls-button-panel
@@ -421,8 +422,8 @@ video.fit-zoom{
   }
 
   .rs-fit-btn{
-    flex:0 0 40px!important;
-    min-width:40px!important;
+    flex:0 0 36px!important;
+    min-width:36px!important;
   }
 
   .rs-fit-label{
@@ -432,10 +433,10 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-fullscreen-button{
-    flex:0 0 40px!important;
-    width:40px!important;
-    min-width:40px!important;
-    max-width:40px!important;
+    flex:0 0 36px!important;
+    width:36px!important;
+    min-width:36px!important;
+    max-width:36px!important;
   }
 
 }
@@ -880,7 +881,7 @@ async function init(){
       controlPanelElements:[
         "play_pause",
         "mute",
-        "volume",
+        "volume", /* ভলিউম বার এখানে যুক্ত করা হলো */
         "time_and_duration",
         "spacer",
         "quality",
@@ -918,6 +919,17 @@ async function init(){
       }
 
     },250);
+
+    /* JOR KORE VOLUME BAR SHOW KORA (যদি Shaka নিজে থেকে লুকায়) */
+    const volumeTimer = setInterval(() => {
+      const volBar = document.querySelector('.shaka-volume-bar-container');
+      if (volBar) {
+        volBar.style.display = 'flex';
+        volBar.style.opacity = '1';
+        volBar.style.visibility = 'visible';
+        clearInterval(volumeTimer);
+      }
+    }, 500);
 
     /* ERRORS */
 
