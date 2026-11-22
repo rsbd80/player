@@ -163,7 +163,7 @@ video.fit-zoom{
   visibility:visible!important;
 }
 
-/* PLAY / PAUSE (ভলিউমের বামে পুরোপুরি দৃশ্যমান ও প্লেয়ারের ভেতরে সেট) */
+/* PLAY / PAUSE */
 
 .shaka-controls-button-panel
 .shaka-play-pause-button{
@@ -215,7 +215,8 @@ video.fit-zoom{
   visibility:visible!important;
 }
 
-/* VOLUME BAR (গোল ডটের মতো সেম উজ্জ্বল সাদা রঙ ও স্পষ্ট দাগ) */
+/* VOLUME BAR */
+
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
   order:2!important;
@@ -711,7 +712,6 @@ const AUTO_HIDE_DELAY=4000;
 let fitIndex=0;
 let previousFitIndex=0;
 let isFullscreen=false;
-
 let lastTap=0;
 
 /* ==================================
@@ -726,12 +726,7 @@ let audioUnlocked=false;
 try{
 
   const savedAudio=localStorage.getItem(AUDIO_STORAGE_KEY);
-
-  if(savedAudio==="false"){
-    audioEnabled=false;
-  }else{
-    audioEnabled=true;
-  }
+  audioEnabled=(savedAudio!=="false");
 
 }catch(error){
 
@@ -741,8 +736,6 @@ try{
 
 const FIT_MODES=["contain","fill","cover"];
 const FIT_LABELS=["FIT","FILL","ZOOM"];
-
-/* SAVE AUDIO */
 
 function saveAudioPreference(){
 
@@ -761,8 +754,6 @@ function saveAudioPreference(){
 
 }
 
-/* USER UNLOCK */
-
 function unlockAudio(){
 
   if(audioUnlocked)return;
@@ -771,7 +762,6 @@ function unlockAudio(){
   audioEnabled=true;
 
   saveAudioPreference();
-
   video.muted=false;
 
   video.play().catch(function(error){
@@ -785,55 +775,70 @@ function unlockAudio(){
 /* ENSURE PLAY/PAUSE BUTTON IS CLEAN & VISIBLE INSIDE PLAYER */
 
 function syncPlayPauseButton(){
+
   const playBtn=container.querySelector(".shaka-play-pause-button");
   if(!playBtn)return;
-  playBtn.style.setProperty("display","flex","important");
-  playBtn.style.setProperty("opacity","1","important");
-  playBtn.style.setProperty("visibility","visible","important");
-  playBtn.style.setProperty("overflow","visible","important");
+
+  playBtn.style.display="flex";
+  playBtn.style.opacity="1";
+  playBtn.style.visibility="visible";
+  playBtn.style.overflow="visible";
+
 }
 
-/* CONTROLS AUTO HIDE (4s AFTER ANY TOUCH/CLICK) */
+/* CONTROLS AUTO HIDE (4s AFTER USER INTERACTION) */
 
 function getControlsEl(){
+
   return container.querySelector(".shaka-controls-container");
+
 }
 
 function showControlsClear(){
+
   syncPlayPauseButton();
+
   const ctrlEl=getControlsEl();
   if(ctrlEl){
     ctrlEl.classList.remove("rs-force-hide");
     ctrlEl.style.opacity="1";
     ctrlEl.style.visibility="visible";
   }
+
   const bottomCtrl=container.querySelector(".shaka-bottom-controls");
   if(bottomCtrl){
     bottomCtrl.style.opacity="1";
     bottomCtrl.style.visibility="visible";
   }
+
 }
 
 function hideControlsNow(){
+
   const ctrlEl=getControlsEl();
   if(ctrlEl){
     ctrlEl.classList.add("rs-force-hide");
     ctrlEl.style.opacity="0";
     ctrlEl.style.visibility="hidden";
   }
+
   if(controls && typeof controls.hide==="function"){
     controls.hide();
   }
+
 }
 
 function scheduleAutoHide(delay=AUTO_HIDE_DELAY){
+
   showControlsClear();
   clearTimeout(autoHideTimer);
+
   autoHideTimer=setTimeout(function(){
     if(!video.paused && !container.classList.contains("loading")){
       hideControlsNow();
     }
   },delay);
+
 }
 
 /* STATUS */
@@ -846,11 +851,9 @@ function setStatus(text,type="loading",duration=4000){
   clearTimeout(statusTimer);
 
   if(duration>0){
-
     statusTimer=setTimeout(()=>{
       status.classList.remove("show");
     },duration);
-
   }
 
 }
@@ -883,33 +886,18 @@ function applyFit(){
   }
 
   if(FIT_MODES[fitIndex]==="fill"){
-
     video.classList.add("fit-fill");
-
-    if(fitButton){
-      fitButton.classList.add("fill");
-    }
-
+    if(fitButton)fitButton.classList.add("fill");
   }
 
   if(FIT_MODES[fitIndex]==="cover"){
-
     video.classList.add("fit-zoom");
-
-    if(fitButton){
-      fitButton.classList.add("zoom");
-    }
-
+    if(fitButton)fitButton.classList.add("zoom");
   }
 
   if(fitButton){
-
     const label=fitButton.querySelector(".rs-fit-label");
-
-    if(label){
-      label.textContent=FIT_LABELS[fitIndex];
-    }
-
+    if(label)label.textContent=FIT_LABELS[fitIndex];
   }
 
 }
@@ -918,48 +906,29 @@ function applyFit(){
 
 function addFitButton(){
 
-  const panel=document.querySelector(
-    ".shaka-controls-button-panel"
-  );
-
-  if(!panel)return;
-
-  if(panel.querySelector(".rs-fit-btn"))return;
+  const panel=container.querySelector(".shaka-controls-button-panel");
+  if(!panel || panel.querySelector(".rs-fit-btn"))return;
 
   const button=document.createElement("button");
-
   button.type="button";
   button.className="rs-fit-btn";
   button.title="Video Fit Mode";
-
-  button.innerHTML=
-    '<span class="rs-fit-label">FIT</span>';
+  button.innerHTML='<span class="rs-fit-label">FIT</span>';
 
   fitButton=button;
 
-  const fullscreenButton=panel.querySelector(
-    ".shaka-fullscreen-button"
-  );
-
+  const fullscreenButton=panel.querySelector(".shaka-fullscreen-button");
   if(fullscreenButton){
-
     panel.insertBefore(button,fullscreenButton);
-
   }else{
-
     panel.appendChild(button);
-
   }
 
   button.addEventListener("click",function(event){
-
     event.stopPropagation();
-
     fitIndex=(fitIndex+1)%FIT_MODES.length;
-
     applyFit();
     scheduleAutoHide(AUTO_HIDE_DELAY);
-
   });
 
   applyFit();
@@ -975,37 +944,24 @@ function checkFullscreen(){
     !!document.webkitFullscreenElement;
 
   if(fullscreen && !isFullscreen){
-
     previousFitIndex=fitIndex;
     fitIndex=1;
     isFullscreen=true;
-
     applyFit();
-
   }else if(!fullscreen && isFullscreen){
-
     fitIndex=previousFitIndex;
     isFullscreen=false;
-
     applyFit();
-
   }
 
   scheduleAutoHide(AUTO_HIDE_DELAY);
 
 }
 
-document.addEventListener(
-  "fullscreenchange",
-  checkFullscreen
-);
+document.addEventListener("fullscreenchange",checkFullscreen);
+document.addEventListener("webkitfullscreenchange",checkFullscreen);
 
-document.addEventListener(
-  "webkitfullscreenchange",
-  checkFullscreen
-);
-
-/* ANYWHERE ON PLAYER TOUCH / CLICK -> SHOW CLEAR & HIDE AFTER 4s */
+/* USER INTERACTION ON PLAYER */
 
 container.addEventListener("pointerdown",function(){
 
@@ -1017,33 +973,18 @@ container.addEventListener("pointerdown",function(){
 
 },{passive:true});
 
-container.addEventListener("click",function(event){
-
-  if(event.detail===2)return;
-
-  scheduleAutoHide(AUTO_HIDE_DELAY);
-
-});
-
 /* SHAKA MUTE BUTTON */
 
 document.addEventListener("click",function(event){
 
-  const muteButton=event.target.closest(
-    ".shaka-mute-button"
-  );
-
+  const muteButton=event.target.closest(".shaka-mute-button");
   if(!muteButton)return;
 
   setTimeout(function(){
-
     audioEnabled=!video.muted;
-
     audioUnlocked=true;
-
     saveAudioPreference();
-
-  },150);
+  },120);
 
 });
 
@@ -1052,38 +993,28 @@ document.addEventListener("click",function(event){
 video.addEventListener("volumechange",function(){
 
   if(audioUnlocked){
-
     audioEnabled=!video.muted;
-
     saveAudioPreference();
-
   }
 
 });
 
-/* DOUBLE TAP TO HIDE CONTROLS */
+/* DOUBLE TAP / DOUBLE CLICK TO HIDE CONTROLS */
 
 video.addEventListener("touchend",function(event){
 
   if(event.changedTouches.length!==1)return;
 
   const now=Date.now();
-
   if(now-lastTap<300){
-
     lastTap=0;
     clearTimeout(autoHideTimer);
     hideControlsNow();
-
   }else{
-
     lastTap=now;
-
   }
 
 },{passive:true});
-
-/* DOUBLE CLICK DESKTOP */
 
 video.addEventListener("dblclick",function(){
 
@@ -1097,39 +1028,24 @@ video.addEventListener("dblclick",function(){
 async function init(){
 
   showLoader("Initializing player...");
-
   shaka.polyfill.installAll();
 
   if(!shaka.Player.isBrowserSupported()){
-
     showLoader("Browser not supported");
-
     setStatus("Browser Not Supported","error",0);
-
     return;
-
   }
 
   try{
 
     player=new shaka.Player();
-
     await player.attach(video);
 
-    ui=new shaka.ui.Overlay(
-      player,
-      container,
-      video
-    );
-
-    /* CONTROLS CONFIGURATION */
+    ui=new shaka.ui.Overlay(player,container,video);
 
     ui.configure({
-
       addBigPlayButton:false,
-
       autoHide:false,
-
       controlPanelElements:[
         "play_pause",
         "mute",
@@ -1140,139 +1056,67 @@ async function init(){
         "picture_in_picture",
         "fullscreen"
       ],
-
       seekBarColors:{
         base:"#555",
         buffered:"#777",
         played:"#ff3030"
       }
-
     });
 
     controls=ui.getControls();
-    syncPlayPauseButton();
 
-    /* ADD FIT BUTTON */
-
-    let count=0;
-
-    const buttonTimer=setInterval(()=>{
-
+    requestAnimationFrame(function(){
       addFitButton();
       syncPlayPauseButton();
-
-      count++;
-
-      if(
-        document.querySelector(".rs-fit-btn") ||
-        count>=30
-      ){
-
-        clearInterval(buttonTimer);
-
+      const volBar=container.querySelector(".shaka-volume-bar-container");
+      if(volBar){
+        volBar.style.display="flex";
+        volBar.style.opacity="1";
+        volBar.style.visibility="visible";
       }
-
-    },250);
-
-    /* JOR KORE VOLUME BAR SHOW KORA */
-    const volumeTimer = setInterval(() => {
-      const volBar = document.querySelector('.shaka-volume-bar-container');
-      if (volBar) {
-        volBar.style.display = 'flex';
-        volBar.style.opacity = '1';
-        volBar.style.visibility = 'visible';
-        syncPlayPauseButton();
-        clearInterval(volumeTimer);
-      }
-    }, 500);
-
-    /* ERRORS */
+    });
 
     player.addEventListener("error",function(event){
-
       console.error("Shaka error:",event.detail);
-
       showLoader("Stream error...");
-
-      setStatus(
-        "Stream Error "+(event.detail.code||""),
-        "error",
-        6000
-      );
-
+      setStatus("Stream Error "+(event.detail.code||""),"error",6000);
     });
-
-    /* PLAYING */
 
     video.addEventListener("playing",function(){
-
       hideLoader();
       syncPlayPauseButton();
-
       setStatus("LIVE","live",4000);
-
       if(audioUnlocked && audioEnabled){
-
         video.muted=false;
-
       }
-
       scheduleAutoHide(AUTO_HIDE_DELAY);
-
     });
 
-    /* BUFFERING */
-
     video.addEventListener("waiting",function(){
-
       showLoader("Buffering...");
-
       setStatus("Buffering...","loading",0);
-
     });
 
     video.addEventListener("stalled",function(){
-
       showLoader("Reconnecting...");
-
     });
 
-    /* PAUSE */
-
     video.addEventListener("pause",function(){
-
       if(!video.ended){
-
         hideLoader();
         showControlsClear();
         clearTimeout(autoHideTimer);
-
         setStatus("Paused","loading",2500);
-
       }
-
     });
 
-    /* URL */
-
-    const params=new URLSearchParams(
-      window.location.search
-    );
-
+    const params=new URLSearchParams(window.location.search);
     const streamUrl=params.get("url");
 
     if(!streamUrl){
-
       hideLoader();
-
-      setStatus(
-        "Ready - No Stream URL",
-        "loading",
-        5000
-      );
-
+      setStatus("Ready - No Stream URL","loading",5000);
       return;
-
     }
 
     await loadStream(streamUrl);
@@ -1280,9 +1124,7 @@ async function init(){
   }catch(error){
 
     console.error("Initialization:",error);
-
     showLoader("Player initialization failed");
-
     setStatus("Initialization Failed","error",0);
 
   }
@@ -1298,75 +1140,40 @@ async function loadStream(url){
   try{
 
     showLoader("Connecting...");
-
     setStatus("Connecting...","loading",0);
 
     await player.load(url);
-
     showLoader("Starting video...");
 
-    if(audioEnabled && audioUnlocked){
-
-      video.muted=false;
-
-    }else if(audioEnabled){
-
-      video.muted=false;
-
-    }else{
-
-      video.muted=true;
-
-    }
+    video.muted=!audioEnabled;
 
     try{
-
       await video.play();
-
       if(!video.muted){
-
         audioEnabled=true;
-
       }
-
     }catch(error){
-
       console.log("Autoplay with audio blocked:",error);
-
       video.muted=true;
-
       try{
-
         await video.play();
-
       }catch(secondError){
-
         console.log("Muted autoplay blocked:",secondError);
-
         showLoader("Tap video to play");
-
       }
-
     }
 
   }catch(error){
 
     console.error("Load Error:",error);
-
     showLoader("Playback failed");
-
     setStatus("Playback Failed","error",0);
 
   }
 
 }
 
-/* START */
-
-document.addEventListener(
-  "DOMContentLoaded",
-  init
-);
+document.addEventListener("DOMContentLoaded",init);
 
 })();
 </script>
