@@ -116,7 +116,7 @@ video.fit-zoom{
   to{transform:rotate(360deg)}
 }
 
-/* HIDE CONTROLS WHILE LOADING */
+/* LOADING */
 
 #player-container.loading .shaka-controls-container{
   opacity:0!important;
@@ -126,6 +126,24 @@ video.fit-zoom{
 
 #player-container.loading .shaka-play-button-container{
   display:none!important;
+}
+
+/* CONTROL VISIBILITY - CUSTOM */
+
+#player-container.rs-controls-visible
+.shaka-controls-container{
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transition:opacity .20s ease!important;
+}
+
+#player-container.rs-controls-hidden
+.shaka-controls-container{
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  transition:opacity .25s ease!important;
 }
 
 /* CONTROL PANEL */
@@ -149,15 +167,15 @@ video.fit-zoom{
   gap:2px!important;
 }
 
-/* PLAY / PAUSE */
+/* PLAY */
 
 .shaka-controls-button-panel
 .shaka-play-pause-button{
   order:0!important;
-  flex:0 0 42px!important;
-  width:42px!important;
-  min-width:42px!important;
-  max-width:42px!important;
+  flex:0 0 40px!important;
+  width:40px!important;
+  min-width:40px!important;
+  max-width:40px!important;
   margin:0!important;
   padding:0!important;
   display:flex!important;
@@ -170,42 +188,64 @@ video.fit-zoom{
 .shaka-controls-button-panel
 .shaka-mute-button{
   order:1!important;
-  flex:0 0 38px!important;
-  width:38px!important;
-  min-width:38px!important;
+  flex:0 0 36px!important;
+  width:36px!important;
+  min-width:36px!important;
+  max-width:36px!important;
   margin:0!important;
 }
 
-/* VOLUME BAR */
+/* VOLUME BAR - FLEXIBLE WIDTH */
 
 .shaka-controls-button-panel
 .shaka-volume-bar-container{
   order:2!important;
-  flex:0 1 100px!important;
-  width:100px!important;
-  min-width:65px!important;
-  max-width:110px!important;
+  display:flex!important;
+
+  flex:1 1 120px!important;
+  width:auto!important;
+
+  min-width:55px!important;
+  max-width:180px!important;
+
   margin:0 5px!important;
+  overflow:visible!important;
+}
+
+/* VOLUME SLIDER */
+
+.shaka-volume-bar-container
+.shaka-volume-bar{
+  width:100%!important;
+  min-width:45px!important;
+  cursor:pointer!important;
+}
+
+/* VOLUME SLIDER TOUCH AREA */
+
+.shaka-volume-bar-container{
+  min-height:30px!important;
+  align-items:center!important;
 }
 
 /* TIME */
 
 .shaka-controls-button-panel
-.shaka-current-time,
-.shaka-controls-button-panel
 .shaka-time-container{
   order:3!important;
-  flex:0 1 auto!important;
+  flex:0 0 auto!important;
   min-width:0!important;
+  white-space:nowrap!important;
 }
 
-/* SPACER */
+/* SPACER - DO NOT TAKE VOLUME SPACE */
 
 .shaka-controls-button-panel
 .shaka-spacer{
   order:4!important;
-  flex:1 1 auto!important;
-  min-width:0!important;
+  flex:0 0 2px!important;
+  width:2px!important;
+  min-width:2px!important;
 }
 
 /* QUALITY */
@@ -213,8 +253,9 @@ video.fit-zoom{
 .shaka-controls-button-panel
 .shaka-resolution-button{
   order:5!important;
-  flex:0 0 38px!important;
-  min-width:38px!important;
+  flex:0 0 36px!important;
+  width:36px!important;
+  min-width:36px!important;
 }
 
 /* PIP */
@@ -222,15 +263,18 @@ video.fit-zoom{
 .shaka-controls-button-panel
 .shaka-pip-button{
   order:6!important;
-  flex:0 0 38px!important;
-  min-width:38px!important;
+  flex:0 0 36px!important;
+  width:36px!important;
+  min-width:36px!important;
 }
 
 /* FIT */
 
 .rs-fit-btn{
   order:7!important;
-  flex:0 0 43px!important;
+  flex:0 0 40px!important;
+  width:40px!important;
+  min-width:40px!important;
 }
 
 /* FULLSCREEN */
@@ -238,10 +282,10 @@ video.fit-zoom{
 .shaka-controls-button-panel
 .shaka-fullscreen-button{
   order:8!important;
-  flex:0 0 42px!important;
-  width:42px!important;
-  min-width:42px!important;
-  max-width:42px!important;
+  flex:0 0 40px!important;
+  width:40px!important;
+  min-width:40px!important;
+  max-width:40px!important;
   margin:0!important;
 }
 
@@ -257,7 +301,6 @@ video.fit-zoom{
   color:white;
   cursor:pointer;
   padding:0 3px;
-  min-width:40px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -377,76 +420,91 @@ video.fit-zoom{
   }
 
   .shaka-controls-button-panel{
-    gap:0!important;
+    gap:1px!important;
   }
+
+  /* PLAY */
 
   .shaka-controls-button-panel
   .shaka-play-pause-button{
-    flex:0 0 38px!important;
-    width:38px!important;
-    min-width:38px!important;
-    max-width:38px!important;
+    flex:0 0 36px!important;
+    width:36px!important;
+    min-width:36px!important;
+    max-width:36px!important;
   }
+
+  /* MUTE */
 
   .shaka-controls-button-panel
   .shaka-mute-button{
-    flex:0 0 34px!important;
-    width:34px!important;
-    min-width:34px!important;
+    flex:0 0 32px!important;
+    width:32px!important;
+    min-width:32px!important;
+    max-width:32px!important;
   }
 
-  /* MOBILE VOLUME - NOW VISIBLE */
+  /* MOBILE VOLUME BAR */
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
     display:flex!important;
-    flex:0 1 95px!important;
-    width:95px!important;
-    min-width:65px!important;
-    max-width:100px!important;
+
+    flex:1 1 90px!important;
+    width:auto!important;
+
+    min-width:55px!important;
+    max-width:160px!important;
+
     margin:0 3px!important;
   }
 
-  .shaka-controls-button-panel
-  .shaka-volume-bar-container
-  .shaka-volume-bar{
-    min-width:55px!important;
-  }
+  /* TIME */
 
   .shaka-controls-button-panel
   .shaka-time-container{
     font-size:10px!important;
-    flex:0 1 auto!important;
+    flex:0 0 auto!important;
   }
+
+  /* QUALITY */
 
   .shaka-controls-button-panel
   .shaka-resolution-button{
     flex:0 0 32px!important;
+    width:32px!important;
     min-width:32px!important;
   }
+
+  /* PIP */
 
   .shaka-controls-button-panel
   .shaka-pip-button{
     flex:0 0 32px!important;
+    width:32px!important;
     min-width:32px!important;
   }
 
+  /* FIT */
+
   .rs-fit-btn{
-    flex:0 0 38px!important;
-    min-width:38px!important;
+    flex:0 0 36px!important;
+    width:36px!important;
+    min-width:36px!important;
   }
 
   .rs-fit-label{
     font-size:9px;
-    padding:3px 5px;
+    padding:3px 4px;
   }
+
+  /* FULLSCREEN */
 
   .shaka-controls-button-panel
   .shaka-fullscreen-button{
-    flex:0 0 38px!important;
-    width:38px!important;
-    min-width:38px!important;
-    max-width:38px!important;
+    flex:0 0 36px!important;
+    width:36px!important;
+    min-width:36px!important;
+    max-width:36px!important;
   }
 
 }
@@ -467,10 +525,10 @@ video.fit-zoom{
 
   .shaka-controls-button-panel
   .shaka-volume-bar-container{
-    flex:0 1 80px!important;
-    width:80px!important;
+    flex:1 1 75px!important;
+    width:auto!important;
     min-width:60px!important;
-    max-width:85px!important;
+    max-width:none!important;
   }
 
 }
@@ -479,7 +537,7 @@ video.fit-zoom{
 
 <body>
 
-<div id="player-container" class="loading">
+<div id="player-container" class="loading rs-controls-visible">
 
   <video
     id="video"
@@ -645,8 +703,8 @@ function hideLoader(){
 }
 
 /* ==================================
-   CONTROLS VISIBILITY
-   MANUAL 3 SECOND TIMER
+   CONTROL VISIBILITY
+   FIXED 3 SECOND TIMER
 ================================== */
 
 function cancelControlsHide(){
@@ -657,13 +715,17 @@ function cancelControlsHide(){
 
 function showControls(){
 
-  if(!controls)return;
-
-  if(typeof controls.show==="function"){
-    controls.show();
-  }
-
   cancelControlsHide();
+
+  container.classList.remove("rs-controls-hidden");
+  container.classList.add("rs-controls-visible");
+
+}
+
+function hideControls(){
+
+  container.classList.remove("rs-controls-visible");
+  container.classList.add("rs-controls-hidden");
 
 }
 
@@ -673,15 +735,9 @@ function scheduleControlsHide(){
 
   controlsHideTimer=setTimeout(function(){
 
-    if(
-      controls &&
-      !video.paused &&
-      !video.ended
-    ){
+    if(!video.paused && !video.ended){
 
-      if(typeof controls.hide==="function"){
-        controls.hide();
-      }
+      hideControls();
 
     }
 
@@ -689,9 +745,7 @@ function scheduleControlsHide(){
 
 }
 
-function revealControlsAndStartTimer(){
-
-  if(!controls)return;
+function showAndResetTimer(){
 
   showControls();
 
@@ -703,11 +757,11 @@ function revealControlsAndStartTimer(){
 
 }
 
-/* TOUCH / CLICK / POINTER */
+/* USER INTERACTION */
 
 container.addEventListener("pointerdown",function(){
 
-  revealControlsAndStartTimer();
+  showAndResetTimer();
 
 },{passive:true});
 
@@ -715,9 +769,15 @@ container.addEventListener("pointermove",function(){
 
   if(!video.paused){
 
-    revealControlsAndStartTimer();
+    showAndResetTimer();
 
   }
+
+},{passive:true});
+
+container.addEventListener("touchstart",function(){
+
+  showAndResetTimer();
 
 },{passive:true});
 
@@ -808,7 +868,7 @@ function addFitButton(){
 
     applyFit();
 
-    revealControlsAndStartTimer();
+    showAndResetTimer();
 
   });
 
@@ -901,7 +961,7 @@ video.addEventListener("volumechange",function(){
 
 });
 
-/* DOUBLE TAP TO HIDE CONTROLS */
+/* DOUBLE TAP TO HIDE */
 
 video.addEventListener("touchend",function(event){
 
@@ -915,9 +975,7 @@ video.addEventListener("touchend",function(event){
 
     cancelControlsHide();
 
-    if(controls && typeof controls.hide==="function"){
-      controls.hide();
-    }
+    hideControls();
 
   }else{
 
@@ -933,9 +991,7 @@ video.addEventListener("dblclick",function(){
 
   cancelControlsHide();
 
-  if(controls && typeof controls.hide==="function"){
-    controls.hide();
-  }
+  hideControls();
 
 });
 
@@ -975,7 +1031,7 @@ async function init(){
 
       addBigPlayButton:false,
 
-      /* AUTO HIDE OFF - CUSTOM TIMER WILL CONTROL */
+      /* SHAKA AUTO HIDE DISABLED */
 
       autoHide:false,
       autoHideSeconds:3,
@@ -1052,15 +1108,11 @@ async function init(){
 
       }
 
-      /* SHOW CONTROLS FOR FULL 3 SECONDS */
+      /* SHOW FOR 3 SECONDS */
 
-      if(controls){
+      showControls();
 
-        showControls();
-
-        scheduleControlsHide();
-
-      }
+      scheduleControlsHide();
 
     });
 
@@ -1074,6 +1126,8 @@ async function init(){
 
       cancelControlsHide();
 
+      showControls();
+
     });
 
     /* STALLED */
@@ -1081,6 +1135,8 @@ async function init(){
     video.addEventListener("stalled",function(){
 
       showLoader("Reconnecting...");
+
+      showControls();
 
     });
 
@@ -1096,9 +1152,7 @@ async function init(){
 
         setStatus("Paused","loading",2500);
 
-        if(controls && typeof controls.show==="function"){
-          controls.show();
-        }
+        showControls();
 
       }
 
@@ -1115,6 +1169,8 @@ async function init(){
     if(!streamUrl){
 
       hideLoader();
+
+      showControls();
 
       setStatus(
         "Ready - No Stream URL",
@@ -1156,12 +1212,7 @@ async function loadStream(url){
 
     showLoader("Starting video...");
 
-    /*
-      Saved preference:
-      - Audio ON: প্রথমে sound সহ চেষ্টা
-      - Browser block করলে muted autoplay
-      - Audio OFF: muted autoplay
-    */
+    /* AUDIO PREFERENCE */
 
     if(audioEnabled && audioUnlocked){
 
@@ -1204,6 +1255,8 @@ async function loadStream(url){
         console.log("Muted autoplay blocked:",secondError);
 
         showLoader("Tap video to play");
+
+        showControls();
 
       }
 
