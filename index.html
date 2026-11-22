@@ -9,11 +9,11 @@
 <style>
 :root{--bg-1:#0a0a12;--bg-2:#14101f;--grad-a:#22d3ee;--grad-b:#a78bfa;--grad-c:#fb923c;--warn:#ffb84d;--alert:#ff5d5d;--text:#eef0f7;--text-dim:#7a7a92;--font:'Poppins','Segoe UI',sans-serif;--mono:'JetBrains Mono','Courier New',monospace}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:var(--font);position:fixed;inset:0;overscroll-behavior:none}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:var(--font);position:fixed;inset:0}
 #player-wrapper{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;background:#000}
 #player{position:absolute;inset:0;width:100%!important;height:100%!important}
 #player video{width:100%!important;height:100%!important;object-fit:fill!important}
-#loader{position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 40%,var(--bg-2) 0%,var(--bg-1) 70%);display:flex;justify-content:center;align-items:center;flex-direction:column;z-index:99;transition:opacity .1s ease,visibility .1s ease;pointer-events:none}
+#loader{position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 40%,var(--bg-2) 0%,var(--bg-1) 70%);display:flex;justify-content:center;align-items:center;flex-direction:column;z-index:99;transition:opacity .1s ease;pointer-events:none}
 #loader.hide-now{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
 .tuner{display:flex;flex-direction:column;align-items:center;gap:20px}
 .tv-wrap{position:relative;width:78px;height:78px;display:flex;align-items:center;justify-content:center}
@@ -34,19 +34,21 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:var
 .state-content .glyph{font-size:34px;color:var(--alert);margin-bottom:14px}
 .state-content .glyph.warn{color:var(--warn)}
 .state-content p.title{font-size:13px;letter-spacing:1px;font-weight:600}
-.state-content p.sub{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);margin-top:8px;max-width:300px;overflow-wrap:anywhere}
+.state-content p.sub{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);margin-top:8px;max-width:320px;overflow-wrap:anywhere}
 .state-content .brand-name{display:block;margin-top:18px}
 .retry-btn{margin-top:16px;padding:8px 20px;font-weight:600;font-size:11px;color:#0a0a12;background:linear-gradient(90deg,var(--grad-a),var(--grad-b));border:none;border-radius:18px;cursor:pointer}
-#controls{position:absolute;bottom:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:10px;padding:14px 14px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(0deg,rgba(0,0,0,.85),transparent);opacity:0;transition:opacity .3s}
+#controls{position:absolute;bottom:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:10px;padding:14px;background:linear-gradient(0deg,rgba(0,0,0,.85),transparent);opacity:0;transition:opacity .3s}
 #player-wrapper.show-controls #controls{opacity:1}
 #controls button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;width:42px;height:42px;border-radius:50%;font-size:16px;cursor:pointer}
-#seek{flex:1;-webkit-appearance:none;height:4px;background:rgba(255,255,255,.3);border-radius:4px;outline:none}
+#seek{flex:1;-webkit-appearance:none;height:4px;background:rgba(255,255,255,.3);border-radius:4px}
 #seek::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--grad-b)}
-#time-label{font-family:var(--mono);font-size:11px;color:#fff;white-space:nowrap}
+#time-label{font-family:var(--mono);font-size:11px;color:#fff}
+#debug{position:absolute;top:8px;left:8px;z-index:60;background:rgba(0,0,0,.65);color:#7CFC00;font-family:var(--mono);font-size:10px;padding:6px 8px;border-radius:6px;max-width:90%;display:none}
 </style>
 </head>
 <body>
 <div id="player-wrapper">
+<div id="debug"></div>
 <div id="loader"><div class="tuner"><div class="tv-wrap"><div class="tv-glow"></div>
 <svg class="tv-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path class="tv-body" d="M22 12 32 20 42 12"/><clipPath id="screenClip"><rect x="12" y="20" width="40" height="26" rx="4"/></clipPath><g class="screen-bars" clip-path="url(#screenClip)"><rect x="12" y="20" width="8" height="26"/><rect x="20" y="20" width="8" height="26"/><rect x="28" y="20" width="8" height="26"/><rect x="36" y="20" width="8" height="26"/><rect x="44" y="20" width="8" height="26"/></g><rect class="tv-body" x="12" y="20" width="40" height="26" rx="4"/><line class="tv-body" x1="24" y1="46" x2="24" y2="50"/><line class="tv-body" x1="40" y1="46" x2="40" y2="50"/><line class="tv-body" x1="20" y1="50" x2="44" y2="50"/></svg>
 </div><div class="brand-name"><b>RS LIVE</b> TV</div><div class="dots"><span></span><span></span><span></span></div><div class="status-line" id="status-line">LOADING</div></div></div>
@@ -54,17 +56,29 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:var
 <div id="controls"><button id="playBtn">▶</button><input type="range" id="seek" value="0" min="0" max="100"><span id="time-label">LIVE</span><button id="fsBtn">⛶</button></div>
 </div>
 <script>
+// ✅ FIX 1: URLSearchParams নিজেই decode করে, তাই আবার decode করা যাবে না
 const urlParams = new URLSearchParams(window.location.search);
 let streamSource = urlParams.get('url') || '';
 let keyParam = urlParams.get('key') || urlParams.get('license_key') || urlParams.get('clearkey') || urlParams.get('license') || '';
-try{ streamSource = decodeURIComponent(streamSource); }catch(e){}
-try{ keyParam = decodeURIComponent(keyParam); }catch(e){}
+// যদি url এর ভিতরেই key লুকানো থাকে যেমন url=...mpd|key=... তাহলে আলাদা করো
+if(streamSource.includes('|')){
+  const parts = streamSource.split('|');
+  streamSource = parts[0];
+  const kp = parts.find(p=>p.includes('key='));
+  if(kp && !keyParam) keyParam = kp.split('key=')[1];
+}
 const startMuted = urlParams.get('mute') === '1';
+const debugMode = urlParams.get('debug') === '1';
 const loaderEl = document.getElementById('loader');
 const statusEl = document.getElementById('status-line');
 const wrapper = document.getElementById('player-wrapper');
 const playBtn = document.getElementById('playBtn');
 const fsBtn = document.getElementById('fsBtn');
+const debugEl = document.getElementById('debug');
+function dbg(msg){ if(debugMode){ debugEl.style.display='block'; debugEl.innerHTML += msg + '<br>'; } console.log('[RS]', msg); }
+dbg('URL: ' + streamSource.slice(0,80));
+dbg('KEY: ' + (keyParam ? 'YES len='+keyParam.length : 'NO - MPD চলবে না'));
+dbg('TYPE: ' + (streamSource.includes('.mpd') ? 'MPD/Shaka' : 'HLS'));
 
 const statusMessages = ['LOADING','CONNECTING','BUFFERING'];
 let statusIdx = 0;
@@ -73,12 +87,10 @@ function showLoader(){ loaderEl.classList.remove('hide-now'); }
 function hideLoader(){ loaderEl.classList.add('hide-now'); }
 function showState(html){ clearInterval(statusTimer); loaderEl.innerHTML=html; showLoader(); }
 function brandBlock(){ return `<div class="brand-name"><b>RS LIVE</b> TV</div>`; }
-
 let wakeLock=null,wakeLockWanted=false;
 async function requestWakeLock(){ wakeLockWanted=true; if(!('wakeLock' in navigator))return; if(wakeLock)return; if(document.visibilityState!=='visible')return; try{ wakeLock=await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release',()=>{wakeLock=null;}); }catch(e){ wakeLock=null; } }
 async function releaseWakeLock(){ wakeLockWanted=false; if(wakeLock){ try{await wakeLock.release();}catch(e){} wakeLock=null; } }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&wakeLockWanted) requestWakeLock(); });
-
 let hideCtrlTimer=null;
 function showControls(){ wrapper.classList.add('show-controls'); clearTimeout(hideCtrlTimer); hideCtrlTimer=setTimeout(()=>wrapper.classList.remove('show-controls'),3000); }
 wrapper.addEventListener('click',showControls);
@@ -89,128 +101,105 @@ if(!streamSource){
   showState(`<div class="state-content"><div class="glyph warn"><i>&#9888;</i></div><p class="title">No stream URL supplied</p><p class="sub">Add ?url=YOUR_STREAM_LINK to this page's address.</p>${brandBlock()}</div>`);
 } else {
   const video = document.createElement('video');
-  video.setAttribute('playsinline','');
-  video.setAttribute('webkit-playsinline','');
-  video.muted = startMuted;
-  video.autoplay = true;
-  video.controls = false;
+  video.setAttribute('playsinline',''); video.setAttribute('webkit-playsinline','');
+  video.muted = startMuted; video.autoplay = true; video.controls = false;
   video.style.cssText='width:100%;height:100%;object-fit:fill;background:#000';
   document.getElementById('player').appendChild(video);
-
-  let hls=null, shakaPlayer=null, everPlayed=false, retryCount=0;
-  const maxRetries=6;
-
-  function doPlay(){
-    video.play().then(()=>{ hideLoader(); everPlayed=true; requestWakeLock(); }).catch(()=>{});
-  }
-
+  let hls=null, shakaPlayer=null, everPlayed=false, retryCount=0, triedProxy=false;
+  const maxRetries=3;
+  function doPlay(){ video.play().then(()=>{ hideLoader(); everPlayed=true; requestWakeLock(); }).catch(()=>{}); }
   function parseClearKey(k){
     if(!k) return null;
-    // ফরম্যাট হতে পারে: kid:key  অথবা  {"kid":"key"} অথবা শুধু key
-    k = k.trim();
-    if(k.includes('{')){
-      try{ const obj = JSON.parse(k); const kid = Object.keys(obj)[0]; return { [kid]: obj[kid] }; }catch(e){}
-    }
+    k=k.trim();
+    // kid:key - kid 32 char hex, key 32 char hex
+    // যদি k তে ১ টার বেশি : থাকে, তাহলে শেষের : থেকে ভাগ করো না, প্রথম : থেকে ভাগ করো
+    if(k.includes('{')){ try{ const obj=JSON.parse(k); const kid=Object.keys(obj)[0]; return {[kid]:obj[kid]}; }catch(e){} }
     if(k.includes(':')){
-      const p = k.split(':');
-      // M3U তে কখনো kid:key এইভাবে থাকে
-      return { [p[0].trim()]: p[1].trim() };
+      const idx=k.indexOf(':');
+      const kid=k.slice(0,idx).trim();
+      const key=k.slice(idx+1).trim();
+      // kid / key এ - বা _ থাকলে Shaka hex এ কনভার্ট করে নেয়, তাই যেমন আছে তেমনই পাঠাও
+      if(kid.length>=16 && key.length>=16) return {[kid]:key};
     }
     return null;
   }
-
   function loadMPD(url){
-    // পুরানো hls নষ্ট করো
     if(hls){ try{hls.destroy();}catch(e){} hls=null; }
     if(shakaPlayer){ try{shakaPlayer.destroy();}catch(e){} shakaPlayer=null; }
-    if(!window.shaka){ showNoStreamState({message:'Shaka Player load হয় নাই'}); return; }
+    if(!window.shaka){ showNoStreamState({message:'Shaka Player load হয় নাই - নেট চেক করো'}); return; }
     shaka.polyfill.installAll();
     if(!shaka.Player.isBrowserSupported()){ showNoStreamState({message:'এই Browser DASH সাপোর্ট করে না'}); return; }
     shakaPlayer = new shaka.Player(video);
     const clearKeys = parseClearKey(keyParam);
     if(clearKeys){
-      shakaPlayer.configure({ drm: { clearKeys: clearKeys } });
-      console.log('[RS] Clearkey applied', clearKeys);
+      shakaPlayer.configure({ drm:{ clearKeys: clearKeys } });
+      dbg('Clearkey OK: ' + Object.keys(clearKeys)[0].slice(0,8)+'...');
     } else {
-      console.log('[RS] No clearkey, trying without DRM');
+      dbg('⚠️ NO KEY - DRM ভিডিও চাবি ছাড়া চলবে না');
+      // চাবি না থাকলে সাথে সাথে এরর দেখাও, ২৫ সেকেন্ড LOADING দেখাইও না
+      if(url.includes('cenc') || url.includes('otte') || url.includes('drm')){
+        showNoStreamState({message:'এই চ্যানেলের Clearkey পাওয়া যায় নাই। index.html থেকে &key=KID:KEY পাঠাতে হবে।'});
+        return;
+      }
     }
-    // Shaka error হলে retry
-    shakaPlayer.addEventListener('error', (e)=>{
-      console.error('[RS] Shaka error', e.detail);
-      if(!everPlayed) tryReconnect(streamSource);
+    // ✅ FIX 2: MPD তে Origin / Referer হেডার পাঠানো + retry Shaka দিয়ে
+    shakaPlayer.configure({
+      streaming:{ retryParameters:{ maxAttempts:2, baseDelay:1000 } },
+      manifest:{ retryParameters:{ maxAttempts:2, baseDelay:1000 } }
     });
-    shakaPlayer.load(url).then(()=>{
-      hideLoader(); everPlayed=true; retryCount=0; doPlay();
-    }).catch((err)=>{
-      console.error('[RS] Shaka load fail', err);
-      // চাবি ছাড়া ফেইল করলে ১ বার চাবি ছাড়া আবার চেষ্টা
-      if(!everPlayed) tryReconnect(url);
+    shakaPlayer.addEventListener('error', (e)=>{
+      const err = e.detail;
+      dbg('SHAKA ERR: ' + err.code + ' ' + (err.message||''));
+      // 403 / 401 মানে সার্ভার ব্লক করছে - Proxy দিয়ে ১ বার চেষ্টা করো
+      if((err.code===1001 || err.code===1002 || err.code===4001) && !triedProxy){
+        triedProxy=true;
+        dbg('403 - Proxy দিয়ে চেষ্টা করছি...');
+        const proxyUrl = 'https://corsproxy.io/?url=' + encodeURIComponent(url);
+        setTimeout(()=>loadMPD(proxyUrl), 1000);
+        return;
+      }
+      if(!everPlayed) showNoStreamState({message:'Shaka Error '+err.code+': '+(err.message||'Source blocked / Key ভুল')});
+    });
+    shakaPlayer.load(url).then(()=>{ hideLoader(); everPlayed=true; retryCount=0; doPlay(); }).catch((err)=>{
+      dbg('LOAD FAIL: ' + err.code + ' ' + err.message);
+      if(!everPlayed) showNoStreamState({message:'Load Fail '+err.code+': '+err.message});
     });
   }
-
   function loadHLS(url){
     if(shakaPlayer){ try{shakaPlayer.destroy();}catch(e){} shakaPlayer=null; }
     if(hls){ try{hls.destroy();}catch(e){} hls=null; }
     video.removeAttribute('src'); video.load();
     if(window.Hls && Hls.isSupported()){
-      hls = new Hls({ maxBufferLength:30, maxMaxBufferLength:60, enableWorker:true, lowLatencyMode:true, manifestLoadingMaxRetry:3, levelLoadingMaxRetry:4, fragLoadingMaxRetry:4 });
+      hls = new Hls({ maxBufferLength:30, maxMaxBufferLength:60, enableWorker:true, lowLatencyMode:true });
       hls.loadSource(url);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, ()=>{ doPlay(); });
       hls.on(Hls.Events.ERROR, (e,data)=>{
+        dbg('HLS ERR: ' + data.type + ' ' + data.details);
         if(!data.fatal) return;
         if(data.type===Hls.ErrorTypes.NETWORK_ERROR){ hls.startLoad(); }
         else if(data.type===Hls.ErrorTypes.MEDIA_ERROR){ hls.recoverMediaError(); }
-        else { tryReconnect(url); }
+        else { showNoStreamState({message:'HLS Error: '+data.details}); }
       });
-    } else if(video.canPlayType('application/vnd.apple.mpegurl')){
-      video.src=url; doPlay();
-    } else {
-      showNoStreamState({message:'Browser HLS support নেই'});
-    }
+    } else if(video.canPlayType('application/vnd.apple.mpegurl')){ video.src=url; doPlay(); }
+    else { showNoStreamState({message:'Browser HLS support নেই'}); }
   }
-
   function loadStream(url){
-    // .mpd হলে Shaka, .m3u8 হলে HLS
-    if(url.includes('.mpd')){
-      loadMPD(url);
-    } else if(url.includes('.m3u8') || url.includes('m3u8')){
-      loadHLS(url);
-    } else {
-      // টাইপ বোঝা না গেলে HLS ধরে নাও
-      loadHLS(url);
-    }
+    if(url.includes('.mpd')) loadMPD(url);
+    else loadHLS(url); // ✅ FIX 3: MPD তে ?_rs= লাগানো বন্ধ, HLS এও লাগানো বন্ধ
   }
-
-  function tryReconnect(baseUrl){
-    if(retryCount>=maxRetries){ showNoStreamState({message:'The source could not be reached. Key ভুল হতে পারে বা লিংক মারা গেছে'}); return; }
-    retryCount++;
-    statusEl.textContent='RECONNECTING ('+retryCount+'/'+maxRetries+')';
-    showLoader();
-    const sep = baseUrl.includes('?')?'&':'?';
-    const retryUrl = baseUrl + sep + '_rs=' + Date.now();
-    setTimeout(()=>loadStream(retryUrl), Math.min(1000*retryCount,4000));
-  }
-
   function showNoStreamState(err){
     releaseWakeLock();
     showState(`<div class="state-content"><div class="glyph"><i>&#10060;</i></div><p class="title">No streaming — this link won't play</p><p class="sub">${err&&err.message?err.message:'The source could not be reached.'}</p><button class="retry-btn" onclick="location.reload()">Retry</button>${brandBlock()}</div>`);
   }
-
   video.addEventListener('playing',()=>{ hideLoader(); everPlayed=true; retryCount=0; requestWakeLock(); });
   video.addEventListener('pause',()=>{ playBtn.textContent='▶'; releaseWakeLock(); });
   video.addEventListener('play',()=>{ playBtn.textContent='❚❚'; requestWakeLock(); });
-  video.addEventListener('error',()=>{ if(!everPlayed) tryReconnect(streamSource); });
-
   playBtn.addEventListener('click',(e)=>{ e.stopPropagation(); if(video.paused){ video.play(); } else { video.pause(); } showControls(); });
   fsBtn.addEventListener('click',(e)=>{ e.stopPropagation(); if(document.fullscreenElement){ document.exitFullscreen(); } else { wrapper.requestFullscreen().catch(()=>{}); } showControls(); });
-
   async function lockLandscape(){ try{ if(screen.orientation&&screen.orientation.lock) await screen.orientation.lock('landscape'); }catch(e){} }
   function unlockLandscape(){ try{ if(screen.orientation&&screen.orientation.unlock) screen.orientation.unlock(); }catch(e){} }
   document.addEventListener('fullscreenchange',()=>{ if(document.fullscreenElement) lockLandscape(); else unlockLandscape(); });
-
-  setTimeout(()=>{ if(!everPlayed && video.readyState===0){ tryReconnect(streamSource); } },25000);
-
   loadStream(streamSource);
 }
 </script>
