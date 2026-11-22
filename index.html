@@ -127,7 +127,7 @@ video.fit-zoom{
   display:none!important;
 }
 
-/* CONTROL PANEL */
+/* CONTROL PANEL & SEEK BAR TOGETHER */
 
 .shaka-controls-container{
   width:100%!important;
@@ -136,7 +136,21 @@ video.fit-zoom{
   transition:opacity .25s ease, visibility .25s ease;
 }
 
-.shaka-controls-container.rs-force-hide{
+.shaka-controls-container
+.shaka-seek-bar-container,
+.shaka-controls-container
+.shaka-bottom-controls,
+.shaka-controls-container
+.shaka-controls-button-panel{
+  opacity:1!important;
+  visibility:visible!important;
+  transition:opacity .25s ease, visibility .25s ease;
+}
+
+.shaka-controls-container.rs-force-hide,
+.shaka-controls-container.rs-force-hide .shaka-seek-bar-container,
+.shaka-controls-container.rs-force-hide .shaka-bottom-controls,
+.shaka-controls-container.rs-force-hide .shaka-controls-button-panel{
   opacity:0!important;
   visibility:hidden!important;
   pointer-events:none!important;
@@ -145,7 +159,6 @@ video.fit-zoom{
 .shaka-bottom-controls{
   width:100%!important;
   padding:0 10px 8px!important;
-  opacity:1!important;
 }
 
 .shaka-controls-button-panel{
@@ -156,7 +169,6 @@ video.fit-zoom{
   min-width:0!important;
   overflow:hidden!important;
   gap:2px!important;
-  opacity:1!important;
 }
 
 /* PLAY / PAUSE (একটু ডান দিকে সরানো) */
@@ -741,31 +753,46 @@ function unlockAudio(){
 
 }
 
-/* CONTROLS AUTO HIDE (4s AFTER ANY TOUCH/CLICK) */
+/* CONTROLS + SEEK BAR AUTO HIDE TOGETHER (4s) */
 
 function getControlsEl(){
   return container.querySelector(".shaka-controls-container");
 }
 
+function getSeekBarEl(){
+  return container.querySelector(".shaka-seek-bar-container");
+}
+
 function showControlsClear(){
   const ctrlEl=getControlsEl();
+  const seekEl=getSeekBarEl();
   if(ctrlEl){
     ctrlEl.classList.remove("rs-force-hide");
     ctrlEl.style.opacity="1";
     ctrlEl.style.visibility="visible";
   }
+  if(seekEl){
+    seekEl.style.opacity="1";
+    seekEl.style.visibility="visible";
+  }
   const bottomCtrl=container.querySelector(".shaka-bottom-controls");
   if(bottomCtrl){
     bottomCtrl.style.opacity="1";
+    bottomCtrl.style.visibility="visible";
   }
 }
 
 function hideControlsNow(){
   const ctrlEl=getControlsEl();
+  const seekEl=getSeekBarEl();
   if(ctrlEl){
     ctrlEl.classList.add("rs-force-hide");
     ctrlEl.style.opacity="0";
     ctrlEl.style.visibility="hidden";
+  }
+  if(seekEl){
+    seekEl.style.opacity="0";
+    seekEl.style.visibility="hidden";
   }
   if(controls && typeof controls.hide==="function"){
     controls.hide();
