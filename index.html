@@ -5,14 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <title>RS Player Pro</title>
-
 <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
 <script>
 jwplayer.key = "Khpp2dHxlBJHC8MCmLnBuV2jK/DwDnJMniwF6EO9HC/riJ712ZmbHg==";
 </script>
-
 <link rel="preconnect" href="https://content.jwplatform.com">
-
 <style>
 :root{
     --bg-1:#0a0a12;
@@ -82,9 +79,7 @@ video::-webkit-media-controls{display:none!important;}
 </style>
 </head>
 <body>
-
 <div id="hardBlockScreen"><div><div style="font-size:60px">🔒</div><h2 style="color:#fff;margin:14px 0 8px;font-size:22px;font-weight:900">Security Alert</h2><p style="color:#999;font-size:14px;line-height:1.6">DevTools / Inspect বন্ধ করে<br>আবার ঢুকো<br>RS Live TV Protected</p><button onclick="location.reload()" style="margin-top:18px;padding:12px 28px;border:none;border-radius:12px;background:linear-gradient(135deg,#22d3ee,#a78bfa);font-weight:800;cursor:pointer">🔄 Reload</button></div></div>
-
 <div id="player-wrapper">
 <div id="loader">
     <div class="tuner">
@@ -113,7 +108,6 @@ video::-webkit-media-controls{display:none!important;}
 </div>
 <div id="player"></div>
 </div>
-
 <script>
 const urlParams = new URLSearchParams(window.location.search);
 const streamSource = urlParams.get('url');
@@ -250,14 +244,9 @@ if(!streamSource){
     observer.observe(document.getElementById('player'), { childList:true, subtree:true });
 }
 </script>
-
-<!-- ===== HARD SECURITY - RS PLAYER ===== -->
 <script>
 (function(){
 "use strict";
-if(window.top !== window.self){
-  try{ if(window.top.location.hostname !== window.self.location.hostname){ document.documentElement.innerHTML=''; return; } }catch(e){}
-}
 var blocked = false;
 function hardBlock(){
   if(blocked) return; blocked = true;
@@ -280,24 +269,19 @@ document.addEventListener('keydown', function(e){
   if(e.metaKey && ['U','S','I'].indexOf(k)!==-1){ e.preventDefault(); e.stopPropagation(); return false; }
 }, true);
 document.addEventListener('keyup', function(e){ if(e.keyCode===123){ hardBlock(); } }, true);
-setInterval(function(){
-  try{
-    var w = window.outerWidth - window.innerWidth > 160;
-    var h = window.outerHeight - window.innerHeight > 160;
-    if(w || h) hardBlock();
-  }catch(e){}
-}, 800);
-setInterval(function(){
-  try{
-    var start = Date.now();
-    (function(){ return false; })['constructor']('debugger')['call']();
-    if(Date.now() - start > 100) hardBlock();
-  }catch(e){ hardBlock(); }
-}, 1500);
-try{ console.clear(); setInterval(function(){ try{ console.clear(); }catch(e){} }, 2000); console.log('%cSTOP! %cRS Live TV Protected', 'color:red;font-size:28px;font-weight:bold', 'color:#fff;font-size:14px'); }catch(e){}
+var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+var isInIframe = (window.top !== window.self);
+if(!isMobile && !isInIframe && window.innerWidth>768){
+  setInterval(function(){
+    try{
+      var w = window.outerWidth - window.innerWidth > 200;
+      var h = window.outerHeight - window.innerHeight > 200;
+      if(w || h) hardBlock();
+    }catch(e){}
+  }, 1000);
+}
 document.addEventListener('touchstart', function(e){ if(e.touches && e.touches.length>1){ e.preventDefault(); } }, {passive:false});
 })();
 </script>
-
 </body>
 </html>
