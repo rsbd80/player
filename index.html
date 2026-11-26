@@ -68,13 +68,11 @@ video::-webkit-media-controls{display:none!important}
 #volSeek{-webkit-appearance:none;appearance:none;width:75px;height:5px;background:rgba(255,255,255,.85);border-radius:99px;outline:none;cursor:pointer;flex-shrink:0;margin-left:2px}
 #volSeek::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:none;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.6)}
 #volSeek::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:none;cursor:pointer}
-#qualityMenu{position:absolute;bottom:40px;right:8px;z-index:80;display:none;background:rgba(20,20,20,.95);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:1px;width:135px;max-height:120px;overflow-y:auto;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+#qualityMenu{position:absolute;bottom:40px;right:8px;z-index:80;display:none;background:rgba(20,20,20,.95);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:1px 1px 2px;width:132px;max-height:112px;overflow-y:auto;box-shadow:0 10px 30px rgba(0,0,0,.6)}
 #qualityMenu.show{display:block}
 #player-wrapper:not(.show-controls) #qualityMenu{display:none!important}
-#qualityMenu .q-head{display:flex;align-items:center;gap:4px;font-size:7px;font-weight:400;letter-spacing:1px;color:#aaa;padding:2px 6px 2px;position:sticky;top:0;background:rgba(20,20,20,.95);z-index:1}
-#qualityMenu .q-head svg{width:10px!important;height:10px!important}
-#qualityMenu button{width:100%!important;height:19px!important;border-radius:5px!important;padding:1px 8px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;margin-bottom:0!important;background:transparent!important;border:1px solid transparent!important;color:#fff!important;box-shadow:none!important}
-#qualityMenu button .q-main{font-size:9px!important;font-weight:400}
+#qualityMenu button{width:100%!important;height:18px!important;border-radius:5px!important;padding:1px 8px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;margin:0!important;background:transparent!important;border:1px solid transparent!important;color:#fff!important;box-shadow:none!important}
+#qualityMenu button .q-main{font-size:9px!important;font-weight:400;line-height:1}
 #qualityMenu button .q-tick{font-size:9px;opacity:0}
 #qualityMenu button.sel{background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.35)!important}
 #qualityMenu button.sel .q-tick{opacity:1}
@@ -85,7 +83,7 @@ video::-webkit-media-controls{display:none!important}
 <div id="loader"><div class="tuner"><div class="tv-wrap"><div class="tv-glow"></div><svg class="tv-icon" viewBox="0 0 64 64"><path class="tv-body" d="M22 12 32 20 42 12"/><clipPath id="screenClip"><rect x="12" y="20" width="40" height="26" rx="4"/></clipPath><g class="screen-bars" clip-path="url(#screenClip)"><rect x="12" y="20" width="8" height="26"/><rect x="20" y="20" width="8" height="26"/><rect x="28" y="20" width="8" height="26"/><rect x="36" y="20" width="8" height="26"/><rect x="44" y="20" width="8" height="26"/></g><rect class="tv-body" x="12" y="20" width="40" height="26" rx="4"/><line class="tv-body" x1="24" y1="46" x2="24" y2="50"/><line class="tv-body" x1="40" y1="46" x2="40" y2="50"/><line class="tv-body" x1="20" y1="50" x2="44" y2="50"/></svg></div><div class="brand-name"><b>Rs Live</b> <i>Tv</i></div><div class="dots"><span></span><span></span><span></span></div><div class="status-line" id="status-line">LOADING</div></div></div>
 <div id="player"></div>
 <div id="tapPlay"><div class="tp-btn">▶</div><p>চালু করতে ট্যাপ করো</p><small>এই ফোনে ব্রাউজার সাউন্ড ব্লক করছে</small></div>
-<div id="qualityMenu"><div class="q-head"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> QUALITY</div><div id="qList"></div></div>
+<div id="qualityMenu"><div id="qList"></div></div>
 <div id="controls">
 <div class="grp">
 <button id="playBtn"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5-11-6.5z"/></svg></button>
@@ -216,4 +214,4 @@ setTimeout(()=>{if(!everPlayed&&!triedProxy&&canUseProxy&&!/\.mpd/i.test(streamS
 (function(){document.addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&['U','S','C'].includes(e.key.toUpperCase()))){e.preventDefault();}});})();
 </script>
 </body>
-</html>
+  </html>
